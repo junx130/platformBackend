@@ -1,0 +1,24 @@
+{
+  "name": "platformbackend",
+  "version": "1.0.0",
+  "description": "Aploud Platform Backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jun xian",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "exceljs": "^4.1.1",
+    "express": "^4.17.1",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mariadb": "^2.4.2",
+    "moment": "^2.27.0",
+    "mqtt": "^4.1.0",
+    "nodemon": "^2.0.5"
+  }
+}
