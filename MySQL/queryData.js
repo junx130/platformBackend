@@ -4,7 +4,7 @@ const database = "RawDataLog";
 
 
 async function getNMinData(devType, devID, minute){
-    const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE timestamp >= now() - INTERVAL ${minute} MINUTE;`
+    const sqlQuery = `SELECT * FROM (SELECT * FROM Device_${devType}_${devID} WHERE timestamp >= now() - INTERVAL ${minute} MINUTE)Var1 ORDER BY TIMESTAMP DESC ;`
     let connection;
     try {
       connection = await pool.getConnection();
