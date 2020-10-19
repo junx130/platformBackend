@@ -1,11 +1,11 @@
 const express = require("express");
 let cors = require("cors");
-const ty1_Route= require("./ty1_rtrh")
+const queryRoute= require("./queryData")
 
 
 module.exports = function (app) {
     app.use(express.json());
     app.use(cors());
 
-    app.use("/api/ty1", ty1_Route);
+    app.use("/api/", queryRoute);
 }

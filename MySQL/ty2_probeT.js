@@ -89,5 +89,4 @@ function validateMessage(deviceInfo){
     return Joi.validate(deviceInfo, schema);
 }
 
-
 exports.probeTDbHandlings = probeTDbHandlings;
