@@ -5,7 +5,7 @@ const {prgMqtt} = require ("./MQTT/koalaMqtt")
 
 require("./Routes/routes")(app);
 
-// prgMqtt();
+prgMqtt();
 
 
 const port = process.env.PORT || 3900;
