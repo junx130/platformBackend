@@ -5,7 +5,7 @@ const {prgMqtt} = require ("./MQTT/koalaMqtt")
 
 require("./Routes/routes")(app);
 
-// prgMqtt();
+prgMqtt();
 
 // let data={Ty, ID,GwID,Freq,T,H,BV,LC,RSSI, SNR};
 // let data={Ty:10}; 
