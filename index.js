@@ -1,8 +1,9 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
-
 const {prgMqtt} = require ("./MQTT/koalaMqtt")
+
+require("./Routes/routes")(app);
 
 prgMqtt();
 
