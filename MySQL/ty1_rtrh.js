@@ -1,5 +1,4 @@
 const Joi = require("joi");
-const { isConstructorTypeNode } = require("tsutils");
 const { pool } = require("./db");
 const { listedInbuildingDevices } = require("./queryData");
 const devType = 1;
@@ -13,7 +12,10 @@ async function rtrhDbHandlings(message) {
         if (deviceInfo.Ty ===devType) {            
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
-                await insertToDb(deviceInfo);
+                await insertToDb(deviceInfo, database);
+                let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
+                console.log("CheckListResult :", CheckListResult);
+                // console.log("Arr Size :", CheckListResult[0]);
             }else{
                 console.log(validateErr);
             }
@@ -23,16 +25,14 @@ async function rtrhDbHandlings(message) {
     }
 }
 
-async function insertToDb(Info){
-    let InsertResult = await insertTemplate(Info, database);  
-    console.log("InsertResult :", InsertResult);
-    // check device id exist in any building DeviceList
-    let CheckListResult = await listedInbuildingDevices;
-    console.log("CheckListResult :", CheckListResult);
-    
-}
+async function insertToDb(Info, db){
 
-async function insertTemplate(Info, db){
+    // let InsertResult = await insertTemplate(Info, database);  
+    // console.log("InsertResult :", InsertResult);
+    // // check device id exist in any building DeviceList
+    // let CheckListResult = await listedInbuildingDevices();
+    // console.log("CheckListResult :", CheckListResult);
+    
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -86,6 +86,9 @@ async function insertTemplate(Info, db){
       if (connection) connection.end();
       console.log("DB log complete");
     }   
+}
+
+async function insertTemplate(Info, db){
 }
 
 
