@@ -1,5 +1,7 @@
 const Joi = require("joi");
+const { isConstructorTypeNode } = require("tsutils");
 const { pool } = require("./db");
+const { listedInbuildingDevices } = require("./queryData");
 const devType = 1;
 
 const database = "RawDataLog";
@@ -22,6 +24,15 @@ async function rtrhDbHandlings(message) {
 }
 
 async function insertToDb(Info){
+    let InsertResult = await insertTemplate(Info, database);  
+    console.log("InsertResult :", InsertResult);
+    // check device id exist in any building DeviceList
+    let CheckListResult = await listedInbuildingDevices;
+    console.log("CheckListResult :", CheckListResult);
+    
+}
+
+async function insertTemplate(Info, db){
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -64,8 +75,8 @@ async function insertToDb(Info){
     let result;
     try {
       connection = await pool.getConnection();
-      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${database}`);
-      result = await connection.query(`use ${database}`);
+      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${db}`);
+      result = await connection.query(`use ${db}`);
       result = await connection.query(createTable);
       result = await connection.query(insertData);
       console.log("Insert Data", result);
@@ -74,8 +85,9 @@ async function insertToDb(Info){
     } finally {
       if (connection) connection.end();
       console.log("DB log complete");
-    }    
+    }   
 }
+
 
 function validateMessage(deviceInfo){    
     const schema = {        

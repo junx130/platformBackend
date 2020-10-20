@@ -84,6 +84,24 @@ async function getNMinAfterT(devType, devID, T1, min1){
   }
 }
 
+// check device id listed on building device list
+async function listedInbuildingDevices(devType, devID){
+  const sqlQuery = `SELECT * FROM BuildingDevices WHERE type = '${devType}' AND devID = '${devID}'`;
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    result = await connection.query(`use Buildings`);
+    result = await connection.query(sqlQuery);
+    return result;
+  } catch (ex) {
+    console.log("DB Error", ex.message);
+  } finally {
+    if (connection) connection.end();
+    console.log("listed In Building Devices Finally");
+  }
+}
+
+exports.listedInbuildingDevices = listedInbuildingDevices;
 exports.getNMinAfterT = getNMinAfterT;
 exports.getNDataAfterT = getNDataAfterT;
 exports.getDataT1ToT2 = getDataT1ToT2;
