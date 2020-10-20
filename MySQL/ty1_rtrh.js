@@ -16,6 +16,7 @@ async function rtrhDbHandlings(message) {
                 let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
                 console.log("CheckListResult :", CheckListResult);
                 // console.log("Arr Size :", CheckListResult[0]);
+                // for each object in array, create Building.Device_<node type>_<BuildingDevice._id>
             }else{
                 console.log(validateErr);
             }
@@ -25,14 +26,7 @@ async function rtrhDbHandlings(message) {
     }
 }
 
-async function insertToDb(Info, db){
-
-    // let InsertResult = await insertTemplate(Info, database);  
-    // console.log("InsertResult :", InsertResult);
-    // // check device id exist in any building DeviceList
-    // let CheckListResult = await listedInbuildingDevices();
-    // console.log("CheckListResult :", CheckListResult);
-    
+async function insertToDb(Info, db){    
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
