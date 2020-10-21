@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { pool } = require("./db");
+const { listedInbuildingDevices } = require("./queryData");
 const devType = 3;
 
 const database = "RawDataLog";
