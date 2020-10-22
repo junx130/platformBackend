@@ -42,6 +42,7 @@ async function insertToDb(Info, db, nameID){
         mA decimal(20,3) NOT NULL,  
         pressure decimal(20,3) NOT NULL,  
         battVoltage decimal(20,3) NOT NULL,  
+        dcSupply decimal(20,3),  
         lc decimal(20,3) NOT NULL,  
         RSSI INT NOT NULL,  
         SNR INT NOT NULL,  
@@ -54,6 +55,7 @@ async function insertToDb(Info, db, nameID){
     data.V1 = Info.V1;
     data.V2 = Info.V2;
     data.BV = Info.BV;
+    data.BP = Info.BP;
     data.LC = Info.LC;
     data.RSSI = Info.RSSI;
     data.SNR = Info.SNR;
@@ -66,8 +68,8 @@ async function insertToDb(Info, db, nameID){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, mA, pressure, battVoltage, lc, RSSI, SNR) 
-    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V1}, ${data.V2}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, mA, pressure, battVoltage, dcSupply, lc, RSSI, SNR) 
+    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V1}, ${data.V2}, ${data.BV}, ${data.BP}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
