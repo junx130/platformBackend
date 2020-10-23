@@ -1,8 +1,10 @@
 const Joi = require("joi");
 const { pool } = require("./db");
+const { listedInbuildingDevices } = require("./queryData");
 const devType = 3;
 
 const database = "RawDataLog";
+const buildingDb = "Buildings";
 
 
 async function dpmDbHandling(message) {
@@ -12,7 +14,14 @@ async function dpmDbHandling(message) {
         if (deviceInfo.Ty ===devType) {            
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
-                await insertToDb(deviceInfo);
+                await insertToDb(deviceInfo, database, deviceInfo.ID);
+                let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
+                if (CheckListResult) {
+                    for (const c of CheckListResult) {
+                        await insertToDb(deviceInfo, buildingDb, c._id);     
+                        // console.log("c :", c);
+                    }   
+                }
             }else{
                 console.log(validateErr);
             }
@@ -22,8 +31,8 @@ async function dpmDbHandling(message) {
     }
 }
 
-async function insertToDb (Info){
-    const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
+async function insertToDb(Info, db, nameID){    
+    const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         unix INT(11) NOT NULL,
@@ -75,15 +84,15 @@ async function insertToDb (Info){
     let kWh= data.INT64 / 1000;
     let activePowerTotal = data.V[8] + data.V[9] + data.V[10];
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${Info.ID}(unix, type, devID, gwID, frequency, CurrentA, CurrentB, CurrentC, VoltageA_B, VoltageB_C, VoltageC_A, DpmFrequency, ActivePower_A, ActivePower_B, ActivePower_C, ActivePower_Total, PowerFactor_A,PowerFactor_B, PowerFactor_C, PowerFactor_Total, ActiveEnergyDelivered, battVoltage, lc, RSSI, SNR) 
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, CurrentA, CurrentB, CurrentC, VoltageA_B, VoltageB_C, VoltageC_A, DpmFrequency, ActivePower_A, ActivePower_B, ActivePower_C, ActivePower_Total, PowerFactor_A,PowerFactor_B, PowerFactor_C, PowerFactor_Total, ActiveEnergyDelivered, battVoltage, lc, RSSI, SNR) 
     VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.V[8]}, ${data.V[9]}, ${data.V[10]}, ${activePowerTotal}, ${data.V[11]}, ${data.V[12]}, ${data.V[13]}, ${data.V[14]}, ${kWh}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
     try {
       connection = await pool.getConnection();
-      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${database}`);
-      result = await connection.query(`use ${database}`);
+      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${db}`);
+      result = await connection.query(`use ${db}`);
       result = await connection.query(createTable);
       result = await connection.query(insertData);
       console.log("Insert Data", result);

@@ -1,8 +1,10 @@
 const Joi = require("joi");
 const { pool } = require("./db");
+const { listedInbuildingDevices } = require("./queryData");
 const devType = 1;
 
 const database = "RawDataLog";
+const buildingDb = "Buildings";
 
 
 async function rtrhDbHandlings(message) {
@@ -11,7 +13,14 @@ async function rtrhDbHandlings(message) {
         if (deviceInfo.Ty ===devType) {            
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
-                await insertToDb(deviceInfo);
+                await insertToDb(deviceInfo, database, deviceInfo.ID);
+                let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
+                if (CheckListResult) {
+                    for (const c of CheckListResult) {
+                        await insertToDb(deviceInfo, buildingDb, c._id);     
+                        // console.log("c :", c);
+                    }   
+                }
             }else{
                 console.log(validateErr);
             }
@@ -21,8 +30,8 @@ async function rtrhDbHandlings(message) {
     }
 }
 
-async function insertToDb(Info){
-    const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
+async function insertToDb(Info, db, nameID){    
+    const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         unix INT(11) NOT NULL,
@@ -57,15 +66,15 @@ async function insertToDb(Info){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${Info.ID}(unix, type, devID, gwID, frequency, temperature, humidity, battVoltage, lc, RSSI, SNR) 
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, temperature, humidity, battVoltage, lc, RSSI, SNR) 
     VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.T}, ${data.H}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
     try {
       connection = await pool.getConnection();
-      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${database}`);
-      result = await connection.query(`use ${database}`);
+      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${db}`);
+      result = await connection.query(`use ${db}`);
       result = await connection.query(createTable);
       result = await connection.query(insertData);
       console.log("Insert Data", result);
@@ -74,8 +83,9 @@ async function insertToDb(Info){
     } finally {
       if (connection) connection.end();
       console.log("DB log complete");
-    }    
+    }   
 }
+
 
 function validateMessage(deviceInfo){    
     const schema = {        
