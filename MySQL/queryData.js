@@ -2,6 +2,42 @@
 const { pool } = require("./db");
 const database = "RawDataLog";
 
+
+async function queryTemplate(db, queryCmd, completeMessage){
+  let connection;
+  let result;
+  try {
+    connection = await pool.getConnection();
+    result = await connection.query(`use ${db}`);
+    result = await connection.query(queryCmd);    // what will happen here if no such database
+    // console.log("Insert Data", result);
+    return result;
+  } catch (ex) {
+    console.log("DB Error", ex.message);
+  } finally {
+    if (connection) connection.end();
+    console.log(completeMessage);
+  }   
+}
+
+async function insertTemplate(db, createTable, insertData, completeMessage){
+  let connection;
+  let result;
+  try {
+    connection = await pool.getConnection();
+    result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${db}`);
+    result = await connection.query(`use ${db}`);
+    result = await connection.query(createTable);
+    result = await connection.query(insertData);
+    console.log("Insert Data", result);
+  } catch (ex) {
+    console.log("Maria DB Error", ex.message);
+  } finally {
+    if (connection) connection.end();
+    console.log(completeMessage);
+  }   
+}
+
 async function getNMinData(devType, devID, minute){
     const sqlQuery = `SELECT * FROM (SELECT * FROM Device_${devType}_${devID} WHERE timestamp >= now() - INTERVAL ${minute} MINUTE)Var1 ORDER BY unix DESC ;`
     let connection;
@@ -101,6 +137,8 @@ async function listedInbuildingDevices(devType, devID){
   }
 }
 
+exports.queryTemplate=queryTemplate;
+exports.insertTemplate = insertTemplate;
 exports.listedInbuildingDevices = listedInbuildingDevices;
 exports.getNMinAfterT = getNMinAfterT;
 exports.getNDataAfterT = getNDataAfterT;
