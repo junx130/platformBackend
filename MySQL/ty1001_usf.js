@@ -26,6 +26,7 @@ async function insertToDb (Info){
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${Info.ID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        unix INT(11) NOT NULL,
         type SMALLINT NOT NULL,  
         devID INT NOT NULL,  
         gwID INT,  
@@ -63,8 +64,8 @@ async function insertToDb (Info){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${Info.ID}(type, devID, gwID, frequency, FlowPSec, FlowPMin, FlowPHour, Velocity, RTD1, RTD2, VeloUnit, FlowrateUnit, battVoltage, lc, RSSI, SNR) 
-    VALUES (${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
+    const insertData = `INSERT INTO Device_${Info.Ty}_${Info.ID}(unix, type, devID, gwID, frequency, FlowPSec, FlowPMin, FlowPHour, Velocity, RTD1, RTD2, VeloUnit, FlowrateUnit, battVoltage, lc, RSSI, SNR) 
+    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
