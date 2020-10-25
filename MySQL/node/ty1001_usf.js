@@ -1,13 +1,13 @@
 const Joi = require("joi");
-const { pool } = require("./db");
-const { listedInbuildingDevices } = require("./queryData");
-const devType = 1002;
+const { pool } = require("../db");
+const { listedInbuildingDevices } = require("../queryData");
+const devType = 1001;
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 
-async function airFlowDbHandling(message) {
+async function usfDbHandling(message) {
 
     try {
         const deviceInfo = JSON.parse(message);
@@ -40,7 +40,6 @@ async function insertToDb(Info, db, nameID){
         devID INT NOT NULL,  
         gwID INT,  
         frequency decimal(19,4),  
-
         FlowPSec FLOAT NOT NULL,  
         FlowPMin FLOAT NOT NULL,  
         FlowPHour FLOAT NOT NULL,  
@@ -49,7 +48,6 @@ async function insertToDb(Info, db, nameID){
         RTD2 FLOAT NOT NULL,  
         VeloUnit FLOAT NOT NULL,  
         FlowrateUnit FLOAT NOT NULL,  
-        
         battVoltage decimal(20,3) NOT NULL,  
         lc decimal(20,3) NOT NULL,  
         RSSI INT NOT NULL,  
@@ -112,4 +110,4 @@ function validateMessage(deviceInfo){
     return Joi.validate(deviceInfo, schema);
 }
 
-exports.airFlowDbHandling = airFlowDbHandling;
+exports.usfDbHandling = usfDbHandling;

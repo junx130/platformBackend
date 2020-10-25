@@ -1,14 +1,13 @@
 const Joi = require("joi");
-const { pool } = require("./db");
-const { listedInbuildingDevices } = require("./queryData");
-const devType = 1001;
+const { pool } = require("../db");
+const { listedInbuildingDevices } = require("../queryData");
+const devType = 1;
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 
-async function usfDbHandling(message) {
-
+async function rtrhDbHandlings(message) {
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
@@ -40,14 +39,8 @@ async function insertToDb(Info, db, nameID){
         devID INT NOT NULL,  
         gwID INT,  
         frequency decimal(19,4),  
-        FlowPSec FLOAT NOT NULL,  
-        FlowPMin FLOAT NOT NULL,  
-        FlowPHour FLOAT NOT NULL,  
-        Velocity FLOAT NOT NULL,  
-        RTD1 FLOAT NOT NULL,  
-        RTD2 FLOAT NOT NULL,  
-        VeloUnit FLOAT NOT NULL,  
-        FlowrateUnit FLOAT NOT NULL,  
+        temperature decimal(20,3) NOT NULL,  
+        humidity decimal(20,3) NOT NULL,  
         battVoltage decimal(20,3) NOT NULL,  
         lc decimal(20,3) NOT NULL,  
         RSSI INT NOT NULL,  
@@ -58,8 +51,8 @@ async function insertToDb(Info, db, nameID){
     let data={};
     data.Ty = Info.Ty;
     data.ID = Info.ID;
-    data.V = Info.V;
-    data.INT64 = Info.INT64;
+    data.T = Info.T;
+    data.H = Info.H;
     data.BV = Info.BV;
     data.LC = Info.LC;
     data.RSSI = Info.RSSI;
@@ -73,8 +66,8 @@ async function insertToDb(Info, db, nameID){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, FlowPSec, FlowPMin, FlowPHour, Velocity, RTD1, RTD2, VeloUnit, FlowrateUnit, battVoltage, lc, RSSI, SNR) 
-    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, temperature, humidity, battVoltage, lc, RSSI, SNR) 
+    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.T}, ${data.H}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
@@ -90,17 +83,18 @@ async function insertToDb(Info, db, nameID){
     } finally {
       if (connection) connection.end();
       console.log("DB log complete");
-    }    
+    }   
 }
+
 
 function validateMessage(deviceInfo){    
     const schema = {        
         Ty: Joi.number().required().min(0),
         ID: Joi.number().required().min(0),
-        V: Joi.array(),
-        INT64: Joi.number().required(),
+        T: Joi.number().required(),
+        H: Joi.number().required().min(0).max(100),
         BV: Joi.number().required(),
-        BP: Joi.number().min(0).max(100),
+        BP: Joi.number().required().min(0).max(100),
         LC: Joi.number().required(),
         RSSI: Joi.number().required(),
         SNR: Joi.number().required(),
@@ -110,4 +104,4 @@ function validateMessage(deviceInfo){
     return Joi.validate(deviceInfo, schema);
 }
 
-exports.usfDbHandling = usfDbHandling;
+exports.rtrhDbHandling = rtrhDbHandlings;

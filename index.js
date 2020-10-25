@@ -5,8 +5,7 @@ const {prgMqtt} = require ("./MQTT/koalaMqtt")
 
 require("./Routes/routes")(app);
 
-prgMqtt();
-
+if(process.env.debugOnLaptop!="true") prgMqtt();
 
 const port = process.env.PORT || 3900;
 const server = app.listen(port, () =>
