@@ -25,7 +25,7 @@ router.post("/register", async (req, res) => {
         userInfo.password = await bcrypt.hash(req.body.password, salt);
         // insert user into user database 
         let insertResult = await regUser(userInfo);
-        const token = genAuthToken(userInfo);
+        // const token = genAuthToken(userInfo);
         res.status(200)
             // .header("aploud-auth-token", token)
             .send(_.pick(userInfo, ["username"]));    

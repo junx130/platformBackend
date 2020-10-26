@@ -89,8 +89,8 @@ async function insertToDb(Info, db, nameID){
 
 function validateMessage(deviceInfo){    
     const schema = {        
-        Ty: Joi.number().required().min(0),
-        ID: Joi.number().required().min(0),
+        Ty: Joi.number().required().min(1),
+        ID: Joi.number().required().min(1),
         T: Joi.number().required(),
         H: Joi.number().required().min(0).max(100),
         BV: Joi.number().required(),

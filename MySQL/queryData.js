@@ -10,7 +10,7 @@ async function queryTemplate(db, queryCmd, completeMessage){
     connection = await pool.getConnection();
     result = await connection.query(`use ${db}`);
     result = await connection.query(queryCmd);    // what will happen here if no such database
-    // console.log("Insert Data", result);
+    // console.log("Query Data: ", result);
     return result;
   } catch (ex) {
     console.log("DB Error", ex.message);
@@ -29,9 +29,11 @@ async function insertTemplate(db, createTable, insertData, completeMessage){
     result = await connection.query(`use ${db}`);
     result = await connection.query(createTable);
     result = await connection.query(insertData);
-    console.log("Insert Data", result);
+    // console.log("Insert Data:", result);
+    return result;
   } catch (ex) {
     console.log("Maria DB Error", ex.message);
+    return null;
   } finally {
     if (connection) connection.end();
     console.log(completeMessage);

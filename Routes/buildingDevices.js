@@ -1,18 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding } = require("../MySQL/aploudSetting/building");
+const { getDevicesList, getDevicesFromList, registerNewDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
+const { getBuildingDevicesList } = require("../MySQL/buildings/buildingDevices");
 
-// get buidling list
+// get buidling devices list
 router.post("/get", auth, async (req, res) => {
     try {
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
-        // get building list from database
-        let buildingList = await getBuildings(req.user.accessLevel);
-        //  send building list
-        return res.status(200).send(buildingList);
+        // get building devices list from database
+        let result = await getBuildingDevicesList();
+        
+        //  send building devices list
+        return res.status(200).send(result);
         
     } catch (ex) {        
         console.log("Get Building Error");
@@ -26,43 +28,46 @@ router.post("/register", auth, async (req, res) => {
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info
-        const{error} = validateInsertNew(req.body);        
+        // console.log("req.body: ", req.body);
+        const{error} = validateInsertNew(req.body);
         if(error) return res.status(400).send(error.details[0].message);
         // check database whether building + owner both duplicated
-        let buildings = await getBuildingsByBuildingName(req.body);
-        if(buildings) return res.status(400).send("Building Exist.");
+        let exist = await getDevicesFromList(req.body);
+        if(exist) return res.status(400).send("Device Exist.");
         // insert building into database
-        let buidling = req.body;
-        buidling.userAmmend = req.user.username;
-        let result  = await insertNewBuilding(buidling);
+        let data = req.body;
+        if(!data.SimNumber) data.SimNumber = "";
+        if(!data.buildingID) data.buildingID = 0;        
+
+        let result  = await registerNewDevice(data);
+        
         // Check insert new building result
         // console.log("Result: ",result);
-        if(!result) return res.status(400).send("Insert Building Failed.");
-        if(result.affectedRows<1) return res.status(400).send("Insert Building Failed.");
+        if(!result) return res.status(400).send("Insert Device Failed.");
+        if(result.affectedRows<1) return res.status(400).send("Insert Device Failed.");
         //success
-        res.status(200).send(`${req.body.building} insert successful`);
+        res.status(200).send(`Device type: ${data.type}, ID: ${data.devID} insert successful`);
     } catch (ex) {
-        console.log("Register New Building Error");
+        console.log("Register New Device Error");
         return res.status(404).send(ex.message);        
     }
 });
 
-function validateInsertNew(building){
+function validateInsertNew(data){
     const schema = {        
         _id:Joi.number(),
-        owner: Joi.string().min(3).max(80).required(),        
-        building: Joi.string().min(3).max(80).required(),
-        country: Joi.string().min(3).max(80).required(),
-        state: Joi.string().min(3).max(80).required(),
-        area: Joi.string().min(3).max(80).required(),
-        postcode: Joi.number().required(),
-        userAmmend: Joi.string().min(3).max(80),
+        type: Joi.number().required().min(1),
+        devID: Joi.number().required().min(1),
+        battConst: Joi.number(),
+        sleepAmp: Joi.number(),
+        SimNumber: Joi.string().max(80),
+        buildingID: Joi.number(),
         accessLevel: Joi.number(),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
     }
-    return Joi.validate(building, schema);
+    return Joi.validate(data, schema);
 }
 
 router.post("/update", auth, async (req, res) => {
