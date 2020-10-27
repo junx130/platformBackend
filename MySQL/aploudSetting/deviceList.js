@@ -24,8 +24,8 @@ async function registerNewDevice(device) {
     )`;
 
     // const insertBuilding = `INSERT INTO kittyMeow(unix, owner, building, country, state, area, postcode, userAmmend) 
-    const insertBuilding = `INSERT INTO ${tableName}(unix, type, devID, battConst, sleepAmp, SimNumber, buildingID) 
-    VALUES (UNIX_TIMESTAMP(), ${device.type}, ${device.devID}, ${device.battConst}, ${device.sleepAmp}, "${device.SimNumber}", ${device.buildingID})`;
+    const insertBuilding = `INSERT INTO ${tableName}(unix, type, devID, battConst, sleepAmp, SimNumber, buildingID, userAmmend) 
+    VALUES (UNIX_TIMESTAMP(), ${device.type}, ${device.devID}, ${device.battConst}, ${device.sleepAmp}, "${device.SimNumber}", ${device.buildingID}, ${device.userAmmend})`;
 
     let result = await insertTemplate(settingDatabase, createTable, insertBuilding, "RegisterNewDeviceFinally");
     // console.log("Insert result: ", result);
@@ -64,7 +64,8 @@ async function getDevicesFromList(data){
 
 async function updateDevicesList(data){
      
-    const quertCmd = `UPDATE ${tableName} SET battConst = ${data.battConst},
+    const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
+    unix = UNIX_TIMESTAMP(), battConst = ${data.battConst},
     sleepAmp = ${data.sleepAmp}, SimNumber = "${data.SimNumber}",
     buildingID = ${data.buildingID},userAmmend = "${data.userAmmend}"
     where _id = ${data._id}`;

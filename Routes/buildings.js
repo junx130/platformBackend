@@ -73,7 +73,9 @@ router.post("/update", auth, async (req, res) => {
         const{error} = validateInsertNew(req.body);        
         if(error) return res.status(400).send(error.details[0].message);
         // building database
-        let result = await updateBuilding(req.body);
+        let data = req.body;
+        data.userAmmend = req.user.username;
+        let result = await updateBuilding(data);
         // no changes on database
         if(!result) return res.status(400).send("Update Failed");     // no raw affected, update failed
         if(result.affectedRows <1) return res.status(400).send("Update Failed");     // no raw affected, update failed

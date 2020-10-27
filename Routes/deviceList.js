@@ -36,6 +36,7 @@ router.post("/register", auth, async (req, res) => {
         if(exist) return res.status(400).send("Device Exist.");
         // insert building into database
         let data = req.body;
+        data.userAmmend = req.user.username;
         if(!data.SimNumber) data.SimNumber = "";
         if(!data.buildingID) data.buildingID = 0;        
 

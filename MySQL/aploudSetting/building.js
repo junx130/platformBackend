@@ -65,10 +65,12 @@ async function getBuildingsByBuildingName(building){
 
 async function updateBuilding(building){
      
-    const quertCmd = `UPDATE ${tableName} SET owner = "${building.owner}",
+    const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
+    unix = UNIX_TIMESTAMP(), owner = "${building.owner}",
     building = "${building.building}", country = "${building.country}",
     state = "${building.state}",area = "${building.area}", 
-    postcode = "${building.postcode}" where _id = ${building._id}`;
+    postcode = "${building.postcode}", userAmmend = "${building.userAmmend}"
+    where _id = ${building._id}`;
 
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Update Building Finally");
