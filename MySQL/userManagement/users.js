@@ -6,13 +6,13 @@ const jwt = require("jsonwebtoken");
 const userDatabase = "UserManagement";
 
 function validateMessage(user){    
-    const schema = {        
-        username: Joi.string().min(6).max(80).required(),
-        email: Joi.string().max(80).email(),
-        password: Joi.string().min(8).max(80).required(),
-        name: Joi.string().min(3).max(80).required(),
-        company: Joi.string().max(80),
-        phone: Joi.string().max(80).required(),
+    const schema = {       
+        username: Joi.string().required().min(6).max(80).label("Username"),
+        email: Joi.string().email().max(80).required().label("Email"),
+        password: Joi.string().required().min(8).max(80).label("Password"),
+        name: Joi.string().required().min(3).max(80).label("Full name"),
+        company: Joi.string().required().max(80).label("Company"),
+        phone: Joi.string().max(80).required().label("Phone"),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
@@ -61,6 +61,18 @@ async function getUser(username) {
     }
 }
 
+async function getAllUser() {    
+    const quertCmd = `SELECT * from Users`;
+
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "Get All User Done");
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function insertUser(user) {    
     const createTable = `CREATE TABLE IF NOT EXISTS Users(	
         _id int NOT NULL AUTO_INCREMENT,
@@ -94,6 +106,7 @@ function genAuthToken(user) {
     return token;
 }
 
+exports.getAllUser=getAllUser;
 exports.valUpdateUser = validateUpdateUser;
 exports.updateUser = updateUser;
 exports.genAuthToken = genAuthToken;

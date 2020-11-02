@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUser, regUser, genAuthToken, validateRegUser, valUpdateUser, updateUser } = require("../MySQL/userManagement/users");
+const { getUser, regUser, genAuthToken, validateRegUser, valUpdateUser, updateUser, getAllUser } = require("../MySQL/userManagement/users");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -11,6 +11,7 @@ const auth = require("../Middleware/auth");
 // register new user
 router.post("/register", async (req, res) => {        
     try {
+        console.log(req.body);
         const{error} = validateRegUser(req.body);
     
         if(error) return res.status(400).send(error.details[0].message);
@@ -25,13 +26,42 @@ router.post("/register", async (req, res) => {
         userInfo.password = await bcrypt.hash(req.body.password, salt);
         // insert user into user database 
         let insertResult = await regUser(userInfo);
-        // const token = genAuthToken(userInfo);
-        res.status(200)
+
+        userInfo.accessLevel = 100,
+        userInfo.active= 1;
+
+        const token = genAuthToken(userInfo);       
+        console.log("token", token) ;
+        res
+            .send(token);    
             // .header("aploud-auth-token", token)
-            .send(_.pick(userInfo, ["username"]));    
+            // .send(_.pick(userInfo, ["username"]));    
     } catch (error) {
         console.log("User Register Error");
         return res.status(404).send(error.message);
+    }
+});
+
+router.get("/all", auth, async (req, res) => {
+    
+    try {
+        console.log("Enter");
+        
+        if(req.user.active == 0) return res.status(401).send("Account not active");  // prevent admin accidently change own access level
+        
+        if(req.user.accessLevel > 10) return res.status(401).send("Do Not Have Access Right");     // access level is too low
+        
+        if(req.user.accessLevel >= req.body.accessLevel) return res.status(401).send("Access Level Too Low");     // access level is too low
+        
+        // get all user 
+        let rel = await getAllUser(req.body);
+        if(!rel[0]) return res.status(401).send("User List Empty");     // no raw affected, update failed
+        // reply fron end
+        res.status(200).send(rel);
+
+    } catch (ex) {
+        console.log("User Update Error");
+        return res.status(404).send(ex.message);
     }
 });
 
