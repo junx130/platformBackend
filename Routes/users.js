@@ -69,6 +69,7 @@ router.post("/update", auth, async (req, res) => {
     
     try {
         //validate USer
+        console.log(`Enter1120: ${req.body}`);
         const{error} = valUpdateUser(req.body);
         // stop seq if error
         if(error) return res.status(400).send(error.details[0].message);
@@ -83,7 +84,8 @@ router.post("/update", auth, async (req, res) => {
         
         // update user 
         let rel = await updateUser(req.body);
-        if(rel<1) return res.status(401).send("Update Failed");     // no raw affected, update failed
+        console.log(`rel : ${rel}`);
+        if(rel<1) {return res.status(404).send("Update Failed")};     // no raw affected, update failed
         // reply fron end
         res.status(200).send(_.pick(req.body, ["username","active","accessLevel"]));
 

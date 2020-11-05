@@ -13,7 +13,7 @@ function validateMessage(user){
         name: Joi.string().required().min(3).max(80).label("Full name"),
         company: Joi.string().required().max(80).label("Company"),
         phone: Joi.string().max(80).required().label("Phone"),
-        // accessLevel: Joi.number(),
+        accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
     }
@@ -23,21 +23,23 @@ function validateMessage(user){
 function validateUpdateUser(user){       
     const schema = {        
         username: Joi.string().min(6).max(80).required(),
-        // email: Joi.string().max(80).email(),
+        email: Joi.string().max(80).email(),
         // password: Joi.string().min(8).max(80).required(),
         // name: Joi.string().min(3).max(80).required(),
-        // company: Joi.string().max(80),
-        // phone: Joi.string().max(80).required(),
+        company: Joi.string().max(80),
+        phone: Joi.string().max(80),
         accessLevel: Joi.number(),
         active: Joi.number(),
-        // teleID: Joi.number(),
+        teleID: Joi.number(),
     }
     return Joi.validate(user, schema);
 }
 
 async function updateUser(info) {    
-    const quertCmd = `UPDATE Users SET accessLevel = ${info.accessLevel}
-    , active =${info.active} where username = "${info.username}"`;
+    const quertCmd = `UPDATE Users SET accessLevel = ${info.accessLevel}, 
+    company = "${info.company}", teleID = ${info.teleID}, 
+    email = "${info.email}", phone = "${info.phone}", 
+    active =${info.active} where username = "${info.username}"`;
 
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Update User Finally");
