@@ -1,9 +1,9 @@
-const { usfDbHandling } = require("../MySQL/ty1001_usf");
-const { airFlowDbHandling } = require("../MySQL/ty1002_airFlow");
-const { rtrhDbHandling } = require("../MySQL/ty1_rtrh");
-const { probeTDbHandlings } = require("../MySQL/ty2_probeT");
-const { dpmDbHandling } = require("../MySQL/ty3_dpm");
-const { pressureDbHandlings } = require("../MySQL/ty4_pressure");
+const { usfDbHandling } = require("../MySQL/node/ty1001_usf");
+const { airFlowDbHandling } = require("../MySQL/node/ty1002_airFlow");
+const { rtrhDbHandling } = require("../MySQL/node/ty1_rtrh");
+const { probeTDbHandlings } = require("../MySQL/node/ty2_probeT");
+const { dpmDbHandling } = require("../MySQL/node/ty3_dpm");
+const { pressureDbHandlings } = require("../MySQL/node/ty4_pressure");
 
 
  async function mqttNodeHandling(topic, message) {
