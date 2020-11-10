@@ -66,8 +66,7 @@ async function getBuildingsByBuildingName(building){
 async function updateBuilding(building){
      
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
-    unix = UNIX_TIMESTAMP(), owner = "${building.owner}",
-    building = "${building.building}", country = "${building.country}",
+    unix = UNIX_TIMESTAMP(), country = "${building.country}",
     state = "${building.state}",area = "${building.area}", 
     postcode = "${building.postcode}", userAmmend = "${building.userAmmend}"
     where _id = ${building._id}`;
@@ -82,6 +81,21 @@ async function updateBuilding(building){
     }
 }
 
+async function deleteBuilding(info){
+    console.log(info);
+    const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Delete Building Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+exports.deleteBuilding=deleteBuilding;
 exports.updateBuilding=updateBuilding;
 exports.getBuildings=getBuildings;
 exports.getBuildingsByBuildingName=getBuildingsByBuildingName;

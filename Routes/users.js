@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUser, regUser, genAuthToken, validateRegUser, valUpdateUser, updateUser, getAllUser } = require("../MySQL/userManagement/users");
+const { getUser, regUser, genAuthToken, validateRegUser, valUpdateUser, updateUser, getAllUser, deleteUser } = require("../MySQL/userManagement/users");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -65,16 +65,43 @@ router.get("/all", auth, async (req, res) => {
     }
 });
 
+
+router.post("/del", auth, async (req, res) => {
+    try {
+        const{error} = valUpdateUser(req.body);
+        // stop seq if error
+        if(error) return res.status(400).send(error.details[0].message);
+    
+        if(req.user.active != 1) return res.status(401).send("Account not active");  // prevent admin accidently change own access level
+            
+        if(req.user.username == req.body.username) return res.status(401).send("Not allowed to change self access level");  // prevent admin accidently change own access level
+        
+        if(req.user.accessLevel > 10) return res.status(401).send("Do Not Have Access Right");     // access level is too low
+        
+        if(req.user.accessLevel >= req.body.accessLevel) return res.status(401).send("Access Level Too Low");     // access level is too low
+        
+        let rel = await deleteUser(req.body);
+        console.log(`rel : ${rel}`);
+        if(rel<1) {return res.status(404).send("Delete Failed")};     // no raw affected, update failed
+        // reply fron end
+        res.status(200).send(_.pick(req.body, ["username"]));
+
+    } catch (ex) {        
+        console.log("User Update Error");
+        return res.status(404).send(ex.message);
+    }
+});
+
 router.post("/update", auth, async (req, res) => {
     
     try {
         //validate USer
-        console.log(`Enter1120: ${req.body}`);
+        // console.log(`Enter1120: ${req.body}`);
         const{error} = valUpdateUser(req.body);
         // stop seq if error
         if(error) return res.status(400).send(error.details[0].message);
         // console.log("User",req.user);
-        if(req.user.active == 0) return res.status(401).send("Account not active");  // prevent admin accidently change own access level
+        if(req.user.active != 1) return res.status(401).send("Account not active");  // prevent admin accidently change own access level
         
         if(req.user.username == req.body.username) return res.status(401).send("Not allowed to change self access level");  // prevent admin accidently change own access level
         

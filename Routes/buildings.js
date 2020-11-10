@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding } = require("../MySQL/aploudSetting/building");
+const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding, deleteBuilding } = require("../MySQL/aploudSetting/building");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 
 // get buidling list
-router.post("/get", auth, async (req, res) => {
+router.get("/get", auth, async (req, res) => {
     try {
+        // console.log("Enter1107");
+
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // get building list from database
@@ -50,12 +52,30 @@ router.post("/register", auth, async (req, res) => {
 function validateInsertNew(building){
     const schema = {        
         _id:Joi.number(),
-        owner: Joi.string().min(3).max(80).required(),        
-        building: Joi.string().min(3).max(80).required(),
-        country: Joi.string().min(3).max(80).required(),
-        state: Joi.string().min(3).max(80).required(),
-        area: Joi.string().min(3).max(80).required(),
+        owner: Joi.string().min(2).max(80).required(),        
+        building: Joi.string().min(2).max(80).required(),
+        country: Joi.string().min(2).max(80).required(),
+        state: Joi.string().min(2).max(80).required(),
+        area: Joi.string().min(2).max(80).required(),
         postcode: Joi.number().required(),
+        userAmmend: Joi.string().min(3).max(80),
+        accessLevel: Joi.number(),
+        // accessLevel: Joi.number(),
+        // active: Joi.number(),
+        // teleID: Joi.number(),
+    }
+    return Joi.validate(building, schema);
+}
+
+function validateUpdate(building){
+    const schema = {        
+        _id:Joi.number().required(),
+        owner: Joi.string().min(2).max(80),        
+        building: Joi.string().min(2).max(80),
+        country: Joi.string().min(2).max(80),
+        state: Joi.string().min(2).max(80),
+        area: Joi.string().min(2).max(80),
+        postcode: Joi.number(),
         userAmmend: Joi.string().min(3).max(80),
         accessLevel: Joi.number(),
         // accessLevel: Joi.number(),
@@ -70,8 +90,11 @@ router.post("/update", auth, async (req, res) => {
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info
-        const{error} = validateInsertNew(req.body);        
-        if(error) return res.status(400).send(error.details[0].message);
+        const{error} = validateUpdate(req.body);        
+        if(error) {
+            console.log(error.details[0].message);
+            return res.status(400).send(error.details[0].message);
+        }
         // building database
         let data = req.body;
         data.userAmmend = req.user.username;
@@ -84,6 +107,32 @@ router.post("/update", auth, async (req, res) => {
     } catch (ex) {
         console.log("Update Building Error");
         return res.status(404).send(ex.message);   
+    }
+});
+
+router.post("/del", auth, async (req, res) => {
+    try {
+        // console.log("ComeIn")
+        const{error} = validateUpdate(req.body);
+        // stop seq if error
+        if(error) return res.status(400).send(error.details[0].message);    
+        if(req.user.active != 1) return res.status(401).send("Account not active");  
+        // prevent admin accidently change own access level            
+        if(req.user.username == req.body.username) return res.status(401).send("Not allowed to change self access level");  // prevent admin accidently change own access level
+        
+        if(req.user.accessLevel > 10) return res.status(401).send("Do Not Have Access Right");     // access level is too low
+        
+        if(req.user.accessLevel >= req.body.accessLevel) return res.status(401).send("Access Level Too Low");     // access level is too low
+        
+        let rel = await deleteBuilding(req.body);
+        // console.log(`rel : ${rel}`);
+        if(rel<1) {return res.status(404).send("Delete Failed")};     // no raw affected, update failed
+        // reply fron end
+        res.status(200).send("Delete Done");
+
+    } catch (ex) {        
+        console.log("User Update Error");
+        return res.status(404).send(ex.message);
     }
 });
 

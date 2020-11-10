@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
 
-// get buidling list
-router.post("/get", auth, async (req, res) => {
+// get device list
+router.get("/all", auth, async (req, res) => {
     try {
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
@@ -73,6 +73,7 @@ function validateInsertNew(data){
 
 router.post("/update", auth, async (req, res) => {
     try {
+        // console.log(req.body);
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate info
@@ -110,10 +111,28 @@ router.post("/update", auth, async (req, res) => {
     }
 });
 
+router.post("/del", auth, async (req, res) => {
+    const{error} = validateUpdate(req.body);
+    // stop seq if error
+    if(error) return res.status(400).send(error.details[0].message);    
+    console.log(req.user);
+    if(req.user.active != 1) return res.status(401).send("Account not active");  
+    // prevent admin accidently change own access level            
+    if(req.user.username == req.body.username) return res.status(401).send("Not allowed to change self access level");  // prevent admin accidently change own access level
+    
+    if(req.user.accessLevel > 10) return res.status(401).send("Do Not Have Access Right");     // access level is too low
+    
+    if(req.user.accessLevel >= req.body.accessLevel) return res.status(401).send("Access Level Too Low");     // access level is too low
+    
+    let rel = await deleteDevice(req.body);
+    if(rel<1) {return res.status(404).send("Delete Failed")};     // no raw affected, update failed
+        // reply fron end
+        res.status(200).send("Delete Done");
+});
 
 function validateUpdate(data){
     const schema = {        
-        _id:Joi.number(),
+        _id:Joi.number().required(),
         type: Joi.number().required().min(1),
         devID: Joi.number().required().min(1),
         battConst: Joi.number(),

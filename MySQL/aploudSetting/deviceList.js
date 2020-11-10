@@ -25,7 +25,7 @@ async function registerNewDevice(device) {
 
     // const insertBuilding = `INSERT INTO kittyMeow(unix, owner, building, country, state, area, postcode, userAmmend) 
     const insertBuilding = `INSERT INTO ${tableName}(unix, type, devID, battConst, sleepAmp, SimNumber, buildingID, userAmmend) 
-    VALUES (UNIX_TIMESTAMP(), ${device.type}, ${device.devID}, ${device.battConst}, ${device.sleepAmp}, "${device.SimNumber}", ${device.buildingID}, ${device.userAmmend})`;
+    VALUES (UNIX_TIMESTAMP(), ${device.type}, ${device.devID}, ${device.battConst}, ${device.sleepAmp}, "${device.SimNumber}", ${device.buildingID}, "${device.userAmmend}")`;
 
     let result = await insertTemplate(settingDatabase, createTable, insertBuilding, "RegisterNewDeviceFinally");
     // console.log("Insert result: ", result);
@@ -80,6 +80,21 @@ async function updateDevicesList(data){
     }
 }
 
+async function deleteDevice(info){
+    console.log(info);
+    const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Delete Device Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+exports.deleteDevice=deleteDevice;
 exports.updateDevicesList=updateDevicesList;
 exports.getDevicesFromList=getDevicesFromList;
 exports.getDevicesList=getDevicesList;

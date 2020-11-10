@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 // const { pool } = require("./db");
 
 const userDatabase = "UserManagement";
+const dbTable = "Users";
 
 function validateMessage(user){    
     const schema = {       
@@ -44,6 +45,19 @@ async function updateUser(info) {
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Update User Finally");
         // console.log("Update: ", result.affectedRows);        
+        return result.affectedRows;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+async function deleteUser(info) {    
+    const quertCmd = `DELETE from ${dbTable} where username = "${info.username}"`;
+
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "Delete User Finally");
+        console.log("Delete: ", result.affectedRows);        
         return result.affectedRows;        
     } catch (ex) {
         console.log(ex.message)
@@ -103,11 +117,12 @@ function genAuthToken(user) {
     const token = jwt.sign({
         username : user.username,
         accessLevel : user.accessLevel,
-        active: user.accessLevel
+        active: user.active
     }, process.env.jwtPrivateKey);
     return token;
 }
 
+exports.deleteUser=deleteUser;
 exports.getAllUser=getAllUser;
 exports.valUpdateUser = validateUpdateUser;
 exports.updateUser = updateUser;
