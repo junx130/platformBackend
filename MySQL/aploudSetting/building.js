@@ -63,6 +63,20 @@ async function getBuildingsByBuildingName(building){
     }
 }
 
+async function getBuildingsByID(_id){
+    const quertCmd = `SELECT * from ${tableName} WHERE _id = ${_id}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Get Building By _id Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function updateBuilding(building){
      
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
@@ -95,6 +109,7 @@ async function deleteBuilding(info){
     }
 }
 
+exports.getBuildingsByID=getBuildingsByID;
 exports.deleteBuilding=deleteBuilding;
 exports.updateBuilding=updateBuilding;
 exports.getBuildings=getBuildings;

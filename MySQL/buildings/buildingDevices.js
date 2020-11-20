@@ -2,8 +2,6 @@
 const { insertTemplate, queryTemplate } = require("../queryData");
 
 
-// api to insert new buildings
-
 const settingDatabase = "Buildings";
 const tableName = "BuildingDevices";
 
@@ -95,6 +93,21 @@ async function updateBuildingDevices(data){
     }
 }
 
+async function deleteBdDevice(info){
+    console.log(info);
+    const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Delete Building Device Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+exports.deleteBdDevice=deleteBdDevice;
 exports.updateBuildingDevices=updateBuildingDevices;
 exports.registerBuildingDevice=registerBuildingDevice;
 exports.setIdleBuildingDevices=setIdleBuildingDevices;

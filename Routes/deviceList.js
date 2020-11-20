@@ -64,6 +64,7 @@ function validateInsertNew(data){
         SimNumber: Joi.string().max(80),
         buildingID: Joi.number(),
         accessLevel: Joi.number(),
+        userAmmend: Joi.string().max(80),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
@@ -94,7 +95,7 @@ router.post("/update", auth, async (req, res) => {
             for (b of buidingDevices) {
                 // console.log("b: ",b);
                 if((b.buildingID != data.buildingID)){
-                    // console.log("ID changed");
+                    console.log("ID changed");
                     // change the BuildingDevices devID here;
                     let setIdle = await setIdleBuildingDevices(b);
                     if(setIdle.affectedRows<1) return res.status(400).send("Set Idle Failed");

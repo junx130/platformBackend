@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding, deleteBuilding } = require("../MySQL/aploudSetting/building");
+const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding, deleteBuilding,getBuildingsByID } = require("../MySQL/aploudSetting/building");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 
+
+
+router.get("/getbyid/:id", auth, async (req, res) => {
+    // console.log(req.params.id);
+    // console.log("Enter1107");
+    let building = await getBuildingsByID(req.params.id);
+    return res.status(200).send(building);
+})
 // get buidling list
 router.get("/get", auth, async (req, res) => {
     try {
-        // console.log("Enter1107");
 
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");

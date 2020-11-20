@@ -1,6 +1,6 @@
 
 const { pool } = require("./db");
-const database = "RawDataLog";
+// const database = "RawDataLog";
 
 
 async function queryTemplate(db, queryCmd, completeMessage){
@@ -40,7 +40,7 @@ async function insertTemplate(db, createTable, insertData, completeMessage){
   }   
 }
 
-async function getNMinData(devType, devID, minute){
+async function getNMinData(database, devType, devID, minute){
     const sqlQuery = `SELECT * FROM (SELECT * FROM Device_${devType}_${devID} WHERE timestamp >= now() - INTERVAL ${minute} MINUTE)Var1 ORDER BY unix DESC ;`
     let connection;
     try {
@@ -57,7 +57,7 @@ async function getNMinData(devType, devID, minute){
     }
 }
 
-async function getLastNData(devType, devID, qty){
+async function getLastNData(database, devType, devID, qty){
     const sqlQuery = `SELECT * FROM Device_${devType}_${devID} ORDER BY unix DESC LIMIT ${qty}`;
     let connection;
     try {
@@ -74,7 +74,7 @@ async function getLastNData(devType, devID, qty){
     }
 }
 
-async function getDataT1ToT2(devType, devID, T1, T2){
+async function getDataT1ToT2(database, devType, devID, T1, T2){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' AND unix <= '${T2}'`;
   let connection;
   try {
@@ -90,7 +90,7 @@ async function getDataT1ToT2(devType, devID, T1, T2){
   }
 }
 
-async function getNDataAfterT(devType, devID, T1, n1){
+async function getNDataAfterT(database, devType, devID, T1, n1){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' limit ${n1}`;
   let connection;
   try {
@@ -106,7 +106,7 @@ async function getNDataAfterT(devType, devID, T1, n1){
   }
 }
 
-async function getNMinAfterT(devType, devID, T1, min1){
+async function getNMinAfterT(database, devType, devID, T1, min1){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' AND unix <= '${T1}' + ${min1}*60 `;
   let connection;
   try {
