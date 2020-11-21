@@ -26,9 +26,14 @@ function validateMessage(deviceInfo){
 async function gatewayHandling(message){
     try {
         const deviceInfo = JSON.parse(message);
+        
+        if(!deviceInfo.ID) deviceInfo.ID=null;
+        if(!deviceInfo.Freq) deviceInfo.Freq=null;
+        if(!deviceInfo.GSM) deviceInfo.GSM=null;
+
         let validateErr = validateMessage(deviceInfo).error;
         if(validateErr) return console.log(validateErr);
-        // console.log(deviceInfo);
+        console.log(deviceInfo);
         let result = await gatewayLogging(deviceInfo);
         console.log(result);
     } catch (error) {
