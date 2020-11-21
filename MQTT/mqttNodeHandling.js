@@ -4,6 +4,7 @@ const { rtrhDbHandling } = require("../MySQL/node/ty1_rtrh");
 const { probeTDbHandlings } = require("../MySQL/node/ty2_probeT");
 const { dpmDbHandling } = require("../MySQL/node/ty3_dpm");
 const { pressureDbHandlings } = require("../MySQL/node/ty4_pressure");
+const { gatewayHandling } = require("../MySQL/node/ty5_gateway");
 
 
  async function mqttNodeHandling(topic, message) {
@@ -21,6 +22,14 @@ const { pressureDbHandlings } = require("../MySQL/node/ty4_pressure");
 
         // await airFlowDbHandling(message);        // comment out this line before air flow type is confirm
     }
+
+    // handling Gateway
+    if(arr_topic[0]==="Gateway"&&
+        arr_topic[1]==="Connection"
+    ){        
+        await gatewayHandling(message);
+        
+    }    
 
 }
 
