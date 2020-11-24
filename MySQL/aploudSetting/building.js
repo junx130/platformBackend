@@ -82,7 +82,8 @@ async function updateBuilding(building){
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(), country = "${building.country}",
     state = "${building.state}",area = "${building.area}", 
-    postcode = "${building.postcode}", userAmmend = "${building.userAmmend}"
+    postcode = "${building.postcode}", accessLevel = "${building.accessLevel}",
+    userAmmend = "${building.userAmmend}"
     where _id = ${building._id}`;
 
     try {
