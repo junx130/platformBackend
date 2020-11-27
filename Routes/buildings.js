@@ -17,7 +17,7 @@ router.get("/get", auth, async (req, res) => {
     try {
 
         //validate user access level
-        if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // get building list from database
         let buildingList = await getBuildings(req.user.accessLevel);
         //  send building list

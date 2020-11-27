@@ -81,7 +81,7 @@ async function updateDevicesList(data){
 }
 
 async function deleteDevice(info){
-    console.log(info);
+    // console.log(info);
     const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
     
     try {

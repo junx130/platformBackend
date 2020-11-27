@@ -72,7 +72,7 @@ router.post("/getby2id", auth, async (req, res) => {
     try {
         console.log(req.body);
         //validate user access level
-        if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info
         const{error} = validateGetBy2id(req.body);        
         if(error) return res.status(400).send(error.details[0].message);

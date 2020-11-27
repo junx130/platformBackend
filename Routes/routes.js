@@ -4,6 +4,7 @@ const queryRoute= require("./queryData")
 const queryBdDev= require("./queryBdDev")
 const userRoute= require("./users")
 const buildingRoute= require("./buildings")
+const assignBuildingRoute= require("./assignBuildingToUser")
 const deviceListRoute= require("./deviceList")
 const buildingDevicesRoute= require("./buildingDevices")
 const lineList= require("./GraphPara/lineList")
@@ -18,6 +19,7 @@ module.exports = function (app) {
     app.use("/api/bddev/", queryBdDev);
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
+    app.use("/assignbuilding/", assignBuildingRoute);
     app.use("/building/", buildingRoute);
     app.use("/devicelist/", deviceListRoute);
     app.use("/buildingdevices/", buildingDevicesRoute);

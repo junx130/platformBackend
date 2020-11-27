@@ -114,7 +114,8 @@ async function insertUser(user) {
 
 
 function genAuthToken(user) {
-    const token = jwt.sign({
+    const token = jwt.sign({        
+        _id: user._id,
         username : user.username,
         accessLevel : user.accessLevel,
         active: user.active

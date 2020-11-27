@@ -10,7 +10,7 @@ router.get("/get", auth, async (req, res) => {
     try {
         // console.log("Enter");
         //validate user access level
-        if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // get building devices list from database
         let result = await getBuildingDevicesList();
         
@@ -121,7 +121,7 @@ router.post("/update", auth, async (req, res) => {
 });
 
 router.post("/del", auth, async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const{error} = validateUpdate(req.body);
     // stop seq if error
     if(error) return res.status(400).send(error.details[0].message);    

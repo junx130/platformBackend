@@ -79,7 +79,7 @@ router.post("/getByTybddevIDuserID", auth, async (req, res) => {
     try {
         // console.log(req.body);
         //validate user access level
-        if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info
         const{error} = validateGet(req.body);        
         if(error) return res.status(400).send(error.details[0].message);
@@ -99,7 +99,7 @@ router.post("/getbyaccountid", auth, async (req, res) => {
     try {
         // console.log(req.body);
         //validate user access level
-        if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info
         const{error} = validateGet(req.body);        
         if(error) return res.status(400).send(error.details[0].message);

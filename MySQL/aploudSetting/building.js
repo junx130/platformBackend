@@ -35,7 +35,8 @@ async function insertNewBuilding(building) {
 }
 
 async function getBuildings(userAccessLevel){
-    const quertCmd = `SELECT * from ${tableName} WHERE accessLevel > ${userAccessLevel}`;
+    const quertCmd = `SELECT * from ${tableName}`;
+    // const quertCmd = `SELECT * from ${tableName} WHERE accessLevel > ${userAccessLevel}`;
     
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Done");
