@@ -2,6 +2,7 @@ const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 2;
+const {checkNotification} = require("../../notification/checkNotification");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
@@ -18,6 +19,8 @@ async function probeTDbHandlings(message) {
                     for (const c of CheckListResult) {       
                         await insertToDb(deviceInfo, buildingDb, c._id);     
                         // console.log("c :", c);
+                        // check notification list here
+                        // await checkNotification(c.type, c._id);
                     }   
                 }
             }else{
@@ -30,6 +33,7 @@ async function probeTDbHandlings(message) {
 }
 
 async function insertToDb(Info, db, nameID){ 
+    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

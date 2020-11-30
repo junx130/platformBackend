@@ -3,7 +3,8 @@ const { insertTemplate, queryTemplate } = require("../queryData");
 const settingDatabase = "RawDataLog";
 const tableName = "GatewayLog";
 
-async function gatewayLogging(device) {
+async function gatewayLogging(device) {    
+    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(		
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
