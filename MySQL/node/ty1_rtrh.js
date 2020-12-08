@@ -19,7 +19,7 @@ async function rtrhDbHandlings(message) {
                 let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
                 if (CheckListResult) {
                     for (const c of CheckListResult) {
-                        await insertToDb(deviceInfo, buildingDb, c._id);     
+                        await insertToDb(deviceInfo, buildingDb, c._id);  
                         // check notification list here
                         await checkNotification(c, deviceInfo);
                     }   

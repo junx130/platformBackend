@@ -4,6 +4,8 @@ const queryRoute= require("./queryData")
 const queryBdDev= require("./queryBdDev")
 const userRoute= require("./users")
 const buildingRoute= require("./buildings")
+const teleIdRoute= require("./notification/telegramId")
+const notificationRoute= require("./notification/notification")
 const assignBuildingRoute= require("./assignBuildingToUser")
 const deviceListRoute= require("./deviceList")
 const buildingDevicesRoute= require("./buildingDevices")
@@ -16,6 +18,8 @@ module.exports = function (app) {
     app.use(express.json());
     app.use(cors());
 
+    app.use("/notify/list", notificationRoute);
+    app.use("/notify/teleid", teleIdRoute);
     app.use("/api/bddev/", queryBdDev);
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
@@ -24,6 +28,6 @@ module.exports = function (app) {
     app.use("/devicelist/", deviceListRoute);
     app.use("/buildingdevices/", buildingDevicesRoute);
     app.use("/linelist/", lineList);
-    app.use("/graphList/", graphList);
+    app.use("/graphList/", graphList);    
     app.use(error);     // caught all unexpected error
 }

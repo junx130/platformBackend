@@ -16,7 +16,7 @@ function validateMessage(user){
 
 router.get("/get/:userid", auth, async (req, res) => {    
     try {
-        console.log(req.params.userid);
+        // console.log(req.params.userid);
         let result = await getOwnerBuildings(req.params.userid);
 
         // if(!result) return res.status(401).send("Get User's Building Error(DB)");

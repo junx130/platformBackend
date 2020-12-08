@@ -6,6 +6,7 @@ const { prgTelegram } = require("./notification/telegram");
 
 require("./Routes/routes")(app);
 
+
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
 prgTelegram();
