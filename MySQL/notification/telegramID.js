@@ -40,7 +40,7 @@ async function addTelegramID(device){
 }
 
 async function delTelegramID(info){    
-    console.log(info);
+    // console.log(info);
     const queryCmd = `DELETE from ${tableName} where _id = ${info._id}`;
     
     try {

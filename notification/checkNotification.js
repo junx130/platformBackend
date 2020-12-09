@@ -37,24 +37,31 @@ handleAlarmRepeat=async (notifyItem)=>{
 withinTimeRange=(startUnix, endUnix, setUnix)=>{
     let _startUnix = getUnixTodayBaseOnTime(startUnix);
     let _endUnix = getUnixTodayBaseOnTime(endUnix);
-    if (_startUnix >= _endUnix) _endUnix+= 86400; // 86400 = 24*60*60
+    if (_startUnix >= _endUnix) _startUnix-= 86400; // 86400 = 24*60*60
+    // if (_startUnix >= _endUnix) _endUnix+= 86400; // 86400 = 24*60*60
+    // console.log(_startUnix);
+    // console.log(_endUnix);
     return (setUnix >= _startUnix && setUnix < _endUnix);
 }
 
 everydayRefresh=async (notifyItem)=>{
-    // console.log("Come in");
     // if not within range, skip    
+    // console.log("Come In");
     if(!withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, _unixNow())) return;
+    // console.log("Within Time");
     // if been triggered within range, skip    
     if(withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, notifyItem.NotifiedUnix)) return;
     // check database   
     // let result = await getBuildingDevicesByTypeID(req);    
-    let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix), _unixNow());
-    // console.log(result[0]);
+    // console.log(notifyItem.StartUnix);
+    // if(notifyItem.StartUnix > notifyItem.EndUnix) notifyItem.StartUnix-= 86400; 
+    // console.log(notifyItem.StartUnix);
+    // console.log(_unixNow());
+    let OnedayEarlier = notifyItem.StartUnix > notifyItem.EndUnix;
+    let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
+    // console.log(result);
 
     return result;
-
-
 }
 
 

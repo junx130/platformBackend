@@ -1,8 +1,9 @@
 const moment = require("moment");
 
-getUnixTodayBaseOnTime=(uTime)=>{
-    // console.log(uTime);
+getUnixTodayBaseOnTime=(uTime, bOneDayEarlier)=>{
+    // console.log(uTime);    
     let dateNow = moment().format("MM/DD/YYYY");
+    if(bOneDayEarlier) dateNow = moment().subtract(1, 'days').format("MM/DD/YYYY");
     let startTime = moment(uTime*1000).format("HH:mm:ss");
     // console.log(startTime);
     // let timeToday = `${dateNow} ${startTime}`;
