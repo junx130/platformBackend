@@ -37,10 +37,14 @@ handleAlarmRepeat=async (notifyItem)=>{
 withinTimeRange=(startUnix, endUnix, setUnix)=>{
     let _startUnix = getUnixTodayBaseOnTime(startUnix);
     let _endUnix = getUnixTodayBaseOnTime(endUnix);
-    if (_startUnix >= _endUnix) _startUnix-= 86400; // 86400 = 24*60*60
-    // if (_startUnix >= _endUnix) _endUnix+= 86400; // 86400 = 24*60*60
-    // console.log(_startUnix);
-    // console.log(_endUnix);
+    if (_startUnix >= _endUnix){
+        if(_unixNow()<_endUnix){
+            _startUnix-= 86400; // 86400 = 24*60*60
+        }else{
+            _endUnix+= 86400; 
+        }
+    } 
+    
     return (setUnix >= _startUnix && setUnix < _endUnix);
 }
 
@@ -77,8 +81,10 @@ notificationHandling=async (notifyItem)=>{
             if(!alarmArray[0]) return null
             rtnValue = {
                 msg : `is exceeded UPPER limit`,
-                value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
-                unix: alarmArray[alarmArray.length-1].unix,
+                // value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
+                // unix: alarmArray[alarmArray.length-1].unix,
+                value: alarmArray[0][notifyItem.DataKey],
+                unix: alarmArray[0].unix,
             }
             if(alarmArray.length >= notifyItem.Sensitivity) return rtnValue;
             break;
@@ -88,8 +94,10 @@ notificationHandling=async (notifyItem)=>{
             if(!alarmArray[0]) return null
             rtnValue = {
                 msg : `is exceeded LOWER limit`,
-                value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
-                unix: alarmArray[alarmArray.length-1].unix,
+                // value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
+                // unix: alarmArray[alarmArray.length-1].unix,
+                value: alarmArray[0][notifyItem.DataKey],
+                unix: alarmArray[0].unix,
             }
             if(alarmArray.length >= notifyItem.Sensitivity) return rtnValue;
             break;

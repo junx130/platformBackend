@@ -72,6 +72,7 @@ async function updateNotificatonList(body){
     UserSetpoint = ${body.UserSetpoint}, AlarmSetpoint = ${body.AlarmSetpoint}, 
     AlarmType = "${body.AlarmType}", StartUnix = ${body.StartUnix}, 
     EndUnix = ${body.EndUnix}, AlarmRepeat = ${body.AlarmRepeat}, 
+    NotifiedUnix = null,
     Sensitivity = ${body.Sensitivity}, Active = ${body.Active},  
     userAmmend = "${body.userAmmend}"   
     where _id = ${body._id}`;

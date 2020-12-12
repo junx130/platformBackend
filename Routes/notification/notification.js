@@ -5,17 +5,6 @@ const auth = require("../../Middleware/auth");
 const { getNotifyListById, updateNotificatonList, regNotificatonList, deleteNotifyItem } = require("../../MySQL/notification/notification");
 
 
-// function validate(data){
-//     const schema = {        
-//         _id:Joi.number(),
-//         name: Joi.string().max(80).allow(null, ''),
-//         userID: Joi.number(),
-//         bd_id: Joi.number(),
-//         telegramID:  Joi.string().max(80).allow(null, ''),
-//         userAmmend: Joi.string().max(80),
-//     }
-//     return Joi.validate(data, schema);
-// }
 
 function validateReg(data){
     const schema = {        

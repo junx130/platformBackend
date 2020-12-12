@@ -23,7 +23,7 @@ async function dpmDbHandling(message) {
                         await insertToDb(deviceInfo, buildingDb, c._id);     
                         // console.log("c :", c);
                         // check notification list here
-                        // await checkNotification(c.type, c._id);
+                        await checkNotification(c, deviceInfo);
                     }   
                 }
             }else{
