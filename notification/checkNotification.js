@@ -37,6 +37,9 @@ handleAlarmRepeat=async (notifyItem)=>{
 withinTimeRange=(startUnix, endUnix, setUnix)=>{
     let _startUnix = getUnixTodayBaseOnTime(startUnix);
     let _endUnix = getUnixTodayBaseOnTime(endUnix);
+    console.log(_startUnix);
+    console.log(_endUnix);
+    console.log(_unixNow());
     if (_startUnix >= _endUnix){
         if(_unixNow()<_endUnix){
             _startUnix-= 86400; // 86400 = 24*60*60
