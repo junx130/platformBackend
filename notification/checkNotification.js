@@ -8,7 +8,7 @@ const {getUnixTodayBaseOnTime, _unixNow, getDate, getTime} = require("../utiliti
 const {getDataT1ToT2} = require('../MySQL/queryData');
 
 function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
-    return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTime(_unix)}\nCurrent : ${value} ${notifyItem.DataUnit}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}`;    
+    return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nCurrent : ${value} ${notifyItem.DataUnit}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}`;    
 }
 
 getNodeKey=(key, type)=>{

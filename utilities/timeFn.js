@@ -12,17 +12,24 @@ getUnixTodayBaseOnTime=(uTime, bOneDayEarlier)=>{
 }
 
 getTime=(_unix)=>{
-    return moment(_unix*1000).format("HH:mm:ss");
+    return moment(_unix*1000).format("HH:mm:ss").tz("Asia/Kuala_Lumpur");
+    
+}
+
+getTimeTz=(_unix)=>{
+    return moment(_unix*1000).format("HH:mm:ss Z").tz("Asia/Kuala_Lumpur");
+    
 }
 
 getDate=(_unix)=>{
-    return moment(_unix*1000).format("DD-MM-YYYY");
+    return moment(_unix*1000).format("DD-MM-YYYY").tz("Asia/Kuala_Lumpur");
 }
 
 unixNow=()=>{
     return moment().unix();
 }
 
+exports.getTimeTz=getTimeTz;
 exports.getDate=getDate;
 exports.getTime=getTime;
 exports.getUnixTodayBaseOnTime = getUnixTodayBaseOnTime;
