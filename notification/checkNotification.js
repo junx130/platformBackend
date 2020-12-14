@@ -4,7 +4,7 @@ const { getTelegramListById } = require("../MySQL/notification/telegramID");
 const {getBuildingsByID} = require("../MySQL/aploudSetting/building");
 const { sendNotifyMsg } = require("./telegram");
 const {nodeKey} =require('./getNodeKeyName');
-const {getUnixTodayBaseOnTime, _unixNow, getDate, getTime} = require("../utilities/timeFn");
+const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
 const {getDataT1ToT2} = require('../MySQL/queryData');
 
 function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
