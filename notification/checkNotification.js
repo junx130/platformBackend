@@ -40,25 +40,17 @@ withinTimeRange=(startUnix, endUnix, setUnix)=>{
     console.log(_startUnix);
     console.log(_endUnix);
     console.log(_unixNow());
-    if(_startUnix === _endUnix){
-        console.log("Time Identical");
-        return true;
-    }
 
-    if (_startUnix > _endUnix){
+    if (_startUnix >= _endUnix){
         if(_unixNow()<_endUnix){
             _startUnix-= 86400; // 86400 = 24*60*60
         }else{
             _endUnix+= 86400; 
         }
-    } 
-    // else if(_startUnix == _endUnix){
-    //     _startUnix-= 86400; 
-    //     console.log("Time Equal");
-    // }
+    }
     
     bWithin = (setUnix >= _startUnix && setUnix < _endUnix);
-    console.log(bWithin);
+    // console.log(bWithin);
     return bWithin;
 }
 
@@ -75,7 +67,7 @@ everydayRefresh=async (notifyItem)=>{
     // if(notifyItem.StartUnix > notifyItem.EndUnix) notifyItem.StartUnix-= 86400; 
     // console.log(notifyItem.StartUnix);
     // console.log(_unixNow());
-    let OnedayEarlier = notifyItem.StartUnix > notifyItem.EndUnix;
+    let OnedayEarlier = notifyItem.StartUnix >= notifyItem.EndUnix;
     let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
     // console.log(result);
 

@@ -76,6 +76,7 @@ async function getLastNData(database, devType, devID, qty){
 
 async function getDataT1ToT2(database, devType, devID, T1, T2){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' AND unix <= '${T2}' order by unix desc`;
+  console.log(sqlQuery);
   let connection;
   try {
     connection = await pool.getConnection();
