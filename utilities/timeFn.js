@@ -1,4 +1,5 @@
 const moment = require("moment");
+// const moment = require("moment-timezone");
 
 getUnixTodayBaseOnTime=(uTime, bOneDayEarlier)=>{
     // console.log(uTime);    
@@ -12,17 +13,17 @@ getUnixTodayBaseOnTime=(uTime, bOneDayEarlier)=>{
 }
 
 getTime=(_unix)=>{
-    return moment(_unix*1000).format("HH:mm:ss").tz("Asia/Kuala_Lumpur");
+    return moment(_unix*1000).tz("Asia/Kuala_Lumpur").format("HH:mm:ss");
     
 }
 
 getTimeTz=(_unix)=>{
-    return moment(_unix*1000).format("HH:mm:ss Z").tz("Asia/Kuala_Lumpur");
+    return moment(_unix*1000).tz("Asia/Kuala_Lumpur").format("HH:mm:ss Z");
     
 }
 
 getDate=(_unix)=>{
-    return moment(_unix*1000).format("DD-MM-YYYY").tz("Asia/Kuala_Lumpur");
+    return moment(_unix*1000).tz("Asia/Kuala_Lumpur").format("DD-MM-YYYY");
 }
 
 unixNow=()=>{
