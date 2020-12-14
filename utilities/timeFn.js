@@ -3,8 +3,8 @@ const moment = require("moment");
 
 getUnixTodayBaseOnTime=(uTime, bOneDayEarlier)=>{
     // console.log(uTime);    
-    let dateNow = moment().format("MM/DD/YYYY");
-    if(bOneDayEarlier) dateNow = moment().subtract(1, 'days').format("MM/DD/YYYY");
+    let dateNow = moment().tz("Asia/Kuala_Lumpur").format("MM/DD/YYYY");
+    if(bOneDayEarlier) dateNow = moment().tz("Asia/Kuala_Lumpur").subtract(1, 'days').format("MM/DD/YYYY");
     let startTime = moment(uTime*1000).format("HH:mm:ss");
     // console.log(startTime);
     // let timeToday = `${dateNow} ${startTime}`;
