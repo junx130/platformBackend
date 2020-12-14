@@ -132,8 +132,10 @@ async function checkNotification(bdDev, devData){
             let teleID = singleTeleID.telegramID;
             sendNotifyMsg(teleID, notifyMsg);            
         }
-        // write into database, update NotifiedUnix to timenow        
-        await updateNotifiedUnix(notifyItem._id, _unixNow());
+        // write into database, update NotifiedUnix to timenow    
+        if(process.env.activateTelegram==="true")    {
+            await updateNotifiedUnix(notifyItem._id, _unixNow());
+        }
     }
 
 
