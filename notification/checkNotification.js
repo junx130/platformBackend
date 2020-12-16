@@ -37,9 +37,9 @@ handleAlarmRepeat=async (notifyItem)=>{
 withinTimeRange=(startUnix, endUnix, setUnix)=>{
     let _startUnix = getUnixTodayBaseOnTime(startUnix);
     let _endUnix = getUnixTodayBaseOnTime(endUnix);
-    console.log(_startUnix);
-    console.log(_endUnix);
-    console.log(_unixNow());
+    // console.log(_startUnix);
+    // console.log(_endUnix);
+    // console.log(_unixNow());
 
     if (_startUnix >= _endUnix){
         if(_unixNow()<_endUnix){
@@ -67,7 +67,7 @@ everydayRefresh=async (notifyItem)=>{
     // if(notifyItem.StartUnix > notifyItem.EndUnix) notifyItem.StartUnix-= 86400; 
     // console.log(notifyItem.StartUnix);
     // console.log(_unixNow());
-    let OnedayEarlier = notifyItem.StartUnix >= notifyItem.EndUnix;
+    let OnedayEarlier = notifyItem.StartUnix == notifyItem.EndUnix || (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix > notifyItem.EndUnix);
     let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
     // console.log(result);
 
@@ -105,6 +105,9 @@ notificationHandling=async (notifyItem)=>{
                 value: alarmArray[0][notifyItem.DataKey],
                 unix: alarmArray[0].unix,
             }
+            console.log("line 105");
+            console.log(alarmArray.length);
+            console.log(notifyItem.Sensitivity);
             if(alarmArray.length >= notifyItem.Sensitivity) return rtnValue;
             break;
 
