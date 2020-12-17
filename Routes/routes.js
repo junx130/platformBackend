@@ -11,6 +11,7 @@ const deviceListRoute= require("./deviceList")
 const buildingDevicesRoute= require("./buildingDevices")
 const lineList= require("./GraphPara/lineList")
 const graphList= require("./GraphPara/graphList")
+const offsetRoute= require("./offset/offsetRoute")
 const error= require("../Middleware/error")
 
 
@@ -29,5 +30,6 @@ module.exports = function (app) {
     app.use("/buildingdevices/", buildingDevicesRoute);
     app.use("/linelist/", lineList);
     app.use("/graphList/", graphList);    
+    app.use("/offset/", offsetRoute);    
     app.use(error);     // caught all unexpected error
 }
