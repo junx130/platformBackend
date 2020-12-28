@@ -82,12 +82,24 @@ risingTrigger=async (notifyItem)=>{
     /**Notification not happend today before, handle as normal case */
     // console.log(notifyItem.NotifiedUnix); 
     // console.log(_checkTimeFrom); 
+    /**---------Previous coding-----------*/
+    // if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
+    //     return await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    // }
+    // /**Notification happened today before*/
+    // _checkTimeFrom = notifyItem.NotifiedUnix;   
+    // let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    /**============Previous coding===============*/
+    let result = [];
     if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
-        return await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+        result= await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    }else{
+        /**Notification happened today before*/
+        _checkTimeFrom = notifyItem.NotifiedUnix;   
+        result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }
-    /**Notification happened today before*/
-    _checkTimeFrom = notifyItem.NotifiedUnix;   
-    let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    /**-------------------------Replace until here===================== */
+    
     let found = {};
     let relAfterFallBack=[];
     // console.log(result);
