@@ -71,7 +71,7 @@ function getLatest(prev, current){
 }
 
 risingTrigger=async (notifyItem)=>{
-    console.log(notifyItem);
+    // console.log(notifyItem);
     /** No in monitoring time range */
     if(!withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, _unixNow())) return;
     /**handle 0900 - 0800 situation */
@@ -80,8 +80,8 @@ risingTrigger=async (notifyItem)=>{
     /**determine notified time is later or starting time is later */
     let _checkTimeFrom = getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier);   // in case today do not happen notification before
     /**Notification not happend today before, handle as normal case */
-    console.log(notifyItem.NotifiedUnix); 
-    console.log(_checkTimeFrom); 
+    // console.log(notifyItem.NotifiedUnix); 
+    // console.log(_checkTimeFrom); 
     if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
         return await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }
@@ -108,10 +108,10 @@ risingTrigger=async (notifyItem)=>{
             a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);
             found = a_found.reduce(getLatest);
             // found = result.find(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));
-            console.log(found);
+            // console.log(found);
             if(!found) return ;            
             relAfterFallBack = result.filter(c=>c.unix > found.unix);
-            console.log(relAfterFallBack);
+            // console.log(relAfterFallBack);
             return relAfterFallBack
         
             break;
