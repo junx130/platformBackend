@@ -78,7 +78,7 @@ function validateUpdate(data){
 
 router.post("/update", auth, async (req, res) => {
     try {
-        console.log(req.body);
+        // console.log(req.body);
         const{error} = validateUpdate(req.body);        
         if(error) return res.status(400).send(error.details[0].message);
         // building database        

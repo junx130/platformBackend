@@ -1,9 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
+
+
+router.get("/bytype/:ty", auth, async (req, res) => {
+    try {
+        let type = req.params.ty;
+        let result = await getDevicesByType(type);
+        return res.status(200).send(result);
+        
+    } catch (error) {        
+        console.log("Get Device By Type Error");
+        return res.status(404).send(ex.message);
+    }
+});
 
 // get device list
 router.get("/all", auth, async (req, res) => {
@@ -17,7 +30,7 @@ router.get("/all", auth, async (req, res) => {
         return res.status(200).send(result);
         
     } catch (ex) {        
-        console.log("Get Building Error");
+        console.log("Get Device Error");
         return res.status(404).send(ex.message);
     }
 });

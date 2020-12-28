@@ -28,8 +28,10 @@ getBuildingName=async (buildingId)=>{
 }
 
 handleAlarmRepeat=async (notifyItem)=>{
+    // console.log(notifyItem);
     switch (notifyItem.AlarmRepeat) {            
         case 1:     return await everydayRefresh(notifyItem);  
+        case 2:     return await risingTrigger(notifyItem);  
         default:    return null;
     }
 }
@@ -55,24 +57,69 @@ withinTimeRange=(startUnix, endUnix, setUnix)=>{
 }
 
 everydayRefresh=async (notifyItem)=>{
-    // if not within range, skip    
-    // console.log("Come In");
     if(!withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, _unixNow())) return;
-    // console.log("Within Time");
-    // if been triggered within range, skip    
     if(withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, notifyItem.NotifiedUnix)) return;
-    // check database   
-    // let result = await getBuildingDevicesByTypeID(req);    
-    // console.log(notifyItem.StartUnix);
-    // if(notifyItem.StartUnix > notifyItem.EndUnix) notifyItem.StartUnix-= 86400; 
-    // console.log(notifyItem.StartUnix);
-    // console.log(_unixNow());
     let OnedayEarlier = (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix >= notifyItem.EndUnix);
     // let OnedayEarlier = notifyItem.StartUnix == notifyItem.EndUnix || (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix > notifyItem.EndUnix);
     let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
-    // console.log(result);
 
     return result;
+}
+
+function getLatest(prev, current){
+    return (prev.unix > current.unix) ? prev:current;
+}
+
+risingTrigger=async (notifyItem)=>{
+    console.log(notifyItem);
+    /** No in monitoring time range */
+    if(!withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, _unixNow())) return;
+    /**handle 0900 - 0800 situation */
+    let OnedayEarlier = (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix >= notifyItem.EndUnix);
+
+    /**determine notified time is later or starting time is later */
+    let _checkTimeFrom = getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier);   // in case today do not happen notification before
+    /**Notification not happend today before, handle as normal case */
+    console.log(notifyItem.NotifiedUnix); 
+    console.log(_checkTimeFrom); 
+    if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
+        return await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    }
+    /**Notification happened today before*/
+    _checkTimeFrom = notifyItem.NotifiedUnix;   
+    let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    let found = {};
+    let relAfterFallBack=[];
+    // console.log(result);
+    switch (notifyItem.AlarmType) {
+        case "upperLimit":            
+            /** check value did fall back, below upper limit */
+            a_found = result.filter(c=>c[notifyItem.DataKey] < notifyItem.AlarmSetpoint);
+            found = a_found.reduce(getLatest);
+            // found = result.find(c=>(c[notifyItem.DataKey] < notifyItem.AlarmSetpoint));
+            if(!found) return ;
+            relAfterFallBack = result.filter(c=>c.unix > found.unix);
+            return relAfterFallBack
+            break;
+    
+        case "lowerLimit":      
+            /** check value did fall back, above lower limit */
+            /**Get all fallback value */
+            a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);
+            found = a_found.reduce(getLatest);
+            // found = result.find(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));
+            console.log(found);
+            if(!found) return ;            
+            relAfterFallBack = result.filter(c=>c.unix > found.unix);
+            console.log(relAfterFallBack);
+            return relAfterFallBack
+        
+            break;
+    
+        default:
+            break;
+    }
+    console.log(result);
 }
 
 

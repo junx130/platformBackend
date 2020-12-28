@@ -47,6 +47,20 @@ async function getDevicesList(){
     }
 }
 
+async function getDevicesByType(type){
+    const quertCmd = `SELECT * from ${tableName} where type = ${type}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Get Devices By Type Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 
 async function getDevicesFromList(data){
     const quertCmd = `SELECT * from ${tableName} WHERE type = ${data.type} AND devID = ${data.devID}`;
@@ -94,6 +108,7 @@ async function deleteDevice(info){
     }
 }
 
+exports.getDevicesByType=getDevicesByType;
 exports.deleteDevice=deleteDevice;
 exports.updateDevicesList=updateDevicesList;
 exports.getDevicesFromList=getDevicesFromList;
