@@ -8,7 +8,7 @@ const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utili
 const {getDataT1ToT2} = require('../MySQL/queryData');
 
 function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
-    return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nCurrent : ${value} ${notifyItem.DataUnit}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}`;    
+    return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
 }
 
 getNodeKey=(key, type)=>{
@@ -91,7 +91,7 @@ risingTrigger=async (notifyItem)=>{
     // let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     /**============Previous coding===============*/
     let result = [];
-    if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
+    if(notifyItem.NotifiedUnix < _checkTimeFrom || !notifyItem.NotifiedUnix){ 
         result= await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }else{
         /**Notification happened today before*/

@@ -29,8 +29,8 @@ function prgMqtt() {
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
-        console.log("message is " + message);
-        console.log("topic is " + topic);
+        // console.log("message is " + message);
+        // console.log("topic is " + topic);
     
         // topicHandling(topic, message);
         //   await mqttGetProfiles(topic, message);

@@ -60,7 +60,7 @@ async function getTelegramListById(userID, bd_id){
     // else if(bd_id===0) quertCmd = `SELECT * from ${tableName} where userID=${userID}`;
     // if(userID!=0) quertCmd = `SELECT * from ${tableName} where userID in (0,${userID}) and bd_id in (0,${bd_id})`;
 
-    console.log(quertCmd);
+    // console.log(quertCmd);
     
     try {
         let result = await queryTemplate(db, quertCmd, "Get TelegramID Done");

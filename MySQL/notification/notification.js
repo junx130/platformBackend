@@ -7,7 +7,7 @@ async function getNotifyListById(a_BdDevID){
     if(!a_BdDevID[0]) return [];
     let sArrayDev = a_BdDevID.join(",");
     const quertCmd = `SELECT * from ${tableName} where bdDev_id in (${sArrayDev})`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     
     try {
         let result = await queryTemplate(db, quertCmd, "Notification List Done");
@@ -24,7 +24,7 @@ async function getNotifyListByIdnType(type, bdDev_id){
     // if(!a_BdDevID[0]) return ;
     // let sArrayDev = a_BdDevID.join(",");
     const quertCmd = `SELECT * from ${tableName} where type = ${type} and bdDev_id = ${bdDev_id}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     
     try {
         let result = await queryTemplate(db, quertCmd, "Notification List Done");

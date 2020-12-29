@@ -49,7 +49,7 @@ async function getOffBySearchCriterion(obj){
 
 async function getOffsetByIdnKey(obj){
     const quertCmd = `SELECT * from ${tableName} where type = ${obj.type} and devID = ${obj.devID}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     
     try {
         let result = await queryTemplate(db, quertCmd, "Get Offset Done");
