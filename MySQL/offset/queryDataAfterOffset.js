@@ -20,7 +20,9 @@ async function getDataT1ToT2_withOffset(database, devType, devID, T1, T2){
         let _data = {...data};
         for (const offsetItem of offsetList) {
             if(data.hasOwnProperty(offsetItem.DataKey)){
-                _data[offsetItem.DataKey] += offsetItem.offsetValue;
+                // _data[offsetItem.DataKey] += offsetItem.offsetValue;     // previous coding
+                let valueAfterOffset = _data[offsetItem.DataKey] + offsetItem.offsetValue;
+                _data[offsetItem.DataKey] = valueAfterOffset.tofixed(2);
             }
         }
         newDatas.push(_data);
