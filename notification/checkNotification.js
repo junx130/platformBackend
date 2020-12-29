@@ -70,6 +70,11 @@ function getLatest(prev, current){
     return (prev.unix > current.unix) ? prev:current;
 }
 
+function reduceFn(getLatest, a_found){
+    if(!a_found[0]) return null;
+    return a_found.reduce(getLatest);
+}
+
 risingTrigger=async (notifyItem)=>{
     // console.log(notifyItem);
     /** No in monitoring time range */
@@ -107,9 +112,13 @@ risingTrigger=async (notifyItem)=>{
         case "upperLimit":            
             /** check value did fall back, below upper limit */
             a_found = result.filter(c=>c[notifyItem.DataKey] < notifyItem.AlarmSetpoint);
+            // console.log("a_found");
+            // console.log(a_found);
+            if(!a_found[0]) return;
             found = a_found.reduce(getLatest);
-            // found = result.find(c=>(c[notifyItem.DataKey] < notifyItem.AlarmSetpoint));
+            // found = reduceFn(getLatest, a_found);
             if(!found) return ;
+            // found = result.find(c=>(c[notifyItem.DataKey] < notifyItem.AlarmSetpoint));
             relAfterFallBack = result.filter(c=>c.unix > found.unix);
             return relAfterFallBack
             break;
@@ -118,7 +127,9 @@ risingTrigger=async (notifyItem)=>{
             /** check value did fall back, above lower limit */
             /**Get all fallback value */
             a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);
+            if(!a_found[0]) return;     // reduce empty 
             found = a_found.reduce(getLatest);
+            // found = reduceFn(getLatest, a_found);
             // found = result.find(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));
             // console.log(found);
             if(!found) return ;            
@@ -181,10 +192,12 @@ async function checkNotification(bdDev, devData){
     // let type = [bdDev.type]
     let notifyList = await getNotifyListByIdnType(bdDev.type, bdDev._id);
     // console.log("Enter");
-    // console.log(notifyList);
+    // if(bdDev._id==3) console.log(notifyList);
     if(!notifyList) return console.log("Not in monitoring list");
 
     for (const notifyItem of notifyList) {
+        console.log("Monitoring List");
+        // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
         // check whether need to trigger notification
         let triggerAlarm = await notificationHandling(notifyItem);
         if(!triggerAlarm) continue

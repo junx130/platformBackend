@@ -29,7 +29,9 @@ async function getNotifyListByIdnType(type, bdDev_id){
     try {
         let result = await queryTemplate(db, quertCmd, "Notification List Done");
         if(!result[0]) return [];     // no building in list
+        // console.log("DB Here");
         const notifyList = result.map(b=>b);
+        // console.log(notifyList);
         return notifyList;        
     } catch (ex) {
         console.log(ex.message)

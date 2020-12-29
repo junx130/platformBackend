@@ -136,7 +136,7 @@ async function listedInbuildingDevices(devType, devID){
     console.log("DB Error", ex.message);
   } finally {
     if (connection) connection.end();
-    console.log("listed In Building Devices Finally");
+    // console.log("listed In Building Devices Finally");
   }
 }
 
