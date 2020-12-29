@@ -96,17 +96,24 @@ risingTrigger=async (notifyItem)=>{
     // let result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     /**============Previous coding===============*/
     let result = [];
+    let todayHappenedBefore=false;
     if(notifyItem.NotifiedUnix < _checkTimeFrom || !notifyItem.NotifiedUnix){ 
+        console.log("NotifiedUnix might null");
         result= await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }else{
         /**Notification happened today before*/
-        // if(notifyItem.bdDev_id == 3) console.log("NotifiedUnix not null");
+        todayHappenedBefore=true;
+        console.log("NotifiedUnix not null");
         _checkTimeFrom = notifyItem.NotifiedUnix;   
         result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
         // console.log("Check after offset");
         // console.log(result[20]);
     }
     /**-------------------------Replace until here===================== */
+    /**Read all since start time, handle  */
+    // let result= await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+
+    /**======================New Code======================== */
     
     let found = {};
     let relAfterFallBack=[];
@@ -117,7 +124,10 @@ risingTrigger=async (notifyItem)=>{
             a_found = result.filter(c=>c[notifyItem.DataKey] < notifyItem.AlarmSetpoint);
             // console.log("a_found");
             // console.log(a_found);
-            if(!a_found[0]) return result;      /**enter new day monitoring range, and no value under monitoring value before, trigger notification if > sensitivity  */
+            if(!a_found[0]) {
+                if(todayHappenedBefore) return
+                return result;      /**enter new day monitoring range, and no value under monitoring value before, trigger notification if > sensitivity  */
+            }
             found = a_found.reduce(getLatest);
             // found = reduceFn(getLatest, a_found);
             if(!found) return ;
@@ -133,8 +143,11 @@ risingTrigger=async (notifyItem)=>{
             // }
             /** check value did fall back, above lower limit */
             /**Get all fallback value */
-            a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);
-            if(!a_found[0]) return result;      /**enter new day monitoring range, and no value under monitoring value before, trigger notification if > sensitivity  */
+            a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);            
+            if(!a_found[0]) {
+                if(todayHappenedBefore) return
+                return result;      /**enter new day monitoring range, and no value under monitoring value before, trigger notification if > sensitivity  */
+            }
             found = a_found.reduce(getLatest);
             // found = reduceFn(getLatest, a_found);
             // found = result.find(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));
