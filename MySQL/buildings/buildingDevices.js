@@ -61,6 +61,20 @@ async function getBuildingDevicesByTypeID(data){
     }
 }
 
+async function getBuildingDevicesBy_ID(_id){
+    const quertCmd = `SELECT * from ${tableName} WHERE _id = ${_id}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Device Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function setIdleBuildingDevices(data){     
     const quertCmd = `UPDATE ${tableName} SET devID = 0 where _id = ${data._id}`;
 
@@ -107,6 +121,7 @@ async function deleteBdDevice(info){
     }
 }
 
+exports.getBuildingDevicesBy_ID=getBuildingDevicesBy_ID;
 exports.deleteBdDevice=deleteBdDevice;
 exports.updateBuildingDevices=updateBuildingDevices;
 exports.registerBuildingDevice=registerBuildingDevice;

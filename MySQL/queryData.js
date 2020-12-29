@@ -1,4 +1,3 @@
-
 const { pool } = require("./db");
 // const database = "RawDataLog";
 
@@ -90,6 +89,7 @@ async function getDataT1ToT2(database, devType, devID, T1, T2){
     console.log("T to T Finally");
   }
 }
+
 
 async function getNDataAfterT(database, devType, devID, T1, n1){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' limit ${n1}`;

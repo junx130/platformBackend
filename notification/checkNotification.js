@@ -5,7 +5,7 @@ const {getBuildingsByID} = require("../MySQL/aploudSetting/building");
 const { sendNotifyMsg } = require("./telegram");
 const {nodeKey} =require('./getNodeKeyName');
 const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
-const {getDataT1ToT2} = require('../MySQL/queryData');
+const {getDataT1ToT2_withOffset} = require('../MySQL/offset/queryDataAfterOffset');
 
 function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
     return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
@@ -61,8 +61,7 @@ everydayRefresh=async (notifyItem)=>{
     if(withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, notifyItem.NotifiedUnix)) return;
     let OnedayEarlier = (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix >= notifyItem.EndUnix);
     // let OnedayEarlier = notifyItem.StartUnix == notifyItem.EndUnix || (_unixNow()<notifyItem.EndUnix && notifyItem.StartUnix > notifyItem.EndUnix);
-    let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
-
+    let result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, getUnixTodayBaseOnTime(notifyItem.StartUnix, OnedayEarlier), _unixNow()+60);
     return result;
 }
 
@@ -77,6 +76,7 @@ function reduceFn(getLatest, a_found){
 
 risingTrigger=async (notifyItem)=>{
     // console.log(notifyItem);
+    // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
     /** No in monitoring time range */
     if(!withinTimeRange(notifyItem.StartUnix, notifyItem.EndUnix, _unixNow())) return;
     /**handle 0900 - 0800 situation */
@@ -89,19 +89,22 @@ risingTrigger=async (notifyItem)=>{
     // console.log(_checkTimeFrom); 
     /**---------Previous coding-----------*/
     // if(notifyItem.NotifiedUnix < _checkTimeFrom){ 
-    //     return await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    //     return await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     // }
     // /**Notification happened today before*/
     // _checkTimeFrom = notifyItem.NotifiedUnix;   
-    // let result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+    // let result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     /**============Previous coding===============*/
     let result = [];
     if(notifyItem.NotifiedUnix < _checkTimeFrom || !notifyItem.NotifiedUnix){ 
-        result= await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+        result= await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }else{
         /**Notification happened today before*/
+        // if(notifyItem.bdDev_id == 3) console.log("NotifiedUnix not null");
         _checkTimeFrom = notifyItem.NotifiedUnix;   
-        result = await getDataT1ToT2("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+        result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
+        // console.log("Check after offset");
+        // console.log(result[20]);
     }
     /**-------------------------Replace until here===================== */
     
@@ -124,6 +127,10 @@ risingTrigger=async (notifyItem)=>{
             break;
     
         case "lowerLimit":      
+            // if(notifyItem.bdDev_id == 3) {
+            //     console.log("Enter Lower Limit");
+            //     console.log(result);
+            // }
             /** check value did fall back, above lower limit */
             /**Get all fallback value */
             a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);
@@ -131,7 +138,7 @@ risingTrigger=async (notifyItem)=>{
             found = a_found.reduce(getLatest);
             // found = reduceFn(getLatest, a_found);
             // found = result.find(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));
-            // console.log(found);
+            // if(notifyItem.bdDev_id == 3) console.log(found);
             if(!found) return ;            
             relAfterFallBack = result.filter(c=>c.unix > found.unix);
             // console.log(relAfterFallBack);
@@ -176,9 +183,9 @@ notificationHandling=async (notifyItem)=>{
                 value: alarmArray[0][notifyItem.DataKey],
                 unix: alarmArray[0].unix,
             }
-            console.log("line 105");
-            console.log(alarmArray.length);
-            console.log(notifyItem.Sensitivity);
+            // console.log("line 105");
+            // console.log(alarmArray.length);
+            // console.log(notifyItem.Sensitivity);
             if(alarmArray.length >= notifyItem.Sensitivity) return rtnValue;
             break;
 
