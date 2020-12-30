@@ -12,7 +12,9 @@ async function airFlowDbHandling(message) {
 
     try {
         const deviceInfo = JSON.parse(message);
-        if (deviceInfo.Ty ===devType) {        
+        if (deviceInfo.Ty ===devType) {       
+            // console.log("1002 Test"); 
+            // console.log(deviceInfo); 
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
                 await insertToDb(deviceInfo, database, deviceInfo.ID);
@@ -74,7 +76,7 @@ async function insertToDb(Info, db, nameID){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, milliAmp, m3PerSec, DcSupply12v, battVoltage, lc, RSSI, SNR) 
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, mA, FlowRate, DcSupply12v, battVoltage, lc, RSSI, SNR) 
     VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
