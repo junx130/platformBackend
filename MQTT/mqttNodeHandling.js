@@ -19,6 +19,7 @@ const { gatewayHandling } = require("../MySQL/node/ty5_gateway");
         await dpmDbHandling(message);
         await usfDbHandling(message);
         await pressureDbHandlings(message);
+        await airFlowDbHandling(message);
 
         // await airFlowDbHandling(message);        // comment out this line before air flow type is confirm
     }

@@ -12,7 +12,7 @@ async function airFlowDbHandling(message) {
 
     try {
         const deviceInfo = JSON.parse(message);
-        if (deviceInfo.Ty ===devType) {            
+        if (deviceInfo.Ty ===devType) {        
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
                 await insertToDb(deviceInfo, database, deviceInfo.ID);
