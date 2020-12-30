@@ -45,14 +45,9 @@ async function insertToDb(Info, db, nameID){
         gwID INT,  
         frequency decimal(19,4),  
 
-        FlowPSec FLOAT NOT NULL,  
-        FlowPMin FLOAT NOT NULL,  
-        FlowPHour FLOAT NOT NULL,  
-        Velocity FLOAT NOT NULL,  
-        RTD1 FLOAT NOT NULL,  
-        RTD2 FLOAT NOT NULL,  
-        VeloUnit FLOAT NOT NULL,  
-        FlowrateUnit FLOAT NOT NULL,  
+        mA FLOAT NOT NULL,  
+        FlowRate FLOAT NOT NULL,  
+        DcSupply12v FLOAT NOT NULL,  
         
         battVoltage decimal(20,3) NOT NULL,  
         lc decimal(20,3) NOT NULL,  
@@ -79,8 +74,8 @@ async function insertToDb(Info, db, nameID){
         }
     }
 
-    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, FlowPSec, FlowPMin, FlowPHour, Velocity, RTD1, RTD2, VeloUnit, FlowrateUnit, battVoltage, lc, RSSI, SNR) 
-    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
+    const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, milliAmp, m3PerSec, DcSupply12v, battVoltage, lc, RSSI, SNR) 
+    VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[0]}, ${data.V[1]}, ${data.V[2]}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;
     
     let connection;
     let result;
