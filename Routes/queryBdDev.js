@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getLastNData, getNMinData, getDataT1ToT2, getNDataAfterT, getNMinAfterT } = require("../MySQL/queryData");
+const { getLastNData, getNMinData, getDataT1ToT2, getNDataAfterT, getNMinAfterT, getDataT1ToT2_asc } = require("../MySQL/queryData");
 const buildingDb = "Buildings";
 const auth = require("../Middleware/auth");
 
@@ -19,6 +19,15 @@ router.get("/n/:ty/:id/:qty", auth, async (req, res) => {
 router.get("/ttot/:ty/:id/:t1/:t2", auth, async (req, res) => {
     console.log(req.params.t1);
     let result= await getDataT1ToT2(buildingDb, req.params.ty, req.params.id, req.params.t1, req.params.t2);
+    // console.log(result);
+    // if (!result) return res.status(400).send("Invalid request");
+    return res.status(200).send(result);
+    // return res.status(200).send("result");
+});
+
+router.get("/ttotasc/:ty/:id/:t1/:t2", auth, async (req, res) => {
+    console.log(req.params.t1);
+    let result= await getDataT1ToT2_asc(buildingDb, req.params.ty, req.params.id, req.params.t1, req.params.t2);
     // console.log(result);
     // if (!result) return res.status(400).send("Invalid request");
     return res.status(200).send(result);

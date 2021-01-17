@@ -90,6 +90,22 @@ async function getDataT1ToT2(database, devType, devID, T1, T2){
   }
 }
 
+async function getDataT1ToT2_asc(database, devType, devID, T1, T2){
+  const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' AND unix <= '${T2}' order by unix asc`;
+  // console.log(sqlQuery);
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    result = await connection.query(`use ${database}`);
+    result = await connection.query(sqlQuery);
+    return result;
+  } catch (ex) {
+    console.log("DB Error", ex.message);
+  } finally {
+    if (connection) connection.end();
+    console.log("T to T Finally");
+  }
+}
 
 async function getNDataAfterT(database, devType, devID, T1, n1){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' limit ${n1}`;
@@ -140,6 +156,7 @@ async function listedInbuildingDevices(devType, devID){
   }
 }
 
+exports.getDataT1ToT2_asc=getDataT1ToT2_asc;
 exports.queryTemplate=queryTemplate;
 exports.insertTemplate = insertTemplate;
 exports.listedInbuildingDevices = listedInbuildingDevices;
