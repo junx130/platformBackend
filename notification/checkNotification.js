@@ -177,7 +177,7 @@ notificationHandling=async (notifyItem)=>{
             alarmArray = alarmPattern.filter(c=>(c[notifyItem.DataKey] > notifyItem.AlarmSetpoint));  
             if(!alarmArray[0]) return null
             rtnValue = {
-                msg : `is exceeded UPPER limit`,
+                msg : `has exceeded UPPER limit`,
                 // value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
                 // unix: alarmArray[alarmArray.length-1].unix,
                 value: alarmArray[0][notifyItem.DataKey],
@@ -190,7 +190,7 @@ notificationHandling=async (notifyItem)=>{
             alarmArray = alarmPattern.filter(c=>(c[notifyItem.DataKey] < notifyItem.AlarmSetpoint));  
             if(!alarmArray[0]) return null
             rtnValue = {
-                msg : `is exceeded LOWER limit`,
+                msg : `has exceeded LOWER limit`,
                 // value: alarmArray[alarmArray.length-1][notifyItem.DataKey],
                 // unix: alarmArray[alarmArray.length-1].unix,
                 value: alarmArray[0][notifyItem.DataKey],
