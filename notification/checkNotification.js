@@ -219,6 +219,7 @@ async function checkNotification(bdDev, devData){
         console.log("Monitoring List");
         // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
         // check whether need to trigger notification
+        if(notifyItem.Active == 0) continue;        // Alarm is active column unchecked
         let triggerAlarm = await notificationHandling(notifyItem);
         if(!triggerAlarm) continue
         // get telegram ID
