@@ -15,7 +15,7 @@ async function queryTemplate(db, queryCmd, completeMessage){
     console.log("DB Error", ex.message);
   } finally {
     if (connection) connection.end();
-    console.log(completeMessage);
+    // console.log(completeMessage);
   }   
 }
 
