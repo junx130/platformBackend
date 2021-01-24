@@ -29,16 +29,15 @@ function prgMqtt() {
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
-        // console.log("message is " + message);
-        // console.log("topic is " + topic);
-    
-        // topicHandling(topic, message);
-        //   await mqttGetProfiles(topic, message);
-        await mqttNodeHandling(topic, message);
+          // console.log("message is " + message);
+          // console.log("topic is " + topic);    
+          // topicHandling(topic, message);
+          //   await mqttGetProfiles(topic, message);
+          await mqttNodeHandling(topic, message);
 
 
-        prgMqtt.client.publish("AploudBackend/Reply", "Received");
-        // client.end();
+          prgMqtt.client.publish("AploudBackend/Reply", "Received");
+          // client.end();
         });
     } catch (error) {
         console.log("KoalaMqttErr: ", error.message);
@@ -46,4 +45,11 @@ function prgMqtt() {
 
   }
 
-  exports.prgMqtt = prgMqtt;
+function publishMqtt(topic, obj){
+  console.log("Pub MQTT");
+  prgMqtt.client.publish(topic, JSON.stringify(obj));
+  // prgMqtt.client.publish('Aploud/CtrlSetting/20001', JSON.stringify(obj));
+}
+
+exports.publishMqtt=publishMqtt;
+exports.prgMqtt = prgMqtt;

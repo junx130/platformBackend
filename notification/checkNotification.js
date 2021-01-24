@@ -216,7 +216,7 @@ async function checkNotification(bdDev, devData){
     if(!notifyList) return console.log("Not in monitoring list");
 
     for (const notifyItem of notifyList) {
-        console.log("Monitoring List");
+        // console.log("Monitoring List");
         // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
         // check whether need to trigger notification
         if(notifyItem.Active == 0) continue;        // Alarm is active column unchecked
