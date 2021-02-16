@@ -1,3 +1,4 @@
+const { decodeDevType } = require("../MySQL/node/newLoRaFormat/checkLoRaFormat");
 const { usfDbHandling } = require("../MySQL/node/ty1001_usf");
 const { airFlowDbHandling } = require("../MySQL/node/ty1002_airFlow");
 const { rtrhDbHandling } = require("../MySQL/node/ty1_rtrh");
@@ -29,6 +30,14 @@ const { gatewayHandling } = require("../MySQL/node/ty5_gateway");
         arr_topic[1]==="Connection"
     ){        
         await gatewayHandling(message);
+        
+    }    
+
+    if(arr_topic[0]==="Aplouds"&&
+        arr_topic[1]==="NodeToServer"
+    ){        
+        // console.log("Get New LoRa Type");
+        await decodeDevType(message);
         
     }    
 

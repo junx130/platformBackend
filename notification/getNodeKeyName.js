@@ -23,6 +23,8 @@ const nodeKey = [
     {type: 3, key: "ActiveEnergyDelivered", name:"Energy"},
     {type: 4, key: "mA", name:"Current"},
     {type: 4, key: "pressure", name:"Pressure"},
+    {type: 4, key: "SwitchOn", name:"Status"},
+    {type: 4, key: "VoltageLevel", name:"Analogue"},
     {type: 1001, key: "FlowPHour", name:"Flow Rate"},
     {type: 1001, key: "RTD1", name:"Inlet Temperature"},
     {type: 1001, key: "RTD2", name:"Outlet Temperature"},
