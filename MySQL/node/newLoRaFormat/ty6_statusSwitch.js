@@ -9,7 +9,7 @@ const buildingDb = "Buildings";
 
 async function infoHandlings(deviceInfo) {
     try {
-        // console.log(deviceInfo);
+        console.log(deviceInfo);
         await insertToDb(deviceInfo, database, deviceInfo.hi);
         let CheckListResult = await listedInbuildingDevices(deviceInfo.ht, deviceInfo.hi);
         if (CheckListResult) {
@@ -51,7 +51,7 @@ async function insertToDb(Info, db, nameID){
         devID INT NOT NULL,  
         gwID INT,  
         frequency decimal(19,4),  
-        SwitchOn BOOL,  
+        SwitchOn INT,  
         VoltageLevel INT,  
         battVoltage decimal(20,3) NOT NULL,  
         RSSI INT NOT NULL,  
@@ -69,12 +69,13 @@ async function insertToDb(Info, db, nameID){
     data.SNR = Info.SNR;
     data.GwID = Info.GwID;
     data.Freq = Info.Freq;
-
-    for (const key in data) {
-        if (!data[key]) {   // key not define
-            data[key]=null;
-        }
-    }
+    console.log(Info.pb[0]);
+    console.log(data.SwitchOn);
+    // for (const key in data) {
+    //     if (!data[key]) {   // key not define
+    //         data[key]=null;
+    //     }
+    // }
 
     const insertData = `INSERT INTO Device_${Info.ht}_${nameID}(unix, type, devID, gwID, frequency, SwitchOn, VoltageLevel, battVoltage, RSSI, SNR) 
     VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.SwitchOn}, ${data.VoltageLevel}, ${data.BV}, ${data.RSSI}, ${data.SNR})`;
