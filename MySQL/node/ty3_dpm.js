@@ -87,7 +87,22 @@ async function insertToDb(Info, db, nameID){
     }
 
     let kWh= data.INT64 / 1000;
+    
+    /***********Tesco kajang exception **********/
+    let ratio = 1.25;
+    if(false){
+    // if(data.ID == 100 && data.Ty==3){
+        data.V[1]=data.V[1]*ratio;
+        data.V[2]=data.V[2]*ratio;
+        data.V[3]=data.V[3]*ratio;
+        data.V[8]=data.V[8]*ratio;
+        data.V[9]=data.V[9]*ratio;
+        data.V[10]=data.V[10]*ratio;
+    }
+
+    /************************************ */
     let activePowerTotal = data.V[8] + data.V[9] + data.V[10];
+
 
     const insertData = `INSERT INTO Device_${Info.Ty}_${nameID}(unix, type, devID, gwID, frequency, CurrentA, CurrentB, CurrentC, VoltageA_B, VoltageB_C, VoltageC_A, DpmFrequency, ActivePower_A, ActivePower_B, ActivePower_C, ActivePower_Total, PowerFactor_A,PowerFactor_B, PowerFactor_C, PowerFactor_Total, ActiveEnergyDelivered, battVoltage, lc, RSSI, SNR) 
     VALUES (UNIX_TIMESTAMP(), ${data.Ty}, ${data.ID}, ${data.GwID}, ${data.Freq}, ${data.V[1]}, ${data.V[2]}, ${data.V[3]}, ${data.V[4]}, ${data.V[5]}, ${data.V[6]}, ${data.V[7]}, ${data.V[8]}, ${data.V[9]}, ${data.V[10]}, ${activePowerTotal}, ${data.V[11]}, ${data.V[12]}, ${data.V[13]}, ${data.V[14]}, ${kWh}, ${data.BV}, ${data.LC}, ${data.RSSI}, ${data.SNR})`;

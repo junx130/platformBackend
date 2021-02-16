@@ -229,6 +229,8 @@ async function checkNotification(bdDev, devData){
         if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
         
         console.log("building");
+        // console.log(notifyItem.DataKey);
+        // console.log(notifyItem.type);
         let keyName = getNodeKey(notifyItem.DataKey, notifyItem.type);
         let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, keyName, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix);
         for (const singleTeleID of teleDB) {
