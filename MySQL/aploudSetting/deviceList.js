@@ -30,31 +30,31 @@ async function registerNewDevice(device) {
     let result = await insertTemplate(settingDatabase, createTable, insertBuilding, "RegisterNewDeviceFinally");
     // console.log("Insert result: ", result);
     return result;
-    
+
 }
 
-async function getDevicesList(){
+async function getDevicesList() {
     const quertCmd = `SELECT * from ${tableName}`;
-    
+
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Devices List Done");
-        if(!result[0]) return null;     // no building in list
-        const buildings = result.map(b=>b);
-        return buildings;        
+        if (!result[0]) return null;     // no building in list
+        const buildings = result.map(b => b);
+        return buildings;
     } catch (ex) {
         console.log(ex.message)
         return null;
     }
 }
 
-async function getDevicesByType(type){
+async function getDevicesByType(type) {
     const quertCmd = `SELECT * from ${tableName} where type = ${type}`;
-    
+
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Devices By Type Done");
-        if(!result[0]) return null;     // no building in list
-        const buildings = result.map(b=>b);
-        return buildings;        
+        if (!result[0]) return null;     // no building in list
+        const buildings = result.map(b => b);
+        return buildings;
     } catch (ex) {
         console.log(ex.message)
         return null;
@@ -62,22 +62,50 @@ async function getDevicesByType(type){
 }
 
 
-async function getDevicesFromList(data){
+async function getDevicesFromList(data) {
     const quertCmd = `SELECT * from ${tableName} WHERE type = ${data.type} AND devID = ${data.devID}`;
-    
+
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Device Done");
-        if(!result[0]) return null;     // no building in list
-        const buildings = result.map(b=>b);
-        return buildings;        
+        if (!result[0]) return null;     // no building in list
+        const buildings = result.map(b => b);
+        return buildings;
     } catch (ex) {
         console.log(ex.message)
         return null;
     }
 }
 
-async function updateDevicesList(data){
-     
+async function getDevicesByLimit(start, limit) {
+    const queryCmd = `SELECT * from ${tableName} LIMIT ${start}, ${limit}`;
+
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "Get Devices by Limit Done");
+        if (!result[0]) return null;
+        const buildings = result.map(b => b);
+        return buildings;
+    } catch (ex) {
+        console.log(ex.message);
+        return null;
+    }
+}
+
+async function countAll() {
+    const queryCmd = `SELECT COUNT(*) as count from ${tableName}`;
+
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "Count All Done");
+        if (!result[0]) return null;
+        const buildings = result.map(b => b);
+        return buildings[0];
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+async function updateDevicesList(data) {
+
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(), battConst = ${data.battConst},
     sleepAmp = ${data.sleepAmp}, SimNumber = "${data.SimNumber}",
@@ -87,33 +115,35 @@ async function updateDevicesList(data){
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Update Devices List Finally");
         // console.log("Update: ", result.affectedRows);        
-        return result;        
+        return result;
     } catch (ex) {
         console.log(ex.message)
         return null;
     }
 }
 
-async function deleteDevice(info){
+async function deleteDevice(info) {
     // console.log(info);
     const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
-    
+
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Delete Device Finally");
         // console.log("Update: ", result.affectedRows);        
-        return result;        
+        return result;
     } catch (ex) {
         console.log(ex.message)
         return null;
     }
 }
 
-exports.getDevicesByType=getDevicesByType;
-exports.deleteDevice=deleteDevice;
-exports.updateDevicesList=updateDevicesList;
-exports.getDevicesFromList=getDevicesFromList;
-exports.getDevicesList=getDevicesList;
-exports.registerNewDevice=registerNewDevice;
+exports.getDevicesByType = getDevicesByType;
+exports.deleteDevice = deleteDevice;
+exports.getDevicesByLimit = getDevicesByLimit;
+exports.countAll = countAll;
+exports.updateDevicesList = updateDevicesList;
+exports.getDevicesFromList = getDevicesFromList;
+exports.getDevicesList = getDevicesList;
+exports.registerNewDevice = registerNewDevice;
 // exports.updateBuilding=updateBuilding;
 // exports.getBuildings=getBuildings;
 // exports.getBuildingsByBuildingName=getBuildingsByBuildingName;
