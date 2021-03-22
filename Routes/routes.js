@@ -13,6 +13,7 @@ const lineList= require("./GraphPara/lineList")
 const graphList= require("./GraphPara/graphList")
 const offsetRoute= require("./offset/offsetRoute")
 const controlDevRoute= require("./ControlDevice/ctrlDevRoute")
+const Monlist= require("./MonList/MonList")
 const error= require("../Middleware/error")
 
 
@@ -33,6 +34,7 @@ module.exports = function (app) {
     app.use("/graphList/", graphList);    
     app.use("/offset/", offsetRoute);    
     app.use("/ctrldev/", controlDevRoute);    
+    app.use("/monlist/", Monlist);    
     
     app.use(error);     // caught all unexpected error
 }
