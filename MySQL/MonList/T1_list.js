@@ -37,7 +37,7 @@ async function regT1List(body){
 
     const insertQry = `INSERT INTO ${tableName_Element}(unix, name, MonitorList_id, SortIndex, userAmmend)
     VALUES (UNIX_TIMESTAMP(), "${body.name}", ${body.MonitorList_id}, ${body.SortIndex}, "${body.userAmmend}")`;
-        console.log(insertQry);
+        // console.log(insertQry);
     let result = await insertTemplate(db, createTable, insertQry, "Insert T1 List Finally");
     // console.log("Insert result: ", result);
     return result;

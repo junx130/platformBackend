@@ -21,7 +21,7 @@ async function regMonList(body){
 
     const insertQry = `INSERT INTO ${tableName_List}(unix, name, buildingID, SortIndex, userAmmend)
     VALUES (UNIX_TIMESTAMP(), "${body.name}", ${body.buildingID}, ${body.SortIndex}, "${body.userAmmend}")`;
-        console.log(insertQry);
+        // console.log(insertQry);
     let result = await insertTemplate(db, createTable, insertQry, "InsertMonListFinally");
     // console.log("Insert result: ", result);
     return result;
@@ -79,7 +79,7 @@ const tableName_T1List = "T1_list";
 
 async function getT1ListByMonitoList_id(Monitoring_id){
     const quertCmd = `SELECT * from ${tableName_T1List} WHERE MonitorList_id = ${Monitoring_id}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     try {
         let result = await queryTemplate(db, quertCmd, "Get T1 List Done");
         if(!result[0]) return null;     // no building in list
@@ -108,6 +108,57 @@ async function getElementByMonitoT1_id(T1_id){
     }
 }
 
+/**--------------------Assigned Mon List------------------*/
+const tableName_AssignedMonList = "AssignedMonList";
+async function getAssignedMonList(UserID){
+    const quertCmd = `SELECT * from ${tableName_AssignedMonList} WHERE UserID = ${UserID}`;
+    console.log(quertCmd);
+    try {
+        let result = await queryTemplate(db, quertCmd, "Get Assigned Mon List Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+async function addAssignedMonList(body){
+    const createTable = `CREATE TABLE IF NOT EXISTS AssignedMonList(	
+         _id int NOT NULL AUTO_INCREMENT,
+         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         unix INT(11) NOT NULL,
+         MonitorList_id int,
+         UserID int,
+         userAmmend varchar(80),
+         PRIMARY KEY (_id)
+    )`;
+
+    const insertQry = `INSERT INTO ${tableName_AssignedMonList}(unix, MonitorList_id, UserID, userAmmend)
+    VALUES (UNIX_TIMESTAMP(), ${body.MonitorList_id}, ${body.UserID}, "${body.userAmmend}")`;
+        // console.log(insertQry);
+    let result = await insertTemplate(db, createTable, insertQry, "Assigned Mon List Finally");
+    // console.log("Insert result: ", result);
+    return result;
+}
+
+async function deleteAssignedMonList(info){
+    const quertCmd = `DELETE from ${tableName_AssignedMonList} where _id = ${info._id}`;
+    console.log(quertCmd);
+    try {
+        let result = await queryTemplate(db, quertCmd, "Delete Assigned Mon List Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+exports.deleteAssignedMonList=deleteAssignedMonList;
+exports.addAssignedMonList=addAssignedMonList;
+exports.getAssignedMonList=getAssignedMonList;
 exports.deleteMonList=deleteMonList;
 exports.updateMonList=updateMonList;
 exports.getElementByMonitoT1_id=getElementByMonitoT1_id;

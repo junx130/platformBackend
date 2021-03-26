@@ -42,7 +42,7 @@ async function regEleList(body){
 
     const insertQry = `INSERT INTO ${tableName_Element}(unix, T1_id, type, bdDev_id, SortIndex, userAmmend)
     VALUES (UNIX_TIMESTAMP(), ${body.T1_id},  ${body.type}, ${body.bdDev_id}, ${body.SortIndex}, "${body.userAmmend}")`;
-        console.log(insertQry);
+        // console.log(insertQry);
     let result = await insertTemplate(db, createTable, insertQry, "Insert Element List Finally");
     // console.log("Insert result: ", result);
     return result;
@@ -60,6 +60,7 @@ async function deleteEleList(info){
         return null;
     }
 }
+
 
 exports.updateEleList = updateEleList;
 exports.regEleList = regEleList;

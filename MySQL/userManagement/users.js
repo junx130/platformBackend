@@ -57,7 +57,7 @@ async function deleteUser(info) {
 
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Delete User Finally");
-        console.log("Delete: ", result.affectedRows);        
+        // console.log("Delete: ", result.affectedRows);        
         return result.affectedRows;        
     } catch (ex) {
         console.log(ex.message)

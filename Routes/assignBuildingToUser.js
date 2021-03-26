@@ -42,9 +42,9 @@ router.post("/add", auth, async (req, res) => {
         console.log("req.body");
         let data = req.body;   
         data.userAmmend = req.user.username;        
-        console.log(data);
+        // console.log(data);
         let result  = await insertBuildingOwner(data);  
-        console.log(result);   
+        // console.log(result);   
         if(!result) return res.status(400).send("Grant Access Failed(DB).");
         if(result.affectedRows<1) return res.status(400).send("Grant Access Failed.");
         res.status(200).send(`Grant Access Succesful`);        
