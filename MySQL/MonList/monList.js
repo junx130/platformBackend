@@ -20,8 +20,8 @@ async function regMonList(body){
     )`;
 
     const insertQry = `INSERT INTO ${tableName_List}(unix, name, buildingID, SortIndex, userAmmend)
-    VALUES (UNIX_TIMESTAMP(), "${body.name}", ${body.buildingID}, ${body.SortIndex}, "${device.userAmmend}")`;
-
+    VALUES (UNIX_TIMESTAMP(), "${body.name}", ${body.buildingID}, ${body.SortIndex}, "${body.userAmmend}")`;
+        console.log(insertQry);
     let result = await insertTemplate(db, createTable, insertQry, "InsertMonListFinally");
     // console.log("Insert result: ", result);
     return result;
@@ -41,6 +41,37 @@ async function getMonListByBuidlingID(buildingID){
     }
 }
 
+/**Update Mon List */
+async function updateMonList(data){     
+    const quertCmd = `UPDATE ${tableName_List} SET timestamp = CURRENT_TIMESTAMP(),
+    unix = UNIX_TIMESTAMP(),  
+    name = "${data.name}", buildingID = ${data.buildingID}, 
+    SortIndex = ${data.SortIndex}, userAmmend = "${data.userAmmend}"    
+    where _id = ${data._id}`;
+
+    try {
+        let result = await queryTemplate(db, quertCmd, "Mon List Update Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+/** Delete Mon List */
+async function deleteMonList(info){
+    const quertCmd = `DELETE from ${tableName_List} where _id = ${info._id}`;
+
+    try {
+        let result = await queryTemplate(db, quertCmd, "Delete Mon List Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
 
 
 /**-----------------------     T1 database     ------------------- */
@@ -77,7 +108,8 @@ async function getElementByMonitoT1_id(T1_id){
     }
 }
 
-
+exports.deleteMonList=deleteMonList;
+exports.updateMonList=updateMonList;
 exports.getElementByMonitoT1_id=getElementByMonitoT1_id;
 exports.getT1ListByMonitoList_id=getT1ListByMonitoList_id;
 exports.getMonListByBuidlingID = getMonListByBuidlingID;
