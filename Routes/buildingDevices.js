@@ -3,20 +3,25 @@ const router = express.Router();
 const { getDevicesList, getDevicesFromList, registerNewDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
-const { getBuildingDevicesList, registerBuildingDevice, updateBuildingDevices, deleteBdDevice} = require("../MySQL/buildings/buildingDevices");
+const { getBuildingDevicesList, registerBuildingDevice, updateBuildingDevices, deleteBdDevice, getBuildingDevice_by_idList} = require("../MySQL/buildings/buildingDevices");
 
 // get buidling devices list
 router.get("/get", auth, async (req, res) => {
     try {
-        // console.log("Enter");
-        //validate user access level
-        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
-        // get building devices list from database
         let result = await getBuildingDevicesList();
-        
-        //  send building devices list
         return res.status(200).send(result);
-        
+    } catch (ex) {        
+        console.log("Get Building Error");
+        return res.status(404).send(ex.message);
+    }
+});
+
+
+router.post("/getbylist", auth, async (req, res) => {
+    console.log("Come in getbylist");
+    try {
+        let result = await getBuildingDevice_by_idList(req.body);
+        return res.status(200).send(result);
     } catch (ex) {        
         console.log("Get Building Error");
         return res.status(404).send(ex.message);

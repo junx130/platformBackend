@@ -9,7 +9,7 @@ const buildingDb = "Buildings";
 
 async function infoHandlings(deviceInfo) {
     try {
-        console.log(deviceInfo);
+        // console.log(deviceInfo);
         await insertToDb(deviceInfo, database, deviceInfo.hi);
         let CheckListResult = await listedInbuildingDevices(deviceInfo.ht, deviceInfo.hi);
         if (CheckListResult) {

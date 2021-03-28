@@ -66,7 +66,7 @@ async function insertToDb(Info, db, nameID){
     data.BV = Info.BV;
     data.LC = Info.LC;
     data.RSSI = Info.RSSI;
-    data.SNR = Info.SNR;
+    data.SNR = Info.SNR?Info.SNR:0;
     data.GwID = Info.GwID;
     data.Freq = Info.Freq;
 
