@@ -41,6 +41,20 @@ async function getMonListByBuidlingID(buildingID){
     }
 }
 
+async function getMonListBy_id(_id){
+    const quertCmd = `SELECT * from ${tableName_List} WHERE _id = ${_id}`;
+    // console.log(quertCmd);
+    try {
+        let result = await queryTemplate(db, quertCmd, "Get Mon List Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 /**Update Mon List */
 async function updateMonList(data){     
     const quertCmd = `UPDATE ${tableName_List} SET timestamp = CURRENT_TIMESTAMP(),
@@ -91,6 +105,19 @@ async function getT1ListByMonitoList_id(Monitoring_id){
     }
 }
 
+async function getT1ListBy_id(_id){
+    const quertCmd = `SELECT * from ${tableName_T1List} WHERE _id = ${_id}`;
+    // console.log(quertCmd);
+    try {
+        let result = await queryTemplate(db, quertCmd, "Get T1 List Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
 /**     ------------------------   Get element ------------------------ */
 const tableName_Element = "MonitoringElement";
 
@@ -156,6 +183,8 @@ async function deleteAssignedMonList(info){
     }
 }
 
+exports.getT1ListBy_id=getT1ListBy_id;
+exports.getMonListBy_id=getMonListBy_id;
 exports.deleteAssignedMonList=deleteAssignedMonList;
 exports.addAssignedMonList=addAssignedMonList;
 exports.getAssignedMonList=getAssignedMonList;
