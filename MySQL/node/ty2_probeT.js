@@ -57,13 +57,13 @@ async function insertToDb(Info, db, nameID){
     data.BV = Info.BV;
     data.LC = Info.LC;
     data.RSSI = Info.RSSI;
-    data.SNR = Info.SNR?Info.SNR:0;
+    data.SNR = Info.SNR;
     data.GwID = Info.GwID;
     data.Freq = Info.Freq;
 
     for (const key in data) {
         if (!data[key]) {   // key not define
-            data[key]=null;
+            data[key]=0;
         }
     }
 
