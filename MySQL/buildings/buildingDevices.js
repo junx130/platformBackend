@@ -61,6 +61,26 @@ async function getBuildingDevicesByTypeID(data){
     }
 }
 
+async function getBuildingDevice_by_idList(a_list){
+    // select * from BuildingDevices where _id in (1,2,3);
+    let _idList = [...a_list];
+    // for (const item of a_list) {
+    //     _idList.push(item._id);
+    // }
+    // let s_idList = _idList.toString();
+    const quertCmd = `SELECT * from ${tableName} WHERE _id in (${_idList.toString()})`;
+    console.log(quertCmd);
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Device By List Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function getBuildingDevicesBy_ID(_id){
     const quertCmd = `SELECT * from ${tableName} WHERE _id = ${_id}`;
     
@@ -121,6 +141,7 @@ async function deleteBdDevice(info){
     }
 }
 
+exports.getBuildingDevice_by_idList=getBuildingDevice_by_idList;
 exports.getBuildingDevicesBy_ID=getBuildingDevicesBy_ID;
 exports.deleteBdDevice=deleteBdDevice;
 exports.updateBuildingDevices=updateBuildingDevices;

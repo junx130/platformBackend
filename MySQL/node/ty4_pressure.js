@@ -68,7 +68,7 @@ async function insertToDb(Info, db, nameID){
 
     for (const key in data) {
         if (!data[key]) {   // key not define
-            data[key]=null;
+            data[key]=0;
         }
     }
 
