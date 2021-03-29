@@ -41,6 +41,20 @@ async function getMonListByBuidlingID(buildingID){
     }
 }
 
+async function getMonListByMonID(monID) {
+    const queryCmd = `SELECT * from ${tableName_List} WHERE _id = ${monID}`;
+    // console.log(queryCmd);
+    try {
+        let result = await queryTemplate(db, queryCmd, "Get Mon List Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 
 
 /**-----------------------     T1 database     ------------------- */
@@ -81,4 +95,5 @@ async function getElementByMonitoT1_id(T1_id){
 exports.getElementByMonitoT1_id=getElementByMonitoT1_id;
 exports.getT1ListByMonitoList_id=getT1ListByMonitoList_id;
 exports.getMonListByBuidlingID = getMonListByBuidlingID;
+exports.getMonListByMonID = getMonListByMonID;
 exports.regMonList = regMonList;

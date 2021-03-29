@@ -3,7 +3,7 @@ const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 //const { getNotifyListById, updateNotificatonList, regNotificatonList, deleteNotifyItem } = require("../../MySQL/notification/notification");
-const {getMonListByBuidlingID, getT1ListByMonitoList_id, getElementByMonitoT1_id} = require("../../MySQL/MonList/monList");
+const {getMonListByBuidlingID, getMonListByMonID, getT1ListByMonitoList_id, getElementByMonitoT1_id} = require("../../MySQL/MonList/monList");
 
 
 router.post("/getbybdID", auth, async (req, res) => {    
@@ -17,6 +17,18 @@ router.post("/getbybdID", auth, async (req, res) => {
         return res.status(404).send(ex.message);        
     }
 });
+
+router.post("/getbymonID", auth, async (req, res) => {
+     try {
+        // console.log(req.params.userid);
+        console.log(req.body);
+        let result = await getMonListByMonID(req.body.monID);
+        return res.status(200).send(result);        
+    } catch (ex) {
+        console.log("Get List Error");
+        return res.status(404).send(ex.message);        
+    }
+})
 
 router.post("/gett1bymonlist_id", auth, async (req, res) => {    
     try {
