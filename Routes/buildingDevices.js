@@ -3,7 +3,7 @@ const router = express.Router();
 const { getDevicesList, getDevicesFromList, registerNewDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
-const { getBuildingDevicesList, registerBuildingDevice, updateBuildingDevices, deleteBdDevice, getBuildingDevice_by_idList} = require("../MySQL/buildings/buildingDevices");
+const { getBuildingDevicesList, registerBuildingDevice, updateBuildingDevices, deleteBdDevice, getBuildingDevice_by_idList, getBuildingDevicesBy_ID} = require("../MySQL/buildings/buildingDevices");
 
 // get buidling devices list
 router.get("/get", auth, async (req, res) => {
