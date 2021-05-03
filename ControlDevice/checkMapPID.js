@@ -26,15 +26,15 @@ checkPid=async(bdDev, sensorData)=>{
     let payload={};
     for (const pidMap of pidMapList) {
         /** Generate loRa message */
-        // console.log(sensorData);
-        // console.log(pidMap);
+        console.log(sensorData);
+        console.log(pidMap);
         devDetails = {
             devType: pidMap.ctNodeType,
-            id: bdDev.devID,
+            id: pidMap.ctBdDev_id,      // from here get actual ID from buidling dev id
             dir: 2, // from gateway to node
             fun: pidMap.loraFun, // function code, 1=> set parameter 1
         };
-
+        console.log(devDetails);
         payload = {
             // pb:[1,1],
             pf: [sensorData[pidMap.DataKey]],
@@ -48,6 +48,7 @@ checkPid=async(bdDev, sensorData)=>{
         /** MQTT Send PID feedback to gateway to sensor*/
         
         // subscribe_2ndMqtt(`Aplouds/ServerToNode/${package_.gwid}`);
+        console.log(package_);
         publish_2ndMqtt(`Aplouds/ServerToNode/${package_.gwid}`, package_);
     }
     

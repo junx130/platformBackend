@@ -1,5 +1,6 @@
 const { verifyCRC } = require("../../../utilities/loraFormat");
 const { ty6_switchStatusHandling } = require("./ty6_statusSwitch");
+const { ty7_VfdCtrlHandling } = require("./ty7_VfdControl");
 
 async function decodeDevType(message) {
     try {
@@ -13,7 +14,9 @@ async function decodeDevType(message) {
             case 6:
                 await ty6_switchStatusHandling(deviceInfo);
                 break;
-        
+            case 7: 
+                await ty7_VfdCtrlHandling(deviceInfo);
+                break;
             default:
                 break;
         }
