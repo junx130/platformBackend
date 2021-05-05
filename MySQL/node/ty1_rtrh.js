@@ -3,6 +3,7 @@ const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 1;
 const {checkNotification} = require("../../notification/checkNotification");
+const { checkPid } = require("../../ControlDevice/checkMapPID");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
@@ -22,6 +23,7 @@ async function rtrhDbHandlings(message) {
                         await insertToDb(deviceInfo, buildingDb, c._id);  
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        await checkPid(c, deviceInfo);
                     }   
                 }
             }else{
