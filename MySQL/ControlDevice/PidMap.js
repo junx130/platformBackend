@@ -20,4 +20,23 @@ async function getPidMap(Info){
 }
 
 
+/**Update Mon List */
+async function updateOrInsertPidMap(data){     
+    const quertCmd = `UPDATE ${tableName_List} SET timestamp = CURRENT_TIMESTAMP(),
+    unix = UNIX_TIMESTAMP(),  
+    name = "${data.name}", buildingID = ${data.buildingID}, 
+    SortIndex = ${data.SortIndex}, userAmmend = "${data.userAmmend}"    
+    where _id = ${data._id}`;
+
+    try {
+        let result = await queryTemplate(db, quertCmd, "Update PID map Finally");
+        // console.log("Update: ", result.affectedRows);        
+        return result;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+exports.updateOrInsertPidMap=updateOrInsertPidMap;
 exports.getPidMap =getPidMap;

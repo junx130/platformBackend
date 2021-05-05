@@ -1,6 +1,8 @@
 const { publish_2ndMqtt, mqttClient2nd, subscribe_2ndMqtt, unsubscribe_2ndMqtt } = require("../MQTT/mqttSend");
+const { getBuildingDevicesBy_ID } = require("../MySQL/buildings/buildingDevices");
 const {getPidMap} = require("../MySQL/ControlDevice/PidMap");
 const{genLoRaPackage} = require("../utilities/loraFormat");
+
 
 // mqttClient2nd.on('message', async (topic, message) => {
 //     const a_topic = topic.split("/");
@@ -28,9 +30,13 @@ checkPid=async(bdDev, sensorData)=>{
         /** Generate loRa message */
         console.log(sensorData);
         console.log(pidMap);
+
+        let bdDev = await getBuildingDevicesBy_ID(pidMap.ctBdDev_id);
+        console.log(bdDev);
+        if (!bdDev[0]) return 
         devDetails = {
             devType: pidMap.ctNodeType,
-            id: pidMap.ctBdDev_id,      // from here get actual ID from buidling dev id
+            id: bdDev[0].devID ,      // from here get actual ID from buidling dev id
             dir: 2, // from gateway to node
             fun: pidMap.loraFun, // function code, 1=> set parameter 1
         };

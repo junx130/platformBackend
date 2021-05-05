@@ -49,7 +49,7 @@ async function getBuildingDevicesList(){
 
 async function getBuildingDevicesByTypeID(data){
     const quertCmd = `SELECT * from ${tableName} WHERE type = ${data.type} AND devID = ${data.devID}`;
-    
+    // console.log(quertCmd);
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Device Done");
         if(!result[0]) return null;     // no building in list
@@ -69,7 +69,7 @@ async function getBuildingDevice_by_idList(a_list){
     // }
     // let s_idList = _idList.toString();
     const quertCmd = `SELECT * from ${tableName} WHERE _id in (${_idList.toString()})`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Device By List Done");
         if(!result[0]) return null;     // no building in list
