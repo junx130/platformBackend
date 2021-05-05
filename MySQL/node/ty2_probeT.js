@@ -3,6 +3,8 @@ const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 2;
 const {checkNotification} = require("../../notification/checkNotification");
+const { checkPid } = require("../../ControlDevice/checkMapPID");
+
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
@@ -19,8 +21,19 @@ async function probeTDbHandlings(message) {
                     for (const c of CheckListResult) {       
                         await insertToDb(deviceInfo, buildingDb, c._id);     
                         // console.log("c :", c);
+                        // console.log("deviceInfo :", deviceInfo);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+
+                        await checkPid(c, deviceInfo);
+                        /** check whether exist in FeedbackValueMapTable 
+                         * -Create db query function
+                         * 
+                        */
+                        /** if exist, send data to mQTT 
+                         * determine how to send MQTT here (refer to controlDeviceRoute)
+                         * 
+                        */
                     }   
                 }
             }else{
