@@ -37,6 +37,7 @@ const nodeKey = [
     {type: 7, key: "hzOutput", name:"Frequency Output"},
     {type: 7, key: "pidSetpoint", name:"Setpoint"},
     {type: 7, key: "feedbackVal", name:"Feedback"},
+    {type: 7, key: "ManualOutput", name:"Manual Output"},
     {type: 7, key: "modbusId", name:"Modbus ID"},
     {type: 7, key: "nodeOpMode", name:"Op Mode"},
 

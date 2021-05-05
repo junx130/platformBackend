@@ -44,6 +44,7 @@ async function insertToDb(Info, db, nameID){
         hzOutput FLOAT,
         pidSetpoint FLOAT,  
         feedbackVal FLOAT,  
+        ManualOutput FLOAT,
         modbusId int,
         nodeOpMode int,
         battVoltage decimal(20,3) NOT NULL,  
@@ -68,8 +69,8 @@ async function insertToDb(Info, db, nameID){
     data.pidSetpoint = Info.pf[9];    
     data.BV = Info.pf[10];
     data.feedbackVal = Info.pf[11];
+    data.ManualOutput = Info.pf[12];    
     
-
     data.modbusId = Info.pi[0];
     data.nodeOpMode = Info.pi[1];
 
@@ -102,6 +103,7 @@ async function insertToDb(Info, db, nameID){
         hzOutput,
         pidSetpoint,
         feedbackVal,
+        ManualOutput,
         modbusId,
         nodeOpMode, 
         battVoltage, 
@@ -119,6 +121,7 @@ async function insertToDb(Info, db, nameID){
     ${data.pidKd},${data.pidOutMin},${data.pidOutMax}, ${data.hzOutput},
     ${data.pidSetpoint},
     ${data.feedbackVal},    
+    ${data.ManualOutput},    
     ${data.modbusId},${data.nodeOpMode},${data.BV}, ${data.RSSI}, ${data.SNR})`;
     // console.log(insertData);
     let connection;
