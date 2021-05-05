@@ -1,6 +1,8 @@
 const { publish_2ndMqtt, mqttClient2nd, subscribe_2ndMqtt, unsubscribe_2ndMqtt } = require("../MQTT/mqttSend");
 const { getBuildingDevicesBy_ID } = require("../MySQL/buildings/buildingDevices");
 const {getPidMap} = require("../MySQL/ControlDevice/PidMap");
+// const { getNotifyListByIdnType } = require("../MySQL/notification/notification");
+const { getOffsetByIdnKey } = require("../MySQL/offset/offset");
 const{genLoRaPackage} = require("../utilities/loraFormat");
 
 
@@ -30,8 +32,21 @@ checkPid=async(bdDev, sensorData)=>{
         /** Generate loRa message */
         console.log(sensorData);
         console.log(pidMap);
-
+        
         let bdDev = await getBuildingDevicesBy_ID(pidMap.ctBdDev_id);
+        let info = {
+            type:sensorData.Ty,
+            devID:sensorData.ID
+        }
+        console.log(info);
+        let offsetList = await getOffsetByIdnKey(info);
+        console.log("~~~~~~~~~~~~~~Notify List ~~~~~~~~~~~~~~~~~~");
+        console.log(offsetList);
+        let tempOffset = offsetList.filter(c=>c.DataKey === "temperature");
+        let offset = 0;
+        if (tempOffset[0]) offset = tempOffset[0].offsetValue;
+
+        console.log(tempOffset);
         console.log(bdDev);
         if (!bdDev[0]) return 
         devDetails = {
@@ -43,7 +58,7 @@ checkPid=async(bdDev, sensorData)=>{
         console.log(devDetails);
         payload = {
             // pb:[1,1],
-            pf: [sensorData[pidMap.DataKey]],
+            pf: [sensorData[pidMap.DataKey]+offset],
             // pi:[123456789, 987654321],
             // pn:[1612669989]
         }
