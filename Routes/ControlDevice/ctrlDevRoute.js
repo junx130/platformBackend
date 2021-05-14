@@ -1,4 +1,5 @@
 const express = require("express");
+const { setFeedbackDevice, getFeedbackDeviceMap,getNFeedbackDevFromX,getTotalItemCountFn } = require("../../ControlDevice/updateFeebackMap");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { publishMqtt, subscribeTopic, expClient, unsubscribeTopic} = require("../../MQTT/koalaMqtt");
@@ -45,6 +46,56 @@ expClient.on("message", async (topic, message) => {
         }
   });
 
+
+router.post("/setctrldev", auth, async (req, res) => {  
+    // console.log('````````````Come in`````````````````');  
+    try {
+        
+        // buidling.userAmmend = req.user.username;
+        let pidMap = req.body;
+        pidMap.userAmmend = req.user.username;
+        let setRel = await setFeedbackDevice(pidMap);                
+        res.status(200).send(setRel); 
+    } catch (error) {
+        console.log("Set Device Control Error");
+        return res.status(404).send(ex.message);    
+    }
+});
+  
+
+router.post("/getnfromx", auth, async (req, res) => {  
+    // console.log('````````````Come in Get`````````````````');  
+    try {
+        // buidling.userAmmend = req.user.username;
+        let obj = req.body;
+        // pidMap.userAmmend = req.user.username;
+        let count = await getTotalItemCountFn();
+        // console.log(count);
+        let getNRel = await getNFeedbackDevFromX(obj);      
+        // getNRel.itemCount = count;
+        // console.log(getNRel);          
+        let fbData = [{totalCount:count}, ...getNRel]
+        res.status(200).send(fbData);       // ??? 
+    } catch (error) {
+        console.log("Get N Control Dev Error");
+        return res.status(404).send(ex.message);    
+    }
+});
+
+router.post("/getctrldev", auth, async (req, res) => {  
+    // console.log('````````````Come in Get`````````````````');  
+    try {
+        // buidling.userAmmend = req.user.username;
+        let pidMap = req.body;
+        pidMap.userAmmend = req.user.username;
+        let setRel = await getFeedbackDeviceMap(pidMap);      
+        // console.log(setRel);          
+        res.status(200).send(setRel); 
+    } catch (error) {
+        console.log("Set Device Control Error");
+        return res.status(404).send(ex.message);    
+    }
+});
 
 router.post("/send", auth, async (req, res) => {    
     try {
