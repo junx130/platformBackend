@@ -139,7 +139,7 @@ async function getElementByMonitoT1_id(T1_id){
 const tableName_AssignedMonList = "AssignedMonList";
 async function getAssignedMonList(UserID){
     const quertCmd = `SELECT * from ${tableName_AssignedMonList} WHERE UserID = ${UserID}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     try {
         let result = await queryTemplate(db, quertCmd, "Get Assigned Mon List Done");
         if(!result[0]) return null;     // no building in list
@@ -172,7 +172,7 @@ async function addAssignedMonList(body){
 
 async function deleteAssignedMonList(info){
     const quertCmd = `DELETE from ${tableName_AssignedMonList} where _id = ${info._id}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     try {
         let result = await queryTemplate(db, quertCmd, "Delete Assigned Mon List Finally");
         // console.log("Update: ", result.affectedRows);        

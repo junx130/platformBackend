@@ -34,7 +34,7 @@ async function pressureDbHandlings(message) {
 }
 
 async function insertToDb(Info, db, nameID){
-    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
+    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

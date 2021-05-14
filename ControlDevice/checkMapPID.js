@@ -23,8 +23,8 @@ checkPid=async(bdDev, sensorData)=>{
     pidMapList = await getPidMap(bdDev);
     // publish_2ndMqtt(`Aplouds/ServerToNode/10`, "Hello");
 
-    if(!pidMapList[0]) return console.log('Not In Monitoring List');
-    console.log('In PID list');
+    if(!pidMapList[0]) return //console.log('Not In Monitoring List');
+    //console.log('In PID list');
     // Send mqtt to gateway
     let devDetails={};
     let payload={};

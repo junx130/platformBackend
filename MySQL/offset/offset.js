@@ -29,11 +29,7 @@ async function getOffBySearchCriterion(obj){
     sCondition = getSqlSearchCondition(obj);
     // console.log(sCondition);
     const quertCmd = `SELECT * from ${tableName} ${sCondition}`;
-    
-    //select * from RawOffset where type = 1 and devID between 1 and 2 and DataKey = "temperature";
-    // const quertCmd = `SELECT * from ${tableName} where type = ${obj.type} and devID = ${obj.devID}`;
-    // console.log(quertCmd);
-    
+        
     try {
         let result = await queryTemplate(db, quertCmd, "Get Offset Done");
         if(!result[0]) return [];     // no building in list
@@ -49,7 +45,7 @@ async function getOffBySearchCriterion(obj){
 
 async function getOffsetByIdnKey(obj){
     const quertCmd = `SELECT * from ${tableName} where type = ${obj.type} and devID = ${obj.devID}`;
-    console.log(quertCmd);
+    // console.log(quertCmd);
     
     try {
         let result = await queryTemplate(db, quertCmd, "Get Offset Done");
