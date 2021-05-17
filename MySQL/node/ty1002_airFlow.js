@@ -1,7 +1,8 @@
 const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
-const {checkNotification} = require("../../notification/checkNotification");
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
 const devType = 1002;
 
 const database = "RawDataLog";
@@ -25,6 +26,7 @@ async function airFlowDbHandling(message) {
                         // console.log("c :", c);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        await devActiveList(c);
                     }   
                 }
             }else{

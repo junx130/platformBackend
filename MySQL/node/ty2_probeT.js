@@ -2,7 +2,8 @@ const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 2;
-const {checkNotification} = require("../../notification/checkNotification");
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
@@ -21,6 +22,7 @@ async function probeTDbHandlings(message) {
                         // console.log("c :", c);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        await devActiveList(c);
                     }   
                 }
             }else{

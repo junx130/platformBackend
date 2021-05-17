@@ -2,7 +2,8 @@ const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 1;
-const {checkNotification} = require("../../notification/checkNotification");
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
@@ -22,6 +23,7 @@ async function rtrhDbHandlings(message) {
                         await insertToDb(deviceInfo, buildingDb, c._id);  
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        await devActiveList(c);
                     }   
                 }
             }else{
