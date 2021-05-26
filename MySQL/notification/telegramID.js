@@ -34,9 +34,14 @@ async function addTelegramID(device){
     const queryCmd = `INSERT INTO ${tableName}(unix, name, userID, bd_id, telegramID, userAmmend)
     VALUES (UNIX_TIMESTAMP(), "${device.name}", ${device.userID}, ${device.bd_id}, "${device.telegramID}", "${device.userAmmend}")`;
 
-    let result = await insertTemplate(db, createTable, queryCmd, "Register Telegram ID succesful");
+    try {
+        let result = await insertTemplate(db, createTable, queryCmd, "Register Telegram ID succesful");
+        return result;        
+    } catch (error) {
+        console.log(error.message)
+        return null;
+    }
     // console.log("Insert result: ", result);
-    return result;
 }
 
 async function delTelegramID(info){    

@@ -18,12 +18,17 @@ function prgTelegram(){
             return
         }
         // send a message to the chat acknowledging receipt of their message
-        bot.sendMessage(chatId, 'Received your message');
+        // bot.sendMessage(chatId, 'Received your message');
     });
 }
 
 sendTelegramMsg=(teleID, msg)=>{
-    bot.sendMessage(teleID, msg);
+    try {
+        bot.sendMessage(teleID, msg);        
+    } catch (error) {
+        console.log("Err: sendTelegramMsg");
+        console.log(error.message);
+    }
 }
 
 exports.sendNotifyMsg = sendTelegramMsg;

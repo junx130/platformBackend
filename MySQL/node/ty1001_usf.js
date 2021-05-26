@@ -37,7 +37,7 @@ async function usfDbHandling(message) {
 }
 
 async function insertToDb(Info, db, nameID){    
-    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
+    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -106,7 +106,7 @@ function validateMessage(deviceInfo){
         V: Joi.array(),
         INT64: Joi.number().required(),
         BV: Joi.number().required(),
-        BP: Joi.number().min(0).max(100),
+        BP: Joi.number(),
         LC: Joi.number().required(),
         RSSI: Joi.number().required(),
         SNR: Joi.number().required(),

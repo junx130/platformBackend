@@ -86,7 +86,7 @@ async function getDataT1ToT2(database, devType, devID, T1, T2){
     console.log("DB Error", ex.message);
   } finally {
     if (connection) connection.end();
-    console.log("T to T Finally");
+    // console.log("T to T Finally");
   }
 }
 
@@ -103,7 +103,7 @@ async function getDataT1ToT2_asc(database, devType, devID, T1, T2){
     console.log("DB Error", ex.message);
   } finally {
     if (connection) connection.end();
-    console.log("T to T Finally");
+    // console.log("T to T Finally");
   }
 }
 

@@ -1,11 +1,15 @@
 const { checkDevActive } = require("./checkActive");
 
-function devCheckTimer() {
+let preCheckMin;    
+
+async function devCheckTimer() {
     const timenow = new Date();
-    let preCheckMin = 0;    45
+    // console.log(timenow.getMinutes());
+    // console.log(preCheckMin);
     if ((timenow.getMinutes() === 45 || timenow.getMinutes() === 15) && (timenow.getMinutes() !== preCheckMin)) {
+        console.log(`~~~~~Ticking Every Sec~~~~~ ${timenow}`);
         preCheckMin = timenow.getMinutes();
-        checkDevActive();
+        await checkDevActive();
     }
 }
 

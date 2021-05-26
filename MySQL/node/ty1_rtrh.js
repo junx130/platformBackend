@@ -36,7 +36,7 @@ async function rtrhDbHandlings(message) {
 }
 
 async function insertToDb(Info, db, nameID){        
-    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
+    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -95,20 +95,29 @@ async function insertToDb(Info, db, nameID){
 
 
 function validateMessage(deviceInfo){    
-    const schema = {        
-        Ty: Joi.number().required().min(1),
-        ID: Joi.number().required().min(1),
-        T: Joi.number().required(),
-        H: Joi.number().required().min(0).max(100),
-        BV: Joi.number().required(),
-        BP: Joi.number().required().min(0).max(100),
-        LC: Joi.number().required(),
-        RSSI: Joi.number().required(),
-        SNR: Joi.number().required(),
-        GwID: Joi.number(),
-        Freq: Joi.number(),
+    let valResult = {};
+    try {
+        const schema = {        
+            Ty: Joi.number().required().min(1),
+            ID: Joi.number().required().min(1),
+            T: Joi.number().required().allow(null, ''),
+            H: Joi.number().required(),
+            BV: Joi.number().required(),
+            BP: Joi.number().required(),
+            LC: Joi.number().required(),
+            RSSI: Joi.number().required(),
+            SNR: Joi.number().required(),
+            GwID: Joi.number(),
+            Freq: Joi.number(),
+        }
+        valResult = Joi.validate(deviceInfo, schema);
+        return valResult;
+    } catch (error) {
+        console.log("RTRH validate error");
+        console.log(error.message);
+        valResult.error = true;
+        return valResult
     }
-    return Joi.validate(deviceInfo, schema);
 }
 
 exports.rtrhDbHandling = rtrhDbHandlings;

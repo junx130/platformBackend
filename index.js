@@ -12,7 +12,7 @@ prgMqtt();
 prgTelegram();
 
 // interval 0.5 11:59:59.9987  12:00:01.0002
-setInterval(() => devCheckTimer(), 1000);
+setInterval(async() => await devCheckTimer(), 1000);
 
 const port = process.env.PORT || 3900;
 const server = app.listen(port, () =>

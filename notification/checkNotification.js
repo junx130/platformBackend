@@ -98,12 +98,12 @@ risingTrigger=async (notifyItem)=>{
     let result = [];
     let todayHappenedBefore=false;
     if(notifyItem.NotifiedUnix < _checkTimeFrom || !notifyItem.NotifiedUnix){ 
-        console.log("NotifiedUnix might null");
+        // console.log("NotifiedUnix might null");
         result= await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
     }else{
         /**Notification happened today before*/
         todayHappenedBefore=true;
-        console.log("NotifiedUnix not null");
+        // console.log("NotifiedUnix not null");
         _checkTimeFrom = notifyItem.NotifiedUnix;   
         result = await getDataT1ToT2_withOffset("Buildings", notifyItem.type, notifyItem.bdDev_id, _checkTimeFrom, _unixNow()+60);
         // console.log("Check after offset");
@@ -210,41 +210,43 @@ notificationHandling=async (notifyItem)=>{
 
 async function checkNotification(bdDev, devData){
     // let type = [bdDev.type]
-    let notifyList = await getNotifyListByIdnType(bdDev.type, bdDev._id);
-    // console.log("Enter");
-    // if(bdDev._id==3) console.log(notifyList);
-    if(!notifyList) return console.log("Not in monitoring list");
-
-    for (const notifyItem of notifyList) {
-        // console.log("Monitoring List");
-        // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
-        // check whether need to trigger notification
-        if(notifyItem.Active == 0) continue;        // Alarm is active column unchecked
-        let triggerAlarm = await notificationHandling(notifyItem);
-        if(!triggerAlarm) continue
-        // get telegram ID
-        let building= await getBuildingName(bdDev.buildingID);
-        let teleDB = await getTelegramListById(notifyItem.userID, building._id);
-        console.log(teleDB);
-        if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
-        
-        console.log("building");
-        // console.log(notifyItem.DataKey);
-        // console.log(notifyItem.type);
-        let keyName = getNodeKey(notifyItem.DataKey, notifyItem.type);
-        let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, keyName, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix);
-        for (const singleTeleID of teleDB) {
-            let teleID = singleTeleID.telegramID;
-            sendNotifyMsg(teleID, notifyMsg);            
+    try {
+        let notifyList = await getNotifyListByIdnType(bdDev.type, bdDev._id);
+        // console.log("Enter");
+        // if(bdDev._id==3) console.log(notifyList);
+        if(!notifyList) return console.log("Not in monitoring list");
+    
+        for (const notifyItem of notifyList) {
+            // console.log("Monitoring List");
+            // if(notifyItem.bdDev_id == 3) console.log(notifyItem);
+            // check whether need to trigger notification
+            if(notifyItem.Active == 0) continue;        // Alarm is active column unchecked
+            let triggerAlarm = await notificationHandling(notifyItem);
+            if(!triggerAlarm) continue
+            // get telegram ID
+            let building= await getBuildingName(bdDev.buildingID);
+            let teleDB = await getTelegramListById(notifyItem.userID, building._id);
+            console.log(teleDB);
+            if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
+            
+            console.log("building");
+            // console.log(notifyItem.DataKey);
+            // console.log(notifyItem.type);
+            let keyName = getNodeKey(notifyItem.DataKey, notifyItem.type);
+            let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, keyName, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix);
+            for (const singleTeleID of teleDB) {
+                let teleID = singleTeleID.telegramID;
+                sendNotifyMsg(teleID, notifyMsg);            
+            }
+            // write into database, update NotifiedUnix to timenow    
+            if(process.env.activateTelegram==="true")    {
+                await updateNotifiedUnix(notifyItem._id, _unixNow());
+            }
         }
-        // write into database, update NotifiedUnix to timenow    
-        if(process.env.activateTelegram==="true")    {
-            await updateNotifiedUnix(notifyItem._id, _unixNow());
-        }
+        return notifyList;
+    } catch (error) {
+        console.log(error.message);
     }
-
-
-    return notifyList;
 }
 
 

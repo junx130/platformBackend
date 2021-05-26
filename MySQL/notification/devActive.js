@@ -1,3 +1,70 @@
+const { insertTemplate, queryTemplate } = require("../queryData");
+
+const db = "Notification";
+const tableName = "DeviceActiveChecklist"
+
+
+async function insertActiveDevChecklist(body){
+  const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(	
+      _id int NOT NULL AUTO_INCREMENT,
+      timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      unix INT(11) NOT NULL,
+      buildingID INT NOT NULL,
+      bdDevID INT NOT NULL,
+      triggerType int,
+      active TINYINT DEFAULT 1,
+      lastUpdate INT(11),
+      lastNotifiedTime INT(11),
+      sensorOnline TINYINT Default 1,
+      startTime INT(11),
+      endTime INT(11),
+      userAmmend varchar(80),
+      PRIMARY KEY (_id)
+  )`;
+
+  const queryCmd = `INSERT INTO ${tableName}(unix, buildingID, bdDevID, triggerType,   startTime, endTime, userAmmend)
+      VALUES (UNIX_TIMESTAMP(), 
+      ${body.buildingID}, 
+      ${body.bdDevID}, 
+      ${body.triggerType}, 
+      ${body.startTime}, 
+      ${body.endTime}, 
+      "${body.userAmmend}")`;
+
+
+  try {
+    let result = await insertTemplate(db, createTable, queryCmd, "Register DeviceActiveChecklist succesful");
+    return result;          
+  } catch (ex) {
+      console.log(ex.message)
+      return null;
+  }
+}
+
+
+async function updateActiveDevChecklist(data){
+  const quertCmd = `UPDATE ${tableName} SET 
+  lastUpdate = UNIX_TIMESTAMP(),  
+  sensorOnline = 1
+  where buildingID = ${data.buildingID}
+  and bdDevID = ${data.bdDevID}
+  `;
+  
+  try {
+      let result = await queryTemplate(db, quertCmd, "ActiveDevChecklist Update Finally");
+      // console.log("Update: ", result.affectedRows);        
+      return result;        
+  } catch (ex) {
+      console.log(ex.message)
+      return null;
+  }
+}
+
+exports.insertActiveDevChecklist = insertActiveDevChecklist;
+exports.updateActiveDevChecklist = updateActiveDevChecklist;
+
+
+/*
 const { pool } = require("../db");
 
 const db = "Notification";
@@ -12,7 +79,7 @@ async function devActiveList(message) {
 }
 
 async function insertToDb(message) {
-    if(process.env.debugOnLaptop=="true") return console.log("Skip Database Storing");
+    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
     const createTable = `CREATE TABLE IF NOT EXISTS Device_Active_Checklist(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,4 +118,4 @@ async function insertToDb(message) {
     }    
 }
 
-exports.devActiveList = devActiveList;
+exports.devActiveList = devActiveList;*/
