@@ -17,6 +17,7 @@ const controlDevRoute= require("./ControlDevice/ctrlDevRoute")
 const Monlist= require("./MonList/MonList")
 const T1list= require("./MonList/T1_list")
 const eleList= require("./MonList/EleList")
+const statusNodeThreshold= require("./StatusNodeThreshold/statusNodeThresholdRoute")
 const error= require("../Middleware/error")
 
 module.exports = function (app) {
@@ -33,6 +34,7 @@ module.exports = function (app) {
     app.use("/building/", buildingRoute);
     app.use("/devicelist/", deviceListRoute);
     app.use("/buildingdevices/", buildingDevicesRoute);
+    app.use("/statusnode/", statusNodeThreshold);
     app.use("/linelist/", lineList);
     app.use("/graphList/", graphList);    
     app.use("/offset/", offsetRoute);    
