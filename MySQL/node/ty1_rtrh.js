@@ -4,13 +4,21 @@ const { listedInbuildingDevices } = require("../queryData");
 const devType = 1;
 const { checkNotification } = require("../../notification/checkNotification");
 const { devActiveList } = require("../notification/devActive");
+const { nodeHandlingFn } = require("./nodeDataInHandling/nodeHandling");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 
 async function rtrhDbHandlings(message) {
+    // console.log("come to new Unison Arrangement");
     try {
+        await nodeHandlingFn(message, devType, insertToDb, validateMessage);   
+    } catch (error) {
+        console.log("RTRH Handling Error");
+        console.log(error.message);
+    }
+    /*try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
             let validateErr = validateMessage(deviceInfo).error;
@@ -32,11 +40,12 @@ async function rtrhDbHandlings(message) {
         }        
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
-async function insertToDb(Info, db, nameID){        
+async function insertToDb(Info, db, nameID){     
     if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
+    // console.log(Info);   
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -101,7 +110,7 @@ function validateMessage(deviceInfo){
             Ty: Joi.number().required().min(1),
             ID: Joi.number().required().min(1),
             T: Joi.number().required().allow(null, ''),
-            H: Joi.number().required(),
+            H: Joi.number().required().allow(null, ''),
             BV: Joi.number().required(),
             BP: Joi.number().required(),
             LC: Joi.number().required(),

@@ -4,12 +4,21 @@ const { listedInbuildingDevices } = require("../queryData");
 const { checkNotification } = require("../../notification/checkNotification");
 const { devActiveList } = require("../notification/devActive");
 const devType = 4;
+const { nodeHandlingFn } = require("./nodeDataInHandling/nodeHandling");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 
 async function pressureDbHandlings(message) {
+    
+    try {
+        await nodeHandlingFn(message, devType, insertToDb, validateMessage);      
+    } catch (error) {
+        console.log("DPM Handling Error");
+        console.log(error.message);
+    }
+    /*
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
@@ -23,7 +32,7 @@ async function pressureDbHandlings(message) {
                         // console.log("c :", c);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
-                        await devActiveList(c);
+                        // await devActiveList(c);
                     }   
                 }
             }else{
@@ -32,7 +41,7 @@ async function pressureDbHandlings(message) {
         }        
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){

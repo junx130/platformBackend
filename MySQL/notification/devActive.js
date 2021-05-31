@@ -4,6 +4,77 @@ const db = "Notification";
 const tableName = "DeviceActiveChecklist"
 
 
+async function updateDevActList(item){
+  const quertCmd = `UPDATE ${tableName} SET 
+  active = ${item.active},
+  startTime = ${item.startTime},
+  endTime = ${item.endTime},
+  bufferTime = ${item.bufferTime}
+  where bdDevID = ${item.bdDevID}
+  `;
+  
+  try {
+      let result = await queryTemplate(db, quertCmd, "ActiveDevChecklist Update Finally");
+      // console.log("Update: ", result.affectedRows);        
+      return result;        
+  } catch (ex) {
+      console.log(ex.message)
+      return null;
+  }
+}
+
+async function getDevActByBd_id(bd_id){
+  const quertCmd = `SELECT * from ${tableName} WHERE 
+  buildingID = ${bd_id}
+  `;
+  
+  try {
+      let result = await queryTemplate(db, quertCmd, "Get getDevActCheck by bd_if Done");
+      if(!result[0]) return [];     // no item found in list
+      const rows = result.map(b=>b);
+      return rows;        
+  } catch (ex) {
+      console.log(ex.message)
+      return [];
+  }
+}
+
+async function getDevActByBdDev_id(bdDevID){
+  const quertCmd = `SELECT * from ${tableName} WHERE 
+  bdDevID = ${bdDevID}
+  `;
+  
+  try {
+      let result = await queryTemplate(db, quertCmd, "Get getDevActCheck by bd_if Done");
+      if(!result[0]) return [];     // no item found in list
+      const rows = result.map(b=>b);
+      return rows;        
+  } catch (ex) {
+      console.log(ex.message)
+      return [];
+  }
+}
+
+async function getDevActCheck_Rising(fmt_CurrentTime){
+  const quertCmd = `SELECT * from ${tableName} WHERE 
+  Active =1
+  and triggerType = 1
+  and (
+    ((UNIX_TIMESTAMP() - lastUpdate) > bufferTime) 
+    or lastUpdate is null);
+  `;
+  
+  try {
+      let result = await queryTemplate(db, quertCmd, "Get getDevActCheck_Rising Done");
+      if(!result[0]) return [];     // no item found in list
+      const rows = result.map(b=>b);
+      return rows;        
+  } catch (ex) {
+      console.log(ex.message)
+      return [];
+  }
+}
+
 async function insertActiveDevChecklist(body){
   const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(	
       _id int NOT NULL AUTO_INCREMENT,
@@ -15,20 +86,22 @@ async function insertActiveDevChecklist(body){
       active TINYINT DEFAULT 1,
       lastUpdate INT(11),
       lastNotifiedTime INT(11),
-      sensorOnline TINYINT Default 1,
+      sensorOnline TINYINT Default 0,
       startTime INT(11),
       endTime INT(11),
+      bufferTime int default 1800, 
       userAmmend varchar(80),
       PRIMARY KEY (_id)
   )`;
 
-  const queryCmd = `INSERT INTO ${tableName}(unix, buildingID, bdDevID, triggerType,   startTime, endTime, userAmmend)
+  const queryCmd = `INSERT INTO ${tableName}(unix, buildingID, bdDevID, triggerType,   startTime, endTime, bufferTime, userAmmend)
       VALUES (UNIX_TIMESTAMP(), 
       ${body.buildingID}, 
       ${body.bdDevID}, 
       ${body.triggerType}, 
       ${body.startTime}, 
       ${body.endTime}, 
+      ${body.bufferTime}, 
       "${body.userAmmend}")`;
 
 
@@ -42,12 +115,28 @@ async function insertActiveDevChecklist(body){
 }
 
 
-async function updateActiveDevChecklist(data){
+async function setDeviceToNonActive(bdDevID){
+  const quertCmd = `UPDATE ${tableName} SET 
+  sensorOnline = 0,
+  lastNotifiedTime = UNIX_TIMESTAMP()
+  where bdDevID = ${bdDevID}
+  `;
+  // console.log(quertCmd);
+  try {
+      let result = await queryTemplate(db, quertCmd, "ActiveDevChecklist Update Finally");
+      // console.log("Update: ", result.affectedRows);        
+      return result;        
+  } catch (ex) {
+      console.log(ex.message)
+      return null;
+  }
+}
+
+async function updateActiveDevChecklist(bdDevID){
   const quertCmd = `UPDATE ${tableName} SET 
   lastUpdate = UNIX_TIMESTAMP(),  
   sensorOnline = 1
-  where buildingID = ${data.buildingID}
-  and bdDevID = ${data.bdDevID}
+  where bdDevID = ${bdDevID}
   `;
   
   try {
@@ -60,62 +149,10 @@ async function updateActiveDevChecklist(data){
   }
 }
 
+exports.getDevActByBdDev_id = getDevActByBdDev_id;
+exports.updateDevActList = updateDevActList;
+exports.getDevActByBd_id =getDevActByBd_id;
+exports.setDeviceToNonActive=setDeviceToNonActive;
+exports.getDevActCheck_Rising=getDevActCheck_Rising;
 exports.insertActiveDevChecklist = insertActiveDevChecklist;
 exports.updateActiveDevChecklist = updateActiveDevChecklist;
-
-
-/*
-const { pool } = require("../db");
-
-const db = "Notification";
-
-async function devActiveList(message) {
-    try {
-        await insertToDb(message);
-    }
-    catch(error) {
-        console.log(error.message);
-    }
-}
-
-async function insertToDb(message) {
-    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
-    const createTable = `CREATE TABLE IF NOT EXISTS Device_Active_Checklist(	        
-        _id int NOT NULL AUTO_INCREMENT,
-        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        buildingID INT NOT NULL,
-        bdDevID INT NOT NULL,
-        triggerType varchar(50),
-        active BOOLEAN NOT NULL DEFAULT 1,
-        lastUpdate INT(11),
-        lastNotifiedTime INT(11),
-        sensorOnline BOOLEAN,
-        startTime INT(11),
-        endTime INT(11),
-        PRIMARY KEY (_id)
-    )`;
-
-    // data.lastUpdate = Info.pb[0];
-
-    const updateData = `UPDATE Device_Active_Checklist
-    SET timestamp = CURRENT_TIMESTAMP, lastUpdate = UNIX_TIMESTAMP(), sensorOnline = true
-    WHERE bdDevID = ${message._id}`;
-    
-    let connection;
-    let result;
-    try {
-      connection = await pool.getConnection();
-      result = await connection.query(`CREATE DATABASE IF NOT EXISTS ${db}`);
-      result = await connection.query(`use ${db}`);
-      result = await connection.query(createTable);
-      result = await connection.query(updateData);
-      console.log("Insert Data", result);
-    } catch (ex) {
-      console.log("Maria DB Error", ex.message);
-    } finally {
-      if (connection) connection.end();
-      console.log("DB log complete");
-    }    
-}
-
-exports.devActiveList = devActiveList;*/

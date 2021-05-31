@@ -15,7 +15,7 @@ async function mqttNodeHandling(topic, message) {
     if(arr_topic[1]==="Gateway"&&
         !arr_topic[3]
     ){            
-        // console.log(arr_topic);     // testing purpose
+        /**1st version of node handling method */
         await rtrhDbHandling(message);
         await probeTDbHandlings(message);
         await dpmDbHandling(message);
