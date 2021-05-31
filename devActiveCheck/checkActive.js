@@ -77,9 +77,9 @@ async function checkDevActive() {
         if (teleID) await sendNotifyMsg(teleID, teleMsg);   
 
         /**Update DB after send notification */
-        // if(process.env.activateTelegram==="true")    {
+        if(process.env.activateTelegram==="true")    {
           await setDeviceToNonActive(OtDevice.bdDevID);
-        // }  
+        }  
 
       } catch (error) {
         console.log("Check Dev Active Send Telegram error");
