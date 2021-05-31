@@ -4,6 +4,7 @@ const { listedInbuildingDevices } = require("../../queryData");
 const { checkNotification } = require("../../../notification/checkNotification");
 const { devActiveList } = require("../../notification/devActive");
 const { newNodeHandlingFn } = require("../nodeDataInHandling/newVersionNodeHandling");
+const { getLatestThreshold_byDevId } = require("../../statusNodeThreshold/statusNodeThreshold");
 
 
 const database = "RawDataLog";
@@ -12,6 +13,15 @@ const buildingDb = "Buildings";
 async function infoHandlings(deviceInfo) {
     // console.log(deviceInfo);
     try {
+        /** Modify status value here if threshold set on server */
+        let thresholdSet = await getLatestThreshold_byDevId(deviceInfo.hi);
+        // console.log(thresholdSet);
+        if(thresholdSet && thresholdSet[0]){
+            let thres = thresholdSet[0];
+            let bBeyond = deviceInfo.pi[0] > thres.threshold;
+            deviceInfo.pb[0] = thres.invert===1? !bBeyond : bBeyond;
+            // console.log(`pb[0]: ${deviceInfo.pb[0]}`);
+        }
         await newNodeHandlingFn(deviceInfo, insertToDb);
     } catch (error) {
         console.log("Status Node Handling Error");
