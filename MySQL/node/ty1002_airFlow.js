@@ -1,15 +1,23 @@
 const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
-const {checkNotification} = require("../../notification/checkNotification");
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
 const devType = 1002;
+const { nodeHandlingFn } = require("./nodeDataInHandling/nodeHandling");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 
 async function airFlowDbHandling(message) {
-
+    try {
+        await nodeHandlingFn(message, devType, insertToDb, validateMessage);      
+    } catch (error) {
+        console.log("DPM Handling Error");
+        console.log(error.message);
+    }
+    /*
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {       
@@ -25,6 +33,7 @@ async function airFlowDbHandling(message) {
                         // console.log("c :", c);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        // await devActiveList(c);
                     }   
                 }
             }else{
@@ -33,7 +42,7 @@ async function airFlowDbHandling(message) {
         }        
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){    

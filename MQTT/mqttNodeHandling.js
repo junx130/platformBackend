@@ -8,13 +8,14 @@ const { pressureDbHandlings } = require("../MySQL/node/ty4_pressure");
 const { gatewayHandling } = require("../MySQL/node/ty5_gateway");
 
 
- async function mqttNodeHandling(topic, message) {
+async function mqttNodeHandling(topic, message) {
+    
     const arr_topic = topic.split("/");
     
     if(arr_topic[1]==="Gateway"&&
         !arr_topic[3]
     ){            
-        // console.log(arr_topic);     // testing purpose
+        /**1st version of node handling method */
         await rtrhDbHandling(message);
         await probeTDbHandlings(message);
         await dpmDbHandling(message);

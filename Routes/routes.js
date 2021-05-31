@@ -5,6 +5,7 @@ const queryBdDev= require("./queryBdDev")
 const userRoute= require("./users")
 const buildingRoute= require("./buildings")
 const teleIdRoute= require("./notification/telegramId")
+const checkDeviceActive= require("./checkDeviceAvtive/checkDeviceActive")
 const notificationRoute= require("./notification/notification")
 const assignBuildingRoute= require("./assignBuildingToUser")
 const deviceListRoute= require("./deviceList")
@@ -18,13 +19,13 @@ const T1list= require("./MonList/T1_list")
 const eleList= require("./MonList/EleList")
 const error= require("../Middleware/error")
 
-
 module.exports = function (app) {
     app.use(express.json());
     app.use(cors());
 
     app.use("/notify/list", notificationRoute);
     app.use("/notify/teleid", teleIdRoute);
+    app.use("/notify/devact", checkDeviceActive);
     app.use("/api/bddev/", queryBdDev);
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);

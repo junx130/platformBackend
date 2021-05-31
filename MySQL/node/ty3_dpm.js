@@ -1,7 +1,9 @@
 const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
-const {checkNotification} = require("../../notification/checkNotification");
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
+const { nodeHandlingFn } = require("./nodeDataInHandling/nodeHandling");
 
 const devType = 3;
 
@@ -11,6 +13,13 @@ const buildingDb = "Buildings";
 
 async function dpmDbHandling(message) {
 
+    try {
+        await nodeHandlingFn(message, devType, insertToDb, validateMessage);      
+    } catch (error) {
+        console.log("DPM Handling Error");
+        console.log(error.message);
+    }
+    /*
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
@@ -24,6 +33,7 @@ async function dpmDbHandling(message) {
                         // console.log("c :", c);
                         // check notification list here
                         await checkNotification(c, deviceInfo);
+                        // await devActiveList(c);
                     }   
                 }
             }else{
@@ -32,7 +42,7 @@ async function dpmDbHandling(message) {
         }        
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){    

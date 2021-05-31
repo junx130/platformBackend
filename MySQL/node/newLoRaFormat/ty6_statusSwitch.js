@@ -1,13 +1,23 @@
 const Joi = require("joi");
 const { pool } = require("../../db");
 const { listedInbuildingDevices } = require("../../queryData");
-const {checkNotification} = require("../../../notification/checkNotification");
+const { checkNotification } = require("../../../notification/checkNotification");
+const { devActiveList } = require("../../notification/devActive");
+const { newNodeHandlingFn } = require("../nodeDataInHandling/newVersionNodeHandling");
+
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
-
 async function infoHandlings(deviceInfo) {
+    // console.log(deviceInfo);
+    try {
+        await newNodeHandlingFn(deviceInfo, insertToDb);
+    } catch (error) {
+        console.log("Status Node Handling Error");
+        console.log(error.message);
+    }
+    /*
     try {
         // console.log(deviceInfo);
         await insertToDb(deviceInfo, database, deviceInfo.hi);
@@ -17,28 +27,12 @@ async function infoHandlings(deviceInfo) {
                 await insertToDb(deviceInfo, buildingDb, c._id);  
                 // check notification list here
                 await checkNotification(c);
+                // await devActiveList(c);
             }   
-        }
-        // if (deviceInfo.Ty ===devType) {            
-        //     let validateErr = validateMessage(deviceInfo).error;
-        //     if (!validateErr){
-        //         // await insertToDb(deviceInfo, database, deviceInfo.ID);
-        //         // console.log(deviceInfo);
-        //         let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
-        //         if (CheckListResult) {
-        //             for (const c of CheckListResult) {
-        //                 // await insertToDb(deviceInfo, buildingDb, c._id);  
-        //                 // check notification list here
-        //                 await checkNotification(c, deviceInfo);
-        //             }   
-        //         }
-        //     }else{
-        //         console.log(validateErr);
-        //     }
-        // }        
+        }  
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){        
@@ -69,8 +63,8 @@ async function insertToDb(Info, db, nameID){
     data.SNR = Info.SNR;
     data.GwID = Info.GwID;
     data.Freq = Info.Freq;
-    console.log(Info.pb[0]);
-    console.log(data.SwitchOn);
+    // console.log(Info.pb[0]);
+    // console.log(data.SwitchOn);
     // for (const key in data) {
     //     if (!data[key]) {   // key not define
     //         data[key]=null;
@@ -93,7 +87,7 @@ async function insertToDb(Info, db, nameID){
       console.log("Maria DB Error", ex.message);
     } finally {
       if (connection) connection.end();
-      console.log("DB log complete");
+      console.log("Status node DB log complete");
     }   
 }
 

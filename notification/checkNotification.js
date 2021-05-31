@@ -6,9 +6,13 @@ const { sendNotifyMsg } = require("./telegram");
 const {nodeKey} =require('./getNodeKeyName');
 const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
 const {getDataT1ToT2_withOffset} = require('../MySQL/offset/queryDataAfterOffset');
+const { devStrFormat } = require("../utilities/devStringFormat");
 
 function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
-    return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
+    
+    let devName = devStrFormat(bdDev);
+    return `${buildingName}:\n${keyName.toUpperCase()} of ${devName} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
+    // return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
 }
 
 getNodeKey=(key, type)=>{
@@ -208,7 +212,7 @@ notificationHandling=async (notifyItem)=>{
 }
 
 
-async function checkNotification(bdDev, devData){
+async function checkNotification(bdDev){
     // let type = [bdDev.type]
     try {
         let notifyList = await getNotifyListByIdnType(bdDev.type, bdDev._id);
@@ -236,7 +240,12 @@ async function checkNotification(bdDev, devData){
             let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, keyName, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix);
             for (const singleTeleID of teleDB) {
                 let teleID = singleTeleID.telegramID;
-                sendNotifyMsg(teleID, notifyMsg);            
+                try {
+                    await sendNotifyMsg(teleID, notifyMsg);                                
+                } catch (error) {
+                    console.log("sendNotifyMsg  Error");
+                    console.log(error.message);
+                }
             }
             // write into database, update NotifiedUnix to timenow    
             if(process.env.activateTelegram==="true")    {

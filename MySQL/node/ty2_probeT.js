@@ -2,14 +2,24 @@ const Joi = require("joi");
 const { pool } = require("../db");
 const { listedInbuildingDevices } = require("../queryData");
 const devType = 2;
-const {checkNotification} = require("../../notification/checkNotification");
 const { checkPid } = require("../../ControlDevice/checkMapPID");
 
+const { checkNotification } = require("../../notification/checkNotification");
+const { devActiveList } = require("../notification/devActive");
+const { nodeHandlingFn } = require("./nodeDataInHandling/nodeHandling");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 async function probeTDbHandlings(message) {
+    
+    try {
+        await nodeHandlingFn(message, devType, insertToDb, validateMessage);      
+    } catch (error) {
+        console.log("DPM Handling Error");
+        console.log(error.message);
+    }
+    /*
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
@@ -26,14 +36,6 @@ async function probeTDbHandlings(message) {
                         await checkNotification(c, deviceInfo);
 
                         await checkPid(c, deviceInfo);
-                        /** check whether exist in FeedbackValueMapTable 
-                         * -Create db query function
-                         * 
-                        */
-                        /** if exist, send data to mQTT 
-                         * determine how to send MQTT here (refer to controlDeviceRoute)
-                         * 
-                        */
                     }   
                 }
             }else{
@@ -42,7 +44,7 @@ async function probeTDbHandlings(message) {
         }        
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){ 
@@ -106,7 +108,7 @@ function validateMessage(deviceInfo){
         ID: Joi.number().required().min(0),
         T: Joi.number().required(),
         BV: Joi.number().required(),
-        BP: Joi.number().required().min(0).max(100),
+        BP: Joi.number().required(),
         LC: Joi.number().required(),
         RSSI: Joi.number().required(),
         SNR: Joi.number().required(),
