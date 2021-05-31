@@ -2,12 +2,19 @@ const Joi = require("joi");
 const { pool } = require("../../db");
 const { listedInbuildingDevices } = require("../../queryData");
 const {checkNotification} = require("../../../notification/checkNotification");
+const { newNodeHandlingFn } = require("../nodeDataInHandling/newVersionNodeHandling");
 
 const database = "RawDataLog";
 const buildingDb = "Buildings";
 
 async function infoHandlings(deviceInfo) {
     try {
+        await newNodeHandlingFn(deviceInfo, insertToDb);
+    } catch (error) {
+        console.log("VFD Node Handling Error");
+        console.log(error.message);
+    }
+    /*try {
         console.log(deviceInfo);
         await insertToDb(deviceInfo, database, deviceInfo.hi);
         let CheckListResult = await listedInbuildingDevices(deviceInfo.ht, deviceInfo.hi);
@@ -20,7 +27,7 @@ async function infoHandlings(deviceInfo) {
         }
     } catch (error) {
         console.log("Node DB handling Err:", error.message);
-    }
+    }*/
 }
 
 async function insertToDb(Info, db, nameID){        
