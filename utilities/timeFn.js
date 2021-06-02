@@ -91,6 +91,37 @@ fGetTimeDiff_InDTMS=(_start, _end)=>{
 
 }
 
+
+fFmtTimeToUnixToday=(fmtTime)=>{
+    let tTime = moment(unixNow()*1000).tz("Asia/Kuala_Lumpur");
+    let _h = 0;
+    let _m = 0;
+    let _s = 0;
+    if (fmtTime!==240000){
+        _h = parseInt(fmtTime/10000);
+        _m = parseInt((fmtTime%10000)/100);
+        _s = parseInt(fmtTime%100);
+        // console.log(fmtTime);
+        // console.log(`_h:${_h}`);
+        // console.log(`_m:${_m}`);
+        // console.log(`_s:${_s}`);
+    }
+    // console.log(`tTime:${tTime}`);
+    tTime.hour(_h);
+    tTime.minute(_m);
+    tTime.second(_s);
+    if(fmtTime!==240000) return tTime.unix(); 
+    return tTime.add(1, 'days').unix();
+}
+
+fUnixOneDayEarlier=(unix)=>{
+    let tTime = moment(unix*1000).tz("Asia/Kuala_Lumpur");
+    // console.log(tTime);
+    return tTime.subtract(1, 'days').unix();
+}
+
+exports.fUnixOneDayEarlier=fUnixOneDayEarlier;
+exports.fFmtTimeToUnixToday =fFmtTimeToUnixToday;
 exports.getUnixNowForCRC=getUnixNowForCRC;
 exports.fGetTimeDiff_InDTMS=fGetTimeDiff_InDTMS;
 exports.fShiftUnixToEndTime =fShiftUnixToEndTime;

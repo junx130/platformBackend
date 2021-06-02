@@ -4,7 +4,7 @@ let preCheckMin;
 
 async function devCheckTimer() {
     let timenow = new Date();
-    if ((timenow.getMinutes() === 45 || timenow.getMinutes() === 15) && (timenow.getMinutes() !== preCheckMin)) {
+    if ((timenow.getMinutes() === 30 || timenow.getMinutes() === 15) && (timenow.getMinutes() !== preCheckMin)) {
         console.log(`~~~~~Ticking Every Sec~~~~~ ${timenow}`);
         preCheckMin = timenow.getMinutes();
         await checkDevActive();

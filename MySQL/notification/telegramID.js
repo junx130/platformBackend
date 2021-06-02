@@ -79,7 +79,7 @@ async function getTelegramListById(userID, bd_id){
 
 async function updateTelegramID(data){
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
-    unix = UNIX_TIMESTAMP(),  
+    unix = UNIX_TIMESTAMP(), name = "${data.name}",
     userID = ${data.userID}, bd_id = ${data.bd_id}, 
     telegramID = ${data.telegramID}, userAmmend = "${data.userAmmend}"    
     where _id = ${data._id}`;
