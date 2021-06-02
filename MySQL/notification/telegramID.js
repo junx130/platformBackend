@@ -77,6 +77,18 @@ async function getTelegramListById(userID, bd_id){
     }
 }
 
+async function getTelegramListBy_Id(_id){
+    let quertCmd = `SELECT * from ${tableName} where _id = ${_id}`;
+    try {
+        let result = await queryTemplate(db, quertCmd, "Get TelegramBy_id Done");
+        if(!result[0]) return [];     // no building in list
+        return result.map(b=>b);
+    } catch (ex) {
+        console.log(ex.message)
+        return [];
+    }
+}
+
 async function updateTelegramID(data){
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(), name = "${data.name}",
@@ -94,6 +106,7 @@ async function updateTelegramID(data){
     }
 }
 
+exports.getTelegramListBy_Id=getTelegramListBy_Id;
 exports.delTelegramID=delTelegramID;
 exports.addTelegramID=addTelegramID;
 exports.updateTelegramID = updateTelegramID;

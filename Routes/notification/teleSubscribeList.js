@@ -36,7 +36,7 @@ router.post("/del", auth, async (req, res) => {
 
 router.post("/getbybd_id", auth, async (req, res) => {    
     try {
-        console.log(req.body);
+        // console.log(req.body);
         let bd_id = req.body.bd_id;
         let result = await getTeleSubList(bd_id);
         // console.log(result);

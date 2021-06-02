@@ -24,14 +24,16 @@ async function insertTeleSubList(body){
         unix INT(11) NOT NULL,
         tele_id INT,
         bd_id INT,
+        active TINYINT DEFAULT 1,
         userAmmend varchar(80),
         PRIMARY KEY (_id)
     )`;
 
-    const queryCmd = `INSERT INTO ${tableName}(unix, tele_id, bd_id, userAmmend)
+    const queryCmd = `INSERT INTO ${tableName}(unix, tele_id, bd_id, active, userAmmend)
         VALUES (UNIX_TIMESTAMP(), 
         ${body.tele_id}, 
         ${body.bd_id}, 
+        ${body.active}, 
         "${body.userAmmend}")`;
 
     try {
@@ -61,6 +63,7 @@ async function updateTeleSubList(data){
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(), 
     tele_id = ${data.tele_id}, bd_id = ${data.bd_id}, 
+    active = ${data.active}, 
     userAmmend = "${data.userAmmend}"    
     where _id = ${data._id}`;
     

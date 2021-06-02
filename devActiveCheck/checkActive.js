@@ -1,10 +1,11 @@
 const { getDevActCheck_Rising, setDeviceToNonActive } = require("../MySQL/notification/devActive");
 const { sendNotifyMsg } = require("../notification/telegram");
 const { getFmtTime, getDate, getTimeTz, _unixNow, fShiftUnixToEndTime, fGetTimeDiff_InDTMS, getUnixTodayBaseOnTime, fFmtTimeToUnixToday, fUnixOneDayEarlier} = require("../utilities/timeFn");
-const { getTelegramListById } = require("../MySQL/notification/telegramID");
+const { getTelegramListById, getTelegramListBy_Id } = require("../MySQL/notification/telegramID");
 const { getBuildingsByID } = require("../MySQL/aploudSetting/building");
 const { getBuildingDevicesBy_ID } = require("../MySQL/buildings/buildingDevices");
 const { devStrFormat } = require("../utilities/devStringFormat");
+const { getTeleSubList } = require("../MySQL/notification/teleSubscribeList");
 
 
 
@@ -71,45 +72,45 @@ async function checkDevActive() {
         }
       }
 
-      // console.log(_unixNow());
-      // console.log(fShiftUnixToEndTime(_unixNow(), OtDevice.endTime));
-      /** Check if today already been triggered 
-      if (OtDevice.lastNotifiedTime > OtDevice.lastUpdate) {  // if last triggered null, proceed to send notification
-      // if (OtDevice.lastNotifiedTime && OtDevice.lastNotifiedTime > OtDevice.lastUpdate) {  // is last triggered null, proceed to send notification
-        let formulaT = fShiftUnixToEndTime(OtDevice.lastNotifiedTime, OtDevice.endTime);
-        // console.log(`Normal Condition: ${OtDevice.bdDevID}`);
-        // console.log(`End Time:${formulaT}`);
-        // console.log(`_unixNow:${_unixNow()}`);
-        //
-        if (_unixNow() < fShiftUnixToEndTime(OtDevice.lastNotifiedTime, OtDevice.endTime)) continue;          
-      }*/
-      // console.log(`_id: ${OtDevice._id}, Proceed trig next day`);
-
       /**Get telegram id of device */
       let teleList = await getTelegramListById(0, OtDevice.buildingID);   // 0, send message to common group
-      let teleID ;
-      if (teleList && teleList[0]) teleID = teleList[0].telegramID;
+      let teleSubscribeList = await getTeleSubList(OtDevice.buildingID);
+      let subTeleList = [];
+      for (const item of teleSubscribeList) {
+        let teleInfo = await getTelegramListBy_Id(item.tele_id);
+        for (const item of teleInfo) {
+          subTeleList.push(item);          
+        }
+      }
+      // console.log(subTeleList);
+
+      let combineTeleList = [...teleList, ...subTeleList];
+      /** filter duplicated chatID */
+      let uniqueTeleList = Array.from(new Set(combineTeleList.map(a => a.telegramID))).map(telegramID => {
+        return combineTeleList.find(a => a.telegramID === telegramID)
+      });
+      // console.log("Combine unique List");
+      // console.log(uniqueTeleList);
+
       // console.log(teleList);      
       /** Generate telegram Message */
       let sTimeDiff = fGetTimeDiff_InDTMS(_unixNow(), OtDevice.lastUpdate);
-      
-      // get bddev  name
       let dev = await getBuildingDevicesBy_ID(OtDevice.bdDevID);
-      // console.log(dev);      
       let devName = '';
       if (dev && dev[0]) devName = devStrFormat(dev[0]);
-
       let teleMsg = await genTeleMessage(OtDevice.buildingID, devName, sTimeDiff);
       // console.log(teleMsg);
-      try {
-        /** send telegram message */
-        if (teleID) await sendNotifyMsg(teleID, teleMsg);   
-
-        /**Update DB after send notification */
-        if(process.env.activateTelegram==="true")    {
-          await setDeviceToNonActive(OtDevice.bdDevID);
-        }  
-
+      /**Send Telegram 1 by 1 */
+      
+      try {        
+        for (const teleInfo of uniqueTeleList) {
+          await sendNotifyMsg(teleInfo.telegramID, teleMsg);   
+          
+          /**Update DB after send notification */
+          if(process.env.activateTelegram==="true")    {
+            await setDeviceToNonActive(OtDevice.bdDevID);
+          }  
+        }
       } catch (error) {
         console.log("Check Dev Active Send Telegram error");
         console.log(error.message);
