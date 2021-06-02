@@ -3,7 +3,6 @@ const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevActByBd_id, updateDevActList, getDevActByBdDev_id, insertActiveDevChecklist } = require("../../MySQL/notification/devActive");
-// const { updateEleList, regEleList, deleteEleList} = require("../../MySQL/MonList/EleList");
 
 router.post("/getacklistbybdid", auth, async (req, res) => {    
     try {
