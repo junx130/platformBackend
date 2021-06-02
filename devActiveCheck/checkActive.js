@@ -63,7 +63,7 @@ async function checkDevActive() {
           if(startUnixToday < OtDevice.lastNotifiedTime && fFmtTimeToUnixToday(240000) > OtDevice.lastNotifiedTime){
             /**Today sensor no more conenction after last notification, skip triggering */
             if( OtDevice.lastNotifiedTime > OtDevice.lastUpdate ) continue 
-          } /** Proceed to trigger if not happened trigger today */
+          } /** Notification didn't happend today, proceed to trigger */
         }else if (fmtTime <= OtDevice.endTime) { /** check 0000 -> 0200*/
           if(fUnixOneDayEarlier(startUnixToday) < OtDevice.lastNotifiedTime && endUnixToday > OtDevice.lastNotifiedTime){
             /**Today sensor no more conenction after last notification, skip triggering */
@@ -71,7 +71,7 @@ async function checkDevActive() {
           }/** Proceed to trigger if not happened trigger today */
         }
       }
-
+      console.log("Send Message");
       /**Get telegram id of device */
       let teleList = await getTelegramListById(0, OtDevice.buildingID);   // 0, send message to common group
       let teleSubscribeList = await getTeleSubList(OtDevice.buildingID);
@@ -100,17 +100,16 @@ async function checkDevActive() {
       if (dev && dev[0]) devName = devStrFormat(dev[0]);
       let teleMsg = await genTeleMessage(OtDevice.buildingID, devName, sTimeDiff);
       // console.log(teleMsg);
-      /**Send Telegram 1 by 1 */
-      
       try {        
+        /**Send Telegram 1 by 1 */
         for (const teleInfo of uniqueTeleList) {
           await sendNotifyMsg(teleInfo.telegramID, teleMsg);   
-          
           /**Update DB after send notification */
-          if(process.env.activateTelegram==="true")    {
-            await setDeviceToNonActive(OtDevice.bdDevID);
-          }  
         }
+        if(process.env.activateTelegram==="true")    {
+          /** Update Database */
+          await setDeviceToNonActive(OtDevice.bdDevID);
+        }  
       } catch (error) {
         console.log("Check Dev Active Send Telegram error");
         console.log(error.message);
