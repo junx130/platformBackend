@@ -45,7 +45,7 @@ router.post("/register", async (req, res) => {
 router.get("/all", auth, async (req, res) => {
     
     try {
-        console.log("Enter");
+        // console.log("Enter");
         
         if(req.user.active == 0) return res.status(401).send("Account not active");  // prevent admin accidently change own access level
         
