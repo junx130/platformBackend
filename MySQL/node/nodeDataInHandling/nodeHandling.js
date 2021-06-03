@@ -1,6 +1,7 @@
 const { updateDevActChecklist } = require("../../../devActiveCheck/updateDevActChecklist");
 const { checkNotification } = require("../../../notification/checkNotification");
 const { listedInbuildingDevices } = require("../../queryData");
+const { checkPid } = require("../../../ControlDevice/checkMapPID");
 
 async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){    
     const database = "RawDataLog";
@@ -21,6 +22,8 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                         await checkNotification(c);
                         /**Check Device Active here */
                         await updateDevActChecklist(c._id);
+                        /** Check PID */
+                        await checkPid(c, deviceInfo);
                     }   
                 }
             }else{

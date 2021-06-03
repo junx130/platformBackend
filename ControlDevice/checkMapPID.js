@@ -30,24 +30,24 @@ checkPid=async(bdDev, sensorData)=>{
     let payload={};
     for (const pidMap of pidMapList) {
         /** Generate loRa message */
-        console.log(sensorData);
-        console.log(pidMap);
+        // console.log(sensorData);
+        // console.log(pidMap);
         
         let bdDev = await getBuildingDevicesBy_ID(pidMap.ctBdDev_id);
         let info = {
             type:sensorData.Ty,
             devID:sensorData.ID
         }
-        console.log(info);
+        // console.log(info);
         let offsetList = await getOffsetByIdnKey(info);
-        console.log("~~~~~~~~~~~~~~Notify List ~~~~~~~~~~~~~~~~~~");
-        console.log(offsetList);
+        // console.log("~~~~~~~~~~~~~~Notify List ~~~~~~~~~~~~~~~~~~");
+        // console.log(offsetList);
         let tempOffset = offsetList.filter(c=>c.DataKey === "temperature");
         let offset = 0;
         if (tempOffset[0]) offset = tempOffset[0].offsetValue;
 
-        console.log(tempOffset);
-        console.log(bdDev);
+        // console.log(tempOffset);
+        // console.log(bdDev);
         if (!bdDev[0]) return 
         devDetails = {
             devType: pidMap.ctNodeType,
@@ -55,7 +55,7 @@ checkPid=async(bdDev, sensorData)=>{
             dir: 2, // from gateway to node
             fun: pidMap.loraFun, // function code, 1=> set parameter 1
         };
-        console.log(devDetails);
+        // console.log(devDetails);
         payload = {
             // pb:[1,1],
             pf: [sensorData[pidMap.DataKey]+offset],
@@ -69,7 +69,7 @@ checkPid=async(bdDev, sensorData)=>{
         /** MQTT Send PID feedback to gateway to sensor*/
         
         // subscribe_2ndMqtt(`Aplouds/ServerToNode/${package_.gwid}`);
-        console.log(package_);
+        // console.log(package_);
         publish_2ndMqtt(`Aplouds/ServerToNode/${package_.gwid}`, package_);
     }
     
