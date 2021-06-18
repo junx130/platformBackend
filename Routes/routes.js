@@ -19,6 +19,7 @@ const T1list= require("./MonList/T1_list")
 const eleList= require("./MonList/EleList")
 const statusNodeThreshold= require("./StatusNodeThreshold/statusNodeThresholdRoute")
 const teleSubList= require("./notification/teleSubscribeList")
+const battDiag= require("./DiagBattRoute/BattDiagRoute")
 const error= require("../Middleware/error")
 
 module.exports = function (app) {
@@ -30,6 +31,7 @@ module.exports = function (app) {
     app.use("/notify/devact", checkDeviceActive);
     app.use("/notify/sublist", teleSubList);    
     app.use("/api/bddev/", queryBdDev);
+    app.use("/diag/batt/", battDiag);
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
     app.use("/assignbuilding/", assignBuildingRoute);

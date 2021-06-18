@@ -67,6 +67,7 @@ async function getLastNData(database, devType, devID, qty){
       return result;
     } catch (ex) {
       console.log("DB Error", ex.message);
+      return []
     } finally {
       if (connection) connection.end();
       console.log("Get Last N Data Finally");
@@ -109,6 +110,7 @@ async function getDataT1ToT2_asc(database, devType, devID, T1, T2){
 
 async function getNDataAfterT(database, devType, devID, T1, n1){
   const sqlQuery = `SELECT * FROM Device_${devType}_${devID} WHERE unix >= '${T1}' limit ${n1}`;
+  // console.log(sqlQuery);
   let connection;
   try {
     connection = await pool.getConnection();
@@ -116,7 +118,8 @@ async function getNDataAfterT(database, devType, devID, T1, n1){
     result = await connection.query(sqlQuery);
     return result;
   } catch (ex) {
-    console.log("DB Error", ex.message);
+    console.log("getNDataAfterT Error", ex.message);
+    return [];
   } finally {
     if (connection) connection.end();
     console.log("N After T Finally");
