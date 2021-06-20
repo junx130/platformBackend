@@ -5,7 +5,8 @@ const auth = require("../../Middleware/auth");
 const {battDiagnostic} = require("../../Features/BattDiagnostic/BattDiag");
 
 router.post("/bydevslist", auth, async (req, res) => {
-    let result = await battDiagnostic(req.body.bdDev_List, 10);
+    let body = req.body;
+    let result = await battDiagnostic(body.bdDev_List, body.nAveCount, body.nPeriod_s);
     if(result.error) return res.status(400).send("Retrieve Info Error");      
     return res.status(200).send(result);      
     // const{error} = validateMessage(req.body);

@@ -2,7 +2,7 @@ const { getNDataAfterT, getLastNData } = require("../../MySQL/queryData");
 const { _unixNow } = require("../../utilities/timeFn");
 
 
-async function battDiagnostic(devList, aveCnt, nLastDay=7){
+async function battDiagnostic(devList, aveCnt, nPeriod_s){
     try {
         console.log("Coming in");
         let diagResultTable = [];
@@ -14,7 +14,7 @@ async function battDiagnostic(devList, aveCnt, nLastDay=7){
         }
         for (const dev of devList) {
             /** Get last time info, do average*/
-            let preDatas = await getNDataAfterT("Buildings", dev.type, dev._id, (_unixNow() - nLastDay*86400), aveCnt);
+            let preDatas = await getNDataAfterT("Buildings", dev.type, dev._id, (_unixNow() - nPeriod_s), aveCnt);
             // if(!preDatas || !preDatas[0]){  // sensor didnt publish to server before
             //     diagResultTable.push({
             //         preBattAve : 0,
