@@ -65,7 +65,7 @@ router.post("/del", auth, async (req, res) => {
 router.post("/get", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
-        console.log(req.body);
+        // console.log(req.body);
         let result = await getNotifyListById(req.body.a_BdDevID);
         return res.status(200).send(result);        
     } catch (ex) {

@@ -7,6 +7,28 @@ const { devCheckTimer } = require("./devActiveCheck/devCheckTimer");
 
 require("./Routes/routes")(app);
 
+/** -------------Testing field-------------- *
+// const { getSensorParaBy_sensorType } = require("./MySQL/SensorManagement/sensorManagement");
+  const { genSensorPara } = require("./utilities/loraFormatToDatabase");
+
+  async function testPrg(){
+    
+    let _loraData = {
+      pf:[1.123,2.223],
+      pb:[1],
+      pi:[1024],
+      pn:[987654321]
+    }
+
+      let rel = await genSensorPara(8,_loraData);
+      console.log(rel);
+    }
+  
+  
+  testPrg();
+/**========================================= */
+
+
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
 prgTelegram();

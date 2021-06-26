@@ -5,6 +5,7 @@ const { _unixNow } = require("../../utilities/timeFn");
 async function battDiagnostic(devList, aveCnt, nPeriod_s){
     try {
         console.log("Coming in");
+        console.log(devList);
         let diagResultTable = [];
         let diagResult = {
             preUnix:0,
@@ -28,7 +29,8 @@ async function battDiagnostic(devList, aveCnt, nPeriod_s){
 
             let Sum=0;
             for (const item of preDatas) {
-                Sum+=item.battVoltage;
+                if(dev.battKey)     Sum+=item[dev.battKey];
+                else    Sum+=item.battVoltage;
             }
             // for (let index = 0; index < preDatas.length; index++) {
             //     Sum+=preDatas[index].battVoltage;
@@ -45,7 +47,8 @@ async function battDiagnostic(devList, aveCnt, nPeriod_s){
             let curDatas = await getLastNData("Buildings", dev.type, dev._id, aveCnt);
             Sum = 0;
             for (const item of curDatas) {
-                Sum += item.battVoltage;
+                if(dev.battKey)     Sum+=item[dev.battKey];
+                else    Sum+=item.battVoltage;
             }
             // for (let index = 0; index < curDatas.length; index++) {
             //     Sum += curDatas[index].battVoltage;

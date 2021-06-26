@@ -7,18 +7,33 @@ const {nodeKey} =require('./getNodeKeyName');
 const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
 const {getDataT1ToT2_withOffset} = require('../MySQL/offset/queryDataAfterOffset');
 const { devStrFormat } = require("../utilities/devStringFormat");
+const { getSensorParaBy_sensorType } = require("../MySQL/SensorManagement/sensorManagement");
 
-function genAlarmMessage(buildingName, alarmType,keyName, bdDev, value, notifyItem, _unix){
+function genAlarmMessage(buildingName, alarmType,keyName='', bdDev, value, notifyItem, _unix){
     
     let devName = devStrFormat(bdDev);
     return `${buildingName}:\n${keyName.toUpperCase()} of ${devName} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
     // return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
 }
 
-getNodeKey=(key, type)=>{
+getNodeKey=async (key, type)=>{
     // console.log(key);
     let node=nodeKey.find(c=>(c.key === key && c.type ===type));    // check non common type
     if(!node) node = nodeKey.find(c=>(c.key === key ));             // check common type, type = 0
+    if(!node) {     // search from Databases
+        console.log("type", type);
+        let rel = await getSensorParaBy_sensorType(type);
+        if(Array.isArray(rel)) {
+            let sSplit = key.split('_');
+            console.log('sSplit' ,sSplit);
+            let found = rel.find(c=>c.dataType === sSplit[0] && c.dataIndex === parseInt(sSplit[1]));
+            console.log('found' ,found);
+            if (found) node= {type: type, key, name:found.dataName};
+        }
+        // if(!rel || !rel[0]) return
+        // console.log(rel);
+        // node = // get from DB
+    }
     if(!node) return
 
     return node.name;    
@@ -236,7 +251,7 @@ async function checkNotification(bdDev){
             console.log("building");
             // console.log(notifyItem.DataKey);
             // console.log(notifyItem.type);
-            let keyName = getNodeKey(notifyItem.DataKey, notifyItem.type);
+            let keyName = await getNodeKey(notifyItem.DataKey, notifyItem.type);
             let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, keyName, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix);
             for (const singleTeleID of teleDB) {
                 let teleID = singleTeleID.telegramID;

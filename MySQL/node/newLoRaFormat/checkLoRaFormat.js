@@ -1,4 +1,5 @@
 const { verifyCRC } = require("../../../utilities/loraFormat");
+const { standardSensorHandling } = require("./standardSensorHandling");
 const { ty6_switchStatusHandling } = require("./ty6_statusSwitch");
 const { ty7_VfdCtrlHandling } = require("./ty7_VfdControl");
 
@@ -18,6 +19,7 @@ async function decodeDevType(message) {
                 await ty7_VfdCtrlHandling(deviceInfo);
                 break;
             default:
+                await standardSensorHandling(deviceInfo);
                 break;
         }
 

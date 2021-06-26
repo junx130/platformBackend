@@ -20,6 +20,8 @@ const eleList= require("./MonList/EleList")
 const statusNodeThreshold= require("./StatusNodeThreshold/statusNodeThresholdRoute")
 const teleSubList= require("./notification/teleSubscribeList")
 const battDiag= require("./DiagBattRoute/BattDiagRoute")
+const sensorManagement= require("./SensorManagement/SensorManagementRoute")
+
 const error= require("../Middleware/error")
 
 module.exports = function (app) {
@@ -46,6 +48,8 @@ module.exports = function (app) {
     app.use("/monlist/", Monlist);    
     app.use("/t1list/", T1list);    
     app.use("/eleList/", eleList);    
+    app.use("/sensormng/", sensorManagement);    
+    
     
     app.use(error);     // caught all unexpected error
 }
