@@ -1,9 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
+const { regV2Sensor } = require("../../Features/addV2Sensor/addV2Sensor");
 const auth = require("../../Middleware/auth");
-const { getSensorList_ByVendorId, getSensorParaBy_TypeList } = require("../../MySQL/SensorManagement/sensorManagement");
+const { getSensorList_ByVendorId, getSensorParaBy_TypeList, updateSensorList, updateSensorParameter } = require("../../MySQL/SensorManagement/sensorManagement");
 
+
+router.post("/regnewsensor", auth, async (req, res) => {    
+    try {
+        // console.log(req.body);
+        let body = req.body;
+        body.userAmmend = req.user.username;
+        // console.log(body.userAmmend);
+        let rel = await regV2Sensor(body);
+        if(!rel) return res.status(400).send("Add Sensor Err");
+        return res.status(200).send("Done");        
+    } catch (ex) {
+        console.log("Reg Sensor Error");
+        console.log(ex.message);
+        return res.status(404).send(ex.message);        
+    }
+});
 
 router.post("/getbyvid", auth, async (req, res) => {    
     try {
@@ -28,7 +45,42 @@ router.post("/getparabytylist", auth, async (req, res) => {
         let result = await getSensorParaBy_TypeList(typeList);
         return res.status(200).send(result);        
     } catch (ex) {
-        console.log("Get SensorList Error");
+        console.log("Get ParaList Error");
+        return res.status(404).send(ex.message);        
+    }
+});
+
+
+router.post("/updatesensor", auth, async (req, res) => {    
+    try {
+        // console.log(req.params.userid);
+        // console.log("did COme in");
+        // console.log(req.body);
+        let sensor = req.body.sensor;
+        let result = await updateSensorList(sensor);
+        if(!result || result.affectedRows < 1) return res.status(400).send("Update Sensor Err");
+        // console.log(result);
+        return res.status(200).send("Update Success");        
+    } catch (ex) {
+        console.log("Update Sensor Error");
+        return res.status(404).send(ex.message);        
+    }
+});
+
+router.post("/updatesensorparameter", auth, async (req, res) => {    
+    try {
+        // console.log(req.params.userid);
+        // console.log("did COme in");
+        // console.log(req.body);
+        let paraList = req.body.paraList;
+        for (const para of paraList) {
+            let result = await updateSensorParameter(para);
+            
+            if(!result || result.affectedRows < 1) return res.status(204).send("Update SensorPara Err");
+        }
+        return res.status(200).send("Update Success");        
+    } catch (ex) {
+        console.log("Update ParaList Error");
         return res.status(404).send(ex.message);        
     }
 });
