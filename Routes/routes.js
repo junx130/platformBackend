@@ -21,6 +21,8 @@ const statusNodeThreshold= require("./StatusNodeThreshold/statusNodeThresholdRou
 const teleSubList= require("./notification/teleSubscribeList")
 const battDiag= require("./DiagBattRoute/BattDiagRoute")
 const sensorManagement= require("./SensorManagement/SensorManagementRoute")
+const acControl= require("./ControlDevice/AcControl")
+
 
 const error= require("../Middleware/error")
 
@@ -45,6 +47,7 @@ module.exports = function (app) {
     app.use("/graphList/", graphList);    
     app.use("/offset/", offsetRoute);    
     app.use("/ctrldev/", controlDevRoute);    
+    app.use("/acctrl/", acControl);        
     app.use("/monlist/", Monlist);    
     app.use("/t1list/", T1list);    
     app.use("/eleList/", eleList);    
