@@ -1,5 +1,5 @@
 const express = require("express");
-const { insertAcCtrlScheFn, getSche_byBdDevIdFn } = require("../../ControlDevice/acControl");
+const { insertAcCtrlScheFn, getSche_byBdDevIdFn, updateAcSchedule_list, deleteAcSchedule_list } = require("../../ControlDevice/acControl");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 
@@ -13,8 +13,8 @@ router.post("/insertsche", auth, async (req, res) => {
         // console.log(setRel);          
         res.status(200).send(setRel); 
     } catch (error) {
-        console.log("Set Device Control Error");
-        return res.status(404).send(ex.message);    
+        console.log("insertsche Error");
+        return res.status(404).send(error.message);    
     }
 });
 
@@ -28,8 +28,41 @@ router.post("/getschebyid", auth, async (req, res) => {
         // console.log(setRel);          
         res.status(200).send(setRel); 
     } catch (error) {
-        console.log("Set Device Control Error");
-        return res.status(404).send(ex.message);    
+        console.log("getschebyid Error");
+        return res.status(404).send(error.message);    
+    }
+});
+
+router.post("/updateschelist", auth, async (req, res) => {  
+    // console.log('````````````Come in`````````````````');  
+    try {
+        // buidling.userAmmend = req.user.username;
+        let body = req.body;
+        // body.userAmmend = req.user.username;
+        let setRel = await updateAcSchedule_list(body);      
+        // console.log('setRel', setRel);          
+        // res.sendStatus(200).send(setRel); 
+        res.status(200).send({errorCnt:setRel}); 
+    } catch (error) {
+        console.log("updateschelist Error");
+        return res.status(404).send(error.message);    
+    }
+});
+
+
+router.post("/deleteschelist", auth, async (req, res) => {  
+    // console.log('````````````Come in`````````````````');  
+    try {
+        // buidling.userAmmend = req.user.username;
+        let body = req.body;
+        // body.userAmmend = req.user.username;
+        let setRel = await deleteAcSchedule_list(body);      
+        // console.log('setRel', setRel);          
+        // res.sendStatus(200).send(setRel); 
+        res.status(200).send({errorCnt:setRel}); 
+    } catch (error) {
+        console.log("deleteschelist Error");
+        return res.status(404).send(error.message);    
     }
 });
 
