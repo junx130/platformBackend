@@ -57,8 +57,8 @@ router.post("/setctrldev", auth, async (req, res) => {
         let setRel = await setFeedbackDevice(pidMap);                
         res.status(200).send(setRel); 
     } catch (error) {
-        console.log("Set Device Control Error");
-        return res.status(404).send(ex.message);    
+        console.log("setctrldev Error");
+        return res.status(404).send(error.message);    
     }
 });
   
@@ -92,8 +92,8 @@ router.post("/getctrldev", auth, async (req, res) => {
         // console.log(setRel);          
         res.status(200).send(setRel); 
     } catch (error) {
-        console.log("Set Device Control Error");
-        return res.status(404).send(ex.message);    
+        console.log("getctrldev Error");
+        return res.status(404).send(error.message);    
     }
 });
 
@@ -124,7 +124,7 @@ router.post("/send", auth, async (req, res) => {
 
            
     } catch (ex) {
-        console.log("Set Device Control Error");
+        console.log("send Device Control Error");
         return res.status(404).send(ex.message);        
     }
 });
