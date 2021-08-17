@@ -61,6 +61,28 @@ router.get("/all", auth, async (req, res) => {
     }
 });
 
+// get by type and devID
+router.post("/getbytyndevid", auth, async (req, res) => {
+    try {
+        let data = req.body;
+        // data.userAmmend = req.user.username;
+        // console.log(data);
+        let result = await getBuildingDevicesByTypeID(data);
+        // console.log(result);
+
+        // Check insert new building result
+        // console.log("Result: ",result);
+        res.status(200).send(result);
+        // if (!result) return res.status(400).send("Insert Device Failed.");
+        // if (result.affectedRows < 1) return res.status(400).send("Insert Device Failed.");
+        //success
+        // res.status(200).send(`Device type: ${data.type}, ID: ${data.devID} insert successful`);
+    } catch (ex) {
+        console.log("getbytyndevid Error");
+        return res.status(404).send(ex.message);
+    }
+});
+
 //register new building
 router.post("/register", auth, async (req, res) => {
     try {
