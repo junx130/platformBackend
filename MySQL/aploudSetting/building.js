@@ -98,7 +98,7 @@ async function updateBuilding(building){
 }
 
 async function deleteBuilding(info){
-    console.log(info);
+    // console.log(info);
     const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
     
     try {

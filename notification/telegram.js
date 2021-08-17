@@ -12,7 +12,7 @@ function prgTelegram(){
         bot.on('message', (msg) => {
             const chatId = msg.chat.id;
             // console.log(msg);
-            console.log("Chat ID",chatId);
+            // console.log("Chat ID",chatId);
             if(msg.text.toUpperCase() ==="CHAT ID"){
                 bot.sendMessage(chatId, chatId);
                 return

@@ -24,14 +24,14 @@ getNodeKey=async (key, type)=>{
     // if(!node) {     // search from Databases
     
     let node={};
-    console.log("type", type);
+    // console.log("type", type);
     let rel = await getSensorParaBy_sensorType(type);
     if(Array.isArray(rel)) {
         let sSplit = splitSensorKey(key);
         // let sSplit = key.split('_');
-        console.log('sSplit' ,sSplit);
+        // console.log('sSplit' ,sSplit);
         let found = rel.find(c=>c.dataType === sSplit.dataType && c.dataIndex === parseInt(sSplit.dataIndex));
-        console.log('found' ,found);
+        // console.log('found' ,found);
         if (found) node= {type: type, key, name:found.dataName, unit:found.dataUnit};
     }
         // if(!rel || !rel[0]) return
@@ -184,7 +184,7 @@ risingTrigger=async (notifyItem)=>{
         default:
             break;
     }
-    console.log(result);
+    // console.log(result);
 }
 
 
@@ -251,7 +251,7 @@ async function checkNotification(bdDev){
             console.log(teleDB);
             if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
             
-            console.log("building");
+            // console.log("building");
             // console.log(notifyItem.DataKey);
             // console.log(notifyItem.type);
             let para = await getNodeKey(notifyItem.DataKey, notifyItem.type);

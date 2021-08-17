@@ -91,7 +91,7 @@ async function insertToDb(Info, db, nameID){
     //         data[key]=null;
     //     }
     // }
-    console.log(data);
+    // console.log(data);
     // return console.log('Testing block');
 
     const insertData = `INSERT INTO Device_${Info.ht}_${nameID}(unix, 

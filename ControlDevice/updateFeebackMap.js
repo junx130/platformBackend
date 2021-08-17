@@ -45,14 +45,14 @@ setFeedbackDevice=async(ctDev)=>{
         if (!newFbDev || !newFbDev[0]) return console.log("FB device not available");
         // console.log(ctDev);
         if (ctrlDev[0]) {      // exist, update
-            console.log("Exist");
+            // console.log("Exist");
             ctDev.fbNodeType = newFbDev[0].type;
             ctDev._id=ctrlDev[0]._id;
             let updateRel = await updateCtrlDev(ctDev)
             if(updateRel) return {update:true}
             return false
         }else{      // not exist, insert
-            console.log("Not exist");
+            // console.log("Not exist");
             ctDev.fbNodeType = newFbDev[0].type;
             let insertRel = await insertCtrlDev(ctDev);
             if(insertRel) return {insert:true}

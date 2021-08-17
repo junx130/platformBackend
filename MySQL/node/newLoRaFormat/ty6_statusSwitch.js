@@ -92,7 +92,7 @@ async function insertToDb(Info, db, nameID){
       result = await connection.query(`use ${db}`);
       result = await connection.query(createTable);
       result = await connection.query(insertData);
-      console.log("Insert Data", result);
+    //   console.log("Insert Data", result);
     } catch (ex) {
       console.log("Maria DB Error", ex.message);
     } finally {

@@ -128,7 +128,7 @@ async function updateBuildingDevices(data){
 }
 
 async function deleteBdDevice(info){
-    console.log(info);
+    // console.log(info);
     const quertCmd = `DELETE from ${tableName} where _id = ${info._id}`;
     
     try {
