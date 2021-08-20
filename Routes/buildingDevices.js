@@ -18,7 +18,7 @@ router.get("/get", auth, async (req, res) => {
 
 
 router.post("/getbylist", auth, async (req, res) => {
-    console.log("Come in getbylist");
+    // console.log("Come in getbylist");
     try {
         let result = await getBuildingDevice_by_idList(req.body);
         return res.status(200).send(result);

@@ -31,7 +31,7 @@ router.get("/get/:userid", auth, async (req, res) => {
 
 
 router.post("/add", auth, async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const{error} = validateMessage(req.body);
     // stop seq if error
     if(error) return res.status(400).send(error.details[0].message);    
@@ -39,7 +39,7 @@ router.post("/add", auth, async (req, res) => {
     if(req.user.active != 1) return res.status(401).send("Account not active");  
     
     try {
-        console.log("req.body");
+        // console.log("req.body");
         let data = req.body;   
         data.userAmmend = req.user.username;        
         // console.log(data);
@@ -56,7 +56,7 @@ router.post("/add", auth, async (req, res) => {
 
 
 router.post("/del", auth, async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const{error} = validateMessage(req.body);
     // stop seq if error
     if(error) return res.status(400).send(error.details[0].message);    

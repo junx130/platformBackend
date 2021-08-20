@@ -71,7 +71,7 @@ async function checkDevActive() {
           }/** Proceed to trigger if not happened trigger today */
         }
       }
-      console.log("Send Message");
+      // console.log("Send Message");
       /**Get telegram id of device */
       let teleList = await getTelegramListById(0, OtDevice.buildingID);   // 0, send message to common group
       let teleSubscribeList = await getTeleSubList(OtDevice.buildingID);

@@ -26,7 +26,7 @@ expClient.on("message", async (topic, message) => {
         a_topic[1]===`NodeReply` ){
             // console.log("Topic match");
             let deviceInfo = JSON.parse(message);
-            console.log(deviceInfo);
+            // console.log(deviceInfo);
             // console.log(nodeType);
             // console.log(deviceInfo.DevId);
             // console.log(deviceInfo.NodeType);
@@ -35,9 +35,9 @@ expClient.on("message", async (topic, message) => {
                 deviceInfo.ht == nodeType && deviceInfo.hi == _nodeID && 
                 deviceInfo.hd == 3 && deviceInfo.hf == nodeFunction ){
                 if(httpResponse){
-                    console.log(deviceInfo);                
+                    // console.log(deviceInfo);                
                     httpResponse.status(200).send(deviceInfo);
-                    console.log(`Success, Unsubcribe ${subTopic}`);                
+                    // console.log(`Success, Unsubcribe ${subTopic}`);                
                     if(subTopic) unsubscribeTopic(subTopic);
                     clearTimeout(timer);
                     clearCommonVar();
@@ -101,7 +101,7 @@ router.post("/send", auth, async (req, res) => {
     try {
         // console.log(req.params.userid);
         httpResponse = res;
-        console.log(req.body);      
+        // console.log(req.body);      
         // console.log(currentNo);                
         publishMqtt(`Aplouds/ServerToNode/${req.body.gwid}`, req.body);
         nodeType = req.body.ht;
@@ -115,7 +115,7 @@ router.post("/send", auth, async (req, res) => {
         timer = setTimeout(function(){
             //   resp.send(array);
             // console.log("After 5 sec");
-            console.log(`Unsubcribe ${subTopic}`);     
+            // console.log(`Unsubcribe ${subTopic}`);     
             if(subTopic) unsubscribeTopic(subTopic);     /** unsubscribe topic here*/
             clearCommonVar();
             

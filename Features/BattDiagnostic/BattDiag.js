@@ -4,8 +4,8 @@ const { _unixNow } = require("../../utilities/timeFn");
 
 async function battDiagnostic(devList, aveCnt, nPeriod_s){
     try {
-        console.log("Coming in");
-        console.log(devList);
+        // console.log("Coming in");
+        // console.log(devList);
         let diagResultTable = [];
         let diagResult = {
             preUnix:0,

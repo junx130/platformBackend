@@ -79,8 +79,8 @@ async function insertSensorPara(body, leastType, user){
             ${body.defaultDisplay}, 
             "${user}")`;
 
-        console.log(createTable);
-        console.log(queryCmd);
+        // console.log(createTable);
+        // console.log(queryCmd);
       let result = await insertTemplate(db, createTable, queryCmd, "Add V2 SensorPara succesful");
       return result;          
     } catch (ex) {
@@ -106,7 +106,7 @@ async function getLeastNoInTable(key){
         // LIMIT 1;
         // `;
         let result = await queryTemplate(db, quertCmd, "Get getLeastNoInTable Done");
-        console.log(result[0]);
+        // console.log(result[0]);
         if(!result[0][`TypeNotUsedInSensorList`]) return null
         return result[0][`TypeNotUsedInSensorList`];      
     } catch (error) {

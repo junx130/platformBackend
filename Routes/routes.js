@@ -22,6 +22,7 @@ const teleSubList= require("./notification/teleSubscribeList")
 const battDiag= require("./DiagBattRoute/BattDiagRoute")
 const sensorManagement= require("./SensorManagement/SensorManagementRoute")
 const acControl= require("./ControlDevice/AcControl")
+const devMgnt_V2= require("./devMgnt_V2/regDev_V2")
 
 
 const error= require("../Middleware/error")
@@ -51,7 +52,9 @@ module.exports = function (app) {
     app.use("/monlist/", Monlist);    
     app.use("/t1list/", T1list);    
     app.use("/eleList/", eleList);    
-    app.use("/sensormng/", sensorManagement);    
+    app.use("/sensormng/", sensorManagement);   
+    app.use("/devmngv2/", devMgnt_V2);   
+    
     
     
     app.use(error);     // caught all unexpected error
