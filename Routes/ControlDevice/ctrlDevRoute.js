@@ -120,7 +120,7 @@ router.post("/send", auth, async (req, res) => {
             clearCommonVar();
             
             return res.status(204).send("Timeout");  
-        }, 10000);
+        }, 15000);
 
            
     } catch (ex) {
