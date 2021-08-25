@@ -97,7 +97,13 @@ async function checkDevActive() {
       let sTimeDiff = fGetTimeDiff_InDTMS(_unixNow(), OtDevice.lastUpdate);
       let dev = await getBuildingDevicesBy_ID(OtDevice.bdDevID);
       let devName = '';
-      if (dev && dev[0]) devName = devStrFormat(dev[0]);
+
+      if (dev && dev[0]) {
+        devName = devStrFormat(dev[0]);
+      }else{    /** Building Device Been deleted */
+        continue;
+      }
+    
       let teleMsg = await genTeleMessage(OtDevice.buildingID, devName, sTimeDiff);
       // console.log(teleMsg);
       try {        
