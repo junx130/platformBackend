@@ -25,7 +25,9 @@ function validateMessage(deviceInfo){
 
 async function gatewayHandling(message){
     try {
+        // console.log(message);
         const deviceInfo = JSON.parse(message);
+        // console.log(deviceInfo);
         
         if(!deviceInfo.ID) deviceInfo.ID=null;
         if(!deviceInfo.Freq) deviceInfo.Freq=null;
