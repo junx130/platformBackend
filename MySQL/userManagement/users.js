@@ -36,6 +36,20 @@ function validateUpdateUser(user){
     return Joi.validate(user, schema);
 }
 
+async function setNewPassword(info) {    
+    const quertCmd = `UPDATE Users SET password = "${info.saltpassword}" where _id = ${info.user_id}`;
+    // console.log(quertCmd);
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "setNewPassword Finally");
+        // console.log("Update: ", result.affectedRows);  
+        if(result.affectedRows > 0) return true;
+        return null;
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function updateUser(info) {    
     const quertCmd = `UPDATE Users SET accessLevel = ${info.accessLevel}, 
     company = "${info.company}", teleID = ${info.teleID}, 
@@ -71,6 +85,19 @@ async function getUser(username) {
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
         return result[0];        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+
+async function getUserByUsername(body) {    
+    const quertCmd = `SELECT * from Users WHERE username = "${body.username}"`;
+
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "getUserByEmail Done");
+        return result;        
     } catch (ex) {
         console.log(ex.message)
         return null;
@@ -123,6 +150,7 @@ function genAuthToken(user) {
     return token;
 }
 
+exports.setNewPassword=setNewPassword;
 exports.deleteUser=deleteUser;
 exports.getAllUser=getAllUser;
 exports.valUpdateUser = validateUpdateUser;
@@ -131,3 +159,4 @@ exports.genAuthToken = genAuthToken;
 exports.getUser=getUser;
 exports.validateRegUser = validateMessage;
 exports.regUser = insertUser;
+exports.getUserByUsername = getUserByUsername;

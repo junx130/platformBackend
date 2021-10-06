@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, V2_insertDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
+const { getWeekNo, getYY } = require("../utilities/timeFn");
 
 
 router.get("/bytype/:ty", auth, async (req, res) => {
@@ -208,5 +209,49 @@ function validateUpdate(data) {
     }
     return Joi.validate(data, schema);
 }
+
+
+router.post("/getdevbytyndevid", auth, async (req, res) => {
+    // const { error } = validateUpdate(req.body);
+    // stop seq if error\
+    try {
+        let body = req.body;        
+        let rel = await getDeviceByTypendevID(body.type, body.devID);
+        return res.status(200).send(rel);
+    } catch (error) {
+        console.log('getdevbytyndevid error');
+        return res.status(200).send([]);
+    }
+    
+});
+
+router.post("/v2regdevlist", auth, async (req, res) => {
+    try {
+        let devList = req.body;        
+        console.log('devList');
+        console.log(devList);
+        let YY = getYY();
+        let weekNo = getWeekNo();
+        for (const dev of devList) {
+
+            /** generate SerialNo */
+            let SerialNo = `${dev.type}-${YY}${weekNo}-${dev.ID}`
+            console.log('SerialNo : ',SerialNo);
+            /** Generate RegCode (8 digit)*/
+            let RegCode = Math.floor(Math.random()*100000000).toString();
+            console.log(RegCode);
+            /** insert data into database */
+            let rel = await V2_insertDevice(dev);
+            
+            
+        }
+        return res.status(200).send(rel);
+    } catch (error) {
+        console.log('getdevbytyndevid error');
+        return res.status(200).send([]);
+    }
+    
+});
+
 
 module.exports = router;

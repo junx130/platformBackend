@@ -4,6 +4,8 @@ require("dotenv").config();
 const {prgMqtt} = require ("./MQTT/koalaMqtt");
 const { prgTelegram } = require("./notification/telegram");
 const { devCheckTimer } = require("./devActiveCheck/devCheckTimer");
+const {sendEmail} = require('./EmailServer/email');
+
 
 require("./Routes/routes")(app);
 
@@ -29,9 +31,11 @@ require("./Routes/routes")(app);
 /**========================================= */
 
 
+
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
 prgTelegram();
+// sendEmail();
 
 // interval 0.5 11:59:59.9987  12:00:01.0002
 setInterval(async() => await devCheckTimer(), 1000);

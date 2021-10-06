@@ -136,6 +136,36 @@ async function deleteDevice(info) {
     }
 }
 
+
+async function getDeviceByTypendevID(type, devID) {
+    const queryCmd = `select * from ${tableName} where devID =${devID} and type = ${type}`;
+    ;
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevID Done");
+        if (!result[0]) return [];
+        const devices = result.map(b => b);
+        return devices;
+    } catch (ex) {
+        console.log(ex.message);
+        return [];
+    }
+}
+
+async function V2_insertDevice(body) {
+    const queryCmd = `select * from ${tableName} where devID =${body.devID} and type = ${body.type}`;
+    ;
+    // try {
+    //     let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevID Done");
+    //     if (!result[0]) return [];
+    //     const devices = result.map(b => b);
+    //     return devices;
+    // } catch (ex) {
+    //     console.log(ex.message);
+    //     return [];
+    // }
+}
+
+
 exports.getDevicesByType = getDevicesByType;
 exports.deleteDevice = deleteDevice;
 exports.getDevicesByLimit = getDevicesByLimit;
@@ -144,6 +174,8 @@ exports.updateDevicesList = updateDevicesList;
 exports.getDevicesFromList = getDevicesFromList;
 exports.getDevicesList = getDevicesList;
 exports.registerNewDevice = registerNewDevice;
+exports.getDeviceByTypendevID = getDeviceByTypendevID;
+exports.V2_insertDevice=V2_insertDevice;
 // exports.updateBuilding=updateBuilding;
 // exports.getBuildings=getBuildings;
 // exports.getBuildingsByBuildingName=getBuildingsByBuildingName;

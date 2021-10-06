@@ -120,6 +120,19 @@ fUnixOneDayEarlier=(unix)=>{
     return tTime.subtract(1, 'days').unix();
 }
 
+
+getWeekNo=()=>{
+    let weekNo = moment().tz("Asia/Kuala_Lumpur").isoWeek();
+    return weekNo;
+}
+
+getYY=()=>{
+    let YY = moment().tz("Asia/Kuala_Lumpur").format("YY");
+    return YY;
+}
+
+exports.getYY=getYY;
+exports.getWeekNo = getWeekNo;
 exports.fUnixOneDayEarlier=fUnixOneDayEarlier;
 exports.fFmtTimeToUnixToday =fFmtTimeToUnixToday;
 exports.getUnixNowForCRC=getUnixNowForCRC;
