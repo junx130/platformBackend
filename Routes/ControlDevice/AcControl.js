@@ -1,5 +1,5 @@
 const express = require("express");
-const { insertAcCtrlScheFn, getSche_byBdDevIdFn, updateAcSchedule_list, deleteAcSchedule_list } = require("../../ControlDevice/acControl");
+const { insertAcCtrlScheFn, getSche_byBdDevIdFn, getSche_byScheIdFn, updateAcSchedule_list, deleteAcSchedule_list } = require("../../ControlDevice/acControl");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 
@@ -33,14 +33,31 @@ router.post("/getschebyid", auth, async (req, res) => {
     }
 });
 
+router.post("/getschebyscheid", auth, async (req, res) => {
+    try {
+        // buidling.userAmmend = req.user.username;
+        let body = req.body;
+        console.log(body);
+        // body.userAmmend = req.user.username;
+        let setRel = await getSche_byScheIdFn(body);      
+        console.log(setRel);          
+        res.status(200).send(setRel); 
+    } catch (error) {
+        console.log("getschebyscheid Error");
+        return res.status(404).send(error.message);    
+    }
+})
+
 router.post("/updateschelist", auth, async (req, res) => {  
     // console.log('````````````Come in`````````````````');  
     try {
         // buidling.userAmmend = req.user.username;
         let body = req.body;
+        body[0].userAmmend = req.user.username;
+        console.log(body);
         // body.userAmmend = req.user.username;
         let setRel = await updateAcSchedule_list(body);      
-        // console.log('setRel', setRel);          
+        console.log('setRel', setRel);          
         // res.sendStatus(200).send(setRel); 
         res.status(200).send({errorCnt:setRel}); 
     } catch (error) {

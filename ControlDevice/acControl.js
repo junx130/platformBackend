@@ -1,4 +1,4 @@
-const { getSche_byBdDevId, insertAcCtrlSche, updateAcSchedule, deleteAcSchedule} = require("../MySQL/ControlDevice/AcControlSchedule");
+const { getSche_byBdDevId, getSche_byScheId, insertAcCtrlSche, updateAcSchedule, deleteAcSchedule} = require("../MySQL/ControlDevice/AcControlSchedule");
 
 insertAcCtrlScheFn=async(body)=>{
     try {
@@ -22,15 +22,26 @@ getSche_byBdDevIdFn=async(body)=>{
     }
 }
 
-updateAcSchedule_list=async(body)=>{
+getSche_byScheIdFn = async (body) => {
     try {
         // console.log(body);
+        let rel = await getSche_byScheId(body);
+        // console.log(rel);
+        return rel;
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+updateAcSchedule_list=async(body)=>{
+    try {
+        console.log(body);
         if(!Array.isArray(body)) return;
         let rel;
         let errCnt = 0;
         for (const sche of body) {
             rel = await updateAcSchedule(sche);        
-            // console.log(rel);  
+            console.log(rel);  
             if(rel >0)  errCnt++;
         }                
         return errCnt;
@@ -59,4 +70,5 @@ deleteAcSchedule_list=async(body)=>{
 exports.deleteAcSchedule_list = deleteAcSchedule_list;
 exports.updateAcSchedule_list = updateAcSchedule_list;
 exports.insertAcCtrlScheFn = insertAcCtrlScheFn;
-exports.getSche_byBdDevIdFn=getSche_byBdDevIdFn;
+exports.getSche_byBdDevIdFn = getSche_byBdDevIdFn;
+exports.getSche_byScheIdFn = getSche_byScheIdFn;

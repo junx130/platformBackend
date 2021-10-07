@@ -53,6 +53,21 @@ async function getSche_byBdDevId(Info){
     }
 }
 
+async function getSche_byScheId(info) {
+    console.log(info);
+    const quertCmd = `SELECT * from ${tableName} WHERE _id = ${info.scheID}`;
+    // console.log(quertCmd);
+    try {
+        let result = await queryTemplate(db, quertCmd, "getSche_byScheId Finally");
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;        
+    } catch (ex) {
+        console.log(ex.message)
+        return [];       // return empty array
+    } 
+}
+
 async function updateAcSchedule(data){
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(),  
@@ -92,3 +107,4 @@ exports.deleteAcSchedule=deleteAcSchedule;
 exports.updateAcSchedule=updateAcSchedule;
 exports.getSche_byBdDevId =getSche_byBdDevId;
 exports.insertAcCtrlSche = insertAcCtrlSche;
+exports.getSche_byScheId = getSche_byScheId;
