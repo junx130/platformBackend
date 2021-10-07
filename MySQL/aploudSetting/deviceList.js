@@ -17,6 +17,8 @@ async function registerNewDevice(device) {
         devID INT NOT NULL,  
         battConst INT,  
         sleepAmp decimal(20,3),  
+        SerialNo varchar(40) default "", 
+        RegCode varchar(20) default "", 
         SimNumber varchar(20),
         buildingID INT,
         userAmmend varchar(80),
@@ -105,7 +107,6 @@ async function countAll() {
 }
 
 async function updateDevicesList(data) {
-
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
     unix = UNIX_TIMESTAMP(), battConst = ${data.battConst},
     sleepAmp = ${data.sleepAmp}, SimNumber = "${data.SimNumber}",
@@ -136,6 +137,50 @@ async function deleteDevice(info) {
     }
 }
 
+
+async function getDeviceByTypendevID(type, devID) {
+    const queryCmd = `select * from ${tableName} where devID =${devID} and type = ${type}`;
+    ;
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevID Done");
+        if (!result[0]) return [];
+        const devices = result.map(b => b);
+        return devices;
+    } catch (ex) {
+        console.log(ex.message);
+        return [];
+    }
+}
+
+async function V2_insertDevice(body) {    
+    const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(		
+        _id int NOT NULL AUTO_INCREMENT,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        unix INT(11) NOT NULL, 
+        type SMALLINT NOT NULL,  
+        devID INT NOT NULL,  
+        battConst INT,  
+        sleepAmp decimal(20,3),  
+        SerialNo varchar(40) default "", 
+        RegCode varchar(20) default "", 
+        SimNumber varchar(20),
+        buildingID INT,
+        userAmmend varchar(80),
+        PRIMARY KEY (_id)
+    )`;
+    
+    const insertCmd = `INSERT INTO ${tableName}(unix, type, devID, battConst, sleepAmp, SerialNo, RegCode, userAmmend) 
+    VALUES (UNIX_TIMESTAMP(), ${body.type}, ${body.ID}, ${body.battConst}, ${body.sleep_uA}, "${body.SerialNo}", "${body.RegCode}", "${body.userAmmend}")`;
+
+    // console.log(insertCmd);
+
+    let result = await insertTemplate(settingDatabase, createTable, insertCmd, "V2_insertDevice Finally");
+    if(!result.affectedRows) return false;
+    if(result.affectedRows > 0 ) return true;
+    return false;
+}
+
+
 exports.getDevicesByType = getDevicesByType;
 exports.deleteDevice = deleteDevice;
 exports.getDevicesByLimit = getDevicesByLimit;
@@ -144,6 +189,8 @@ exports.updateDevicesList = updateDevicesList;
 exports.getDevicesFromList = getDevicesFromList;
 exports.getDevicesList = getDevicesList;
 exports.registerNewDevice = registerNewDevice;
+exports.getDeviceByTypendevID = getDeviceByTypendevID;
+exports.V2_insertDevice=V2_insertDevice;
 // exports.updateBuilding=updateBuilding;
 // exports.getBuildings=getBuildings;
 // exports.getBuildingsByBuildingName=getBuildingsByBuildingName;

@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, V2_insertDevice } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
+const { getWeekNo, getYY } = require("../utilities/timeFn");
 
 
 router.get("/bytype/:ty", auth, async (req, res) => {
@@ -36,7 +37,7 @@ router.get("/countall", auth, async (req, res) => {
     try {
         if (req.user.accessLevel > 10) return res.status(401).send("Access Level Too Low");
         let result = await countAll();
-        console.log(result);
+        // console.log(result);
         return res.status(200).send(result);
     } catch (ex) {
         console.log("Count All Error");
@@ -156,7 +157,7 @@ router.post("/update", auth, async (req, res) => {
             for (b of buidingDevices) {
                 // console.log("b: ",b);
                 if ((b.buildingID != data.buildingID)) {
-                    console.log("ID changed");
+                    // console.log("ID changed");
                     // change the BuildingDevices devID here;
                     let setIdle = await setIdleBuildingDevices(b);
                     if (setIdle.affectedRows < 1) return res.status(400).send("Set Idle Failed");
@@ -177,7 +178,7 @@ router.post("/del", auth, async (req, res) => {
     const { error } = validateUpdate(req.body);
     // stop seq if error
     if (error) return res.status(400).send(error.details[0].message);
-    console.log(req.user);
+    // console.log(req.user);
     if (req.user.active != 1) return res.status(401).send("Account not active");
     // prevent admin accidently change own access level            
     if (req.user.username == req.body.username) return res.status(401).send("Not allowed to change self access level");  // prevent admin accidently change own access level
@@ -208,5 +209,64 @@ function validateUpdate(data) {
     }
     return Joi.validate(data, schema);
 }
+
+
+router.post("/getdevbytyndevid", auth, async (req, res) => {
+    // const { error } = validateUpdate(req.body);
+    // stop seq if error\
+    try {
+        let body = req.body;        
+        let rel = await getDeviceByTypendevID(body.type, body.devID);
+        return res.status(200).send(rel);
+    } catch (error) {
+        console.log('getdevbytyndevid error');
+        return res.status(200).send([]);
+    }
+    
+});
+
+router.post("/v2regdevlist", auth, async (req, res) => {
+    try {
+        let devList = req.body;        
+        // console.log('devList');
+        // console.log(devList);
+        let YY = getYY();
+        let weekNo = getWeekNo();
+        let User = req.user.username;
+        let statusRel = [];
+        // let cnt = 0;
+        for (const dev of devList) {
+            dev.userAmmend = User;
+            /** generate SerialNo */
+            let SerialNo = `${dev.type}-${YY}${weekNo}-${dev.ID}`;
+            dev.SerialNo = SerialNo;
+            // console.log('SerialNo : ',SerialNo);
+            /** Generate RegCode (8 digit)*/
+            let RegCode = Math.floor(Math.random()*100000000).toString();
+            // console.log("Char Len: ", RegCode.length);
+            while (RegCode.length < 8) {
+                RegCode = '0' + RegCode;
+            }
+            dev.RegCode = RegCode;
+            // console.log(RegCode);
+            /** insert data into database */
+            let rel = await V2_insertDevice(dev);
+            // console.log('rel', rel);
+            // cnt++;
+            // if (cnt==2){
+            //     statusRel.push(false);
+            // }else{
+                statusRel.push(rel);
+            // }
+        }
+        return res.status(200).send(statusRel);
+    } catch (error) {
+        console.log('getdevbytyndevid error');
+        console.log(error.message);
+        return res.status(200).send(statusRel);
+    }
+    
+});
+
 
 module.exports = router;
