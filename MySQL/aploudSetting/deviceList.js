@@ -181,6 +181,20 @@ async function V2_insertDevice(body) {
 }
 
 
+async function getDevBy_SnRegcode(body) {
+    const queryCmd = `select * from ${tableName} where SerialNo =${body.SerialNo} and RegCode = ${body.RegCode}`;
+    ;
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevID Done");
+        if (!result[0]) return [];
+        const devices = result.map(b => b);
+        return devices;
+    } catch (ex) {
+        console.log(ex.message);
+        return [];
+    }
+}
+
 exports.getDevicesByType = getDevicesByType;
 exports.deleteDevice = deleteDevice;
 exports.getDevicesByLimit = getDevicesByLimit;
@@ -191,7 +205,4 @@ exports.getDevicesList = getDevicesList;
 exports.registerNewDevice = registerNewDevice;
 exports.getDeviceByTypendevID = getDeviceByTypendevID;
 exports.V2_insertDevice=V2_insertDevice;
-// exports.updateBuilding=updateBuilding;
-// exports.getBuildings=getBuildings;
-// exports.getBuildingsByBuildingName=getBuildingsByBuildingName;
-// exports.insertNewBuilding = insertNewBuilding;
+exports.getDevBy_SnRegcode = getDevBy_SnRegcode;
