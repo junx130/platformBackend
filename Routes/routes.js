@@ -24,7 +24,8 @@ const sensorManagement= require("./SensorManagement/SensorManagementRoute")
 const acControl= require("./ControlDevice/AcControl")
 const devMgnt_V2= require("./devMgnt_V2/regDev_V2")
 const areaList_V2= require("./present_V2/areaListRoute")
-const sumList_V2= require("./present_V2/summaryListRoute")
+const sumList_V2= require("./present_V2/summaryListRoute");
+const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
 
 
 
@@ -42,6 +43,7 @@ module.exports = function (app) {
     app.use("/diag/batt/", battDiag);
     app.use("/present/area/", areaList_V2);
     app.use("/present/sum/", sumList_V2);
+
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
     app.use("/assignbuilding/", assignBuildingRoute);
@@ -58,7 +60,9 @@ module.exports = function (app) {
     app.use("/t1list/", T1list);    
     app.use("/eleList/", eleList);    
     app.use("/sensormng/", sensorManagement);   
-    app.use("/devmngv2/", devMgnt_V2);   
+    app.use("/devmngv2/", devMgnt_V2);    
+    app.use("/devrec/", V2_DeviceRecord);  
+    
     
     
     

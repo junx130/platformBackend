@@ -182,8 +182,8 @@ async function V2_insertDevice(body) {
 
 
 async function getDevBy_SnRegcode(body) {
-    const queryCmd = `select * from ${tableName} where SerialNo =${body.SerialNo} and RegCode = ${body.RegCode}`;
-    ;
+    const queryCmd = `select * from ${tableName} where SerialNo ="${body.SerialNo}" and RegCode = "${body.RegCode}"`;
+    // console.log(queryCmd);
     try {
         let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevID Done");
         if (!result[0]) return [];

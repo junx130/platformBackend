@@ -273,7 +273,7 @@ router.post("/getdevbysndevreg", auth, async (req, res) => {
     try {
         let body = req.body;        
         let rel = await getDevBy_SnRegcode(body);
-        console.log(rel);
+        // console.log(rel);
         return res.status(200).send(rel);
     } catch (error) {
         console.log('getdevbysndevreg error');
