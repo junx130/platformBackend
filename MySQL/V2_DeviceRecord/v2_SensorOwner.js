@@ -86,7 +86,7 @@ async function getSensorOwnerBy_TydevID (Info){
     }
 }
 
-async function setSensorOwner(body){
+async function insertV2_OwnerList_bdDev(body, bd_id, area_id){
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -103,19 +103,17 @@ async function setSensorOwner(body){
             PRIMARY KEY (_id)
         )`;
   
-        const queryCmd = `INSERT INTO V2_OwnerList_bdDev(unix, type, devID, name, owner_id, buidling_id, area_id, sortIdx, active)
+        const queryCmd = `INSERT INTO ${tableName}(unix, type, devID, name, owner_id, buidling_id, area_id)
             VALUES (UNIX_TIMESTAMP(), 
             ${body.type}, 
             ${body.devID}, 
-            ${body.name}, 
-            ${body.owner_id}, 
-            ${body.buidling_id}, 
-            ${body.area_id}, 
-            ${body.sortIdx}, 
-            ${body.active}
+            "${body.devName}", 
+            ${body.bdOwner_id}, 
+            ${bd_id}, 
+            ${area_id}
             )`;
 
-        let result = await insertTemplate(db, createTable, queryCmd, "setSensorOwner Finally");
+        let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_bdDev Finally");
         if(!result) return false;
         if(result.affectedRows > 0) return true;
         return false;      
@@ -126,9 +124,75 @@ async function setSensorOwner(body){
     }
 }
 
+
+async function insertV2_OwnerList_bd(body){
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${buildingTableName}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            name varchar(80),
+            owner_id int not null,
+            sortIdx int not null default 65535,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        )`;
+  
+        const queryCmd = `INSERT INTO ${buildingTableName}(unix, name, owner_id)
+            VALUES (UNIX_TIMESTAMP(), 
+            "${body.buildingName}", 
+            ${body.bdOwner_id}
+            )`;
+
+        let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_bd Finally");
+        if(!result) return false;
+        if(result.affectedRows > 0) return result;
+        return false;      
+    } catch (ex) {
+        console.log("insertV2_OwnerList_bd Err")
+        console.log(ex.message)
+        return false;
+    }
+}
+
+async function insertV2_OwnerList_area(body, bd_id){
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${areaTableName}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            name varchar(80),
+            owner_id int not null,
+            buidling_id int not null,
+            sortIdx int not null default 65535,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        )`;
+  
+        const queryCmd = `INSERT INTO ${areaTableName}(unix, name, owner_id, buidling_id)
+            VALUES (UNIX_TIMESTAMP(), 
+            "${body.bAreaName}", 
+            ${body.bdOwner_id},
+            ${bd_id}
+            )`;
+
+        let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_area Finally");
+        if(!result) return false;
+        if(result.affectedRows > 0) return result;
+        return false;      
+    } catch (ex) {
+        console.log("insertV2_OwnerList_area Err")
+        console.log(ex.message)
+        return false;
+    }
+}
+
+exports.insertV2_OwnerList_bd=insertV2_OwnerList_bd;
+exports.insertV2_OwnerList_area=insertV2_OwnerList_area;
+
 exports.getAreaInfoBy_id=getAreaInfoBy_id;
 exports.getAreaByOwner_id= getAreaByOwner_id;
 exports.getBdInfoBy_id = getBdInfoBy_id;
 exports.getBuildingByOwner_id=getBuildingByOwner_id;
-exports.setSensorOwner=setSensorOwner;
+exports.insertV2_OwnerList_bdDev=insertV2_OwnerList_bdDev;
 exports.getSensorOwnerBy_TydevID = getSensorOwnerBy_TydevID;

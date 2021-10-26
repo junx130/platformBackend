@@ -1,21 +1,79 @@
 const express = require("express");
 const router = express.Router();
-// const Joi = require("joi");
+const Joi = require("joi");
 const auth = require("../../Middleware/auth");
-const { getSensorOwnerBy_TydevID, setSensorOwner, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
+function valRegSenInfo(body){
+    const schema = {      
+        type: Joi.number().required(),
+        devID: Joi.number().required(),
+        RegCode:Joi.string().required(),
+        SerialNo:Joi.string().required(),
+        areaId:Joi.number(),
+        bAreaName:Joi.string().max(80).required().label("Area"),
+        bNewArea:Joi.boolean().required(),
+        bNewBuilding:Joi.boolean().required(),
+        buildingId: Joi.number(),
+        buildingName: Joi.string().max(80).required().label("Building"),
+        devName: Joi.string().min(1).max(80).required().label("Name"),
+        bdOwner_id: Joi.number(),
+    }
+    return Joi.validate(body, schema);
+}
+
+
 /** register new sensor */
 router.post("/sensorowner/regnewsensor", auth, async (req, res) => {    
-    /** check bdDev duplication */
-    /** if new BD, log new BD, else use _id */
-    /** If new Area, log new area, else ud _id */
-    /** Check BdDev Exist again */
-    /** not exist, log new bdDev*/
-    console.log(req.body);
+    try {
+        // console.log(req.body);
+        let body = req.body;
+        /** validate Data */
+        let {error: valErr} = valRegSenInfo(body);
+        if(valErr) return res.status(203).send({errMsg:valErr.details[0].message});
 
+        /** check bdDev duplication */
+        let sensorDuplication = await getSensorOwnerBy_TydevID(body);
+        if(!Array.isArray(sensorDuplication)) return res.status(203).send({errMsg:"DB server Error"});
+        if(sensorDuplication.length > 0) return res.status(203).send({errMsg:"Device Duplicated"});
+        // console.log(sensorDuplication);
+        /** check whether is new BD */
+        let bd_id=body.buildingId;  /** Existing Building Will use this */
+        if(body.bNewBuilding){   /** new building, */
+            /** store into DB, get the return _id */
+            let insBdRel = await insertV2_OwnerList_bd(body)
+            //{ affectedRows: 1, insertId: 4, warningStatus: 0 }
+            if(!insBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
+            if(insBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
+            bd_id = insBdRel.insertId;
+            console.log(bd_id);
+        }
+
+        let area_id = body.areaId;
+        if(body.bNewArea){      /** new area */
+            /** store into area db */
+            let insAreaRel = await insertV2_OwnerList_area(body, bd_id)
+            if(!insAreaRel) return res.status(203).send({errMsg:"Add New Area Not Success(1)"});
+            if(insAreaRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Area Not Success(2)"});
+            area_id = insAreaRel.insertId;
+            console.log(area_id);
+        }
+
+        /** Log into dev DB */
+        let insDevRel = await insertV2_OwnerList_bdDev(body, bd_id, area_id);
+        if(!insDevRel) return res.status(203).send({errMsg:"Add New Sensor Not Success"});
+        
+        return res.status(200).send({reqSuccess:true});
+
+
+    } catch (error) {
+        console.log("Error : /sensorowner/regnewsensor");
+        console.log(error.message);
+        return res.status(404).send(error.message);     
+    }
 });
 
 /** get InvolvedArea */
@@ -140,20 +198,6 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
 });
 
 
-router.post("/sensorowner/set", auth, async (req, res) => {    
-    try {
-        // console.log(req.params.userid);
-        // console.log(req.body);
-        
-        let result = await setSensorOwner(req.body);
-        // console.log(result);
-        // if(!result) return res.status(204).send(result);    // catch error
-        return res.status(200).send(result);        
-    } catch (ex) {
-        console.log("Get Status Threshold Error");
-        return res.status(404).send(ex.message);        
-    }
-});
 
 
 router.post("/sensorshared/getbytyid", auth, async (req, res) => {    
