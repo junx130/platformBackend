@@ -187,6 +187,59 @@ async function insertV2_OwnerList_area(body, bd_id){
     }
 }
 
+
+async function getBuildingByOwner_id_bd_id (owner_id, bd_id){
+    try {
+        const quertCmd = `SELECT * from ${buildingTableName} WHERE owner_id = ${owner_id} and active = 1 and _id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBuildingByOwner_id_bd_id Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
+async function getBddevBy_userId_bdId (user_id, bd_id){
+    try {
+        const quertCmd = `SELECT * from ${tableName} WHERE owner_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBddevBy_userId_bdId Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
+async function getBddevBy_idList (a_list){
+    try {
+        let _idList = [...a_list];
+        const quertCmd = `SELECT * from ${tableName} WHERE _id in (${_idList.toString()})`;
+    
+        // const quertCmd = `SELECT * from ${tableName} WHERE owner_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBddevBy_idList Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
+exports.getBddevBy_idList=getBddevBy_idList;
+exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
+exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
+
 exports.insertV2_OwnerList_bd=insertV2_OwnerList_bd;
 exports.insertV2_OwnerList_area=insertV2_OwnerList_area;
 

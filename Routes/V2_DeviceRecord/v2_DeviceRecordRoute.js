@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
@@ -203,8 +203,7 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
 router.post("/sensorshared/getbytyid", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
-        console.log(req.body);
-        console.log('sensorshared');
+        // console.log(req.body);
         
         let result = await getSensorSharedBy_TydevID(req.body);
         // console.log(result);
@@ -213,6 +212,79 @@ router.post("/sensorshared/getbytyid", auth, async (req, res) => {
     } catch (ex) {
         console.log("Get Status Threshold Error");
         return res.status(404).send(ex.message);        
+    }
+});
+
+
+router.post("/building/checkvaliduser", auth, async (req, res) => {    
+    try {
+        // console.log("/building/checkvaliduser");
+        // console.log(req.body);
+        let {user_id, bd_id} = req.body;
+        /** check owner BD */
+        // let ownBd = await getBuildingByOwner_id_bd_id(5, body.bd_id);
+        let ownBd = await getBuildingByOwner_id_bd_id(user_id, bd_id);
+        // console.log(ownBd);
+        if(!ownBd || !Array.isArray(ownBd)) return res.status(204).send({errMsg: "Database(Own) Exc Error"});
+        if(ownBd.length > 0) return res.status(200).send({bdAccess:true, status:'Owner'});
+
+        /** User Not owner, Check shared building */
+        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id);
+        if(!sharedBd || !Array.isArray(sharedBd)) return res.status(204).send({errMsg: "Database(Share) Exc Error"});
+        if(sharedBd.length > 0) return res.status(200).send({bdAccess:true, status:'Shared'});
+
+        return res.status(200).send({bdAccess:false});
+
+    } catch (error) {
+        console.log("/building/checkvaliduser Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});        
+    }
+});
+
+router.post("/building/getbddev", auth, async (req, res) => {    
+    try {
+        // console.log("/building/getbddev");
+        // console.log(req.body);
+        let {user_id, bd_id} = req.body;
+        /** get own device under this building */
+        let ownDev= await getBddevBy_userId_bdId(user_id, bd_id);
+        if(!ownDev || !Array.isArray(ownDev)) return res.status(204).send({errMsg: "Database(Own) Exc Error"});
+        // console.log(ownDev);
+
+        /** get shared device under this building, normally is either 1 */
+        let shareDev = await getSharedevBy_userId_bdId(user_id, bd_id);
+        if(!shareDev || !Array.isArray(shareDev)) return res.status(204).send({errMsg: "Database(Share) Exc Error"});
+        // console.log(shareDev);
+        let dev_idList=[];
+        for (const dev of shareDev) {
+            /** filter multiple shared device  */
+            let found = dev_idList.find(c=>c===dev.bdDev_id) > 0 ;
+            if(!found) dev_idList.push(dev.bdDev_id);
+        }
+        // console.log(dev_idList);
+        let allDev = [...ownDev];
+        let groupSize = 20;
+        if(dev_idList.length>0){
+            /** loop to query DB part by part */
+            for (let i = 0; i < dev_idList.length; i+=groupSize) {
+                // console.log("i", i);                
+                let sliceArr = dev_idList.slice(i, i+groupSize);
+                // console.log(sliceArr);
+                let sharedList = await getBddevBy_idList(sliceArr);
+                if(!sharedList || !Array.isArray(sharedList)) return res.status(204).send({errMsg: "Database(S.Dev) Exc Error"});
+                // console.log(sharedList);
+                allDev=[...allDev, ...sharedList];
+                // console.log(allDev);
+            }
+        }        
+        
+        return res.status(200).send(allDev);
+        
+    } catch (error) {
+        console.log("/building/checkvaliduser Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});        
     }
 });
 

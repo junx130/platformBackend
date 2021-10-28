@@ -4,6 +4,7 @@ const db = "V2_DeviceRecord";
 const tableName = "V2_SensorSharedUser";
 const bdTableName = "V2_ShareList_bd";
 const areaTableName = "V2_ShareList_area";
+const devTableName = "V2_ShareList_bdDev";
 
 async function getAreaByActiveUser_id (user_id, selectedBuilding){
     try {
@@ -53,6 +54,37 @@ async function getSensorSharedBy_TydevID (Info){
     // }
 }
 
+async function getSharedBdBy_user_id_bd_id (user_id, bd_id){
+    try {
+        const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id} `;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getSharedBdBy_user_id_bd_id Finally");
+        // console.log(result);
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(ex.message)
+        return null;       
+    }
+}
+async function getSharedevBy_userId_bdId (user_id, bd_id){
+    try {
+        const quertCmd = `SELECT * from ${devTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getSharedevBy_userId_bdId Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
+
+exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
 exports.getAreaByActiveUser_id=getAreaByActiveUser_id;
 exports.getBuildingByActiveUser_id=getBuildingByActiveUser_id;
 exports.getSensorSharedBy_TydevID = getSensorSharedBy_TydevID;
+exports.getSharedevBy_userId_bdId=getSharedevBy_userId_bdId;
