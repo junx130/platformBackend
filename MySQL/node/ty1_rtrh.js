@@ -44,8 +44,8 @@ async function rtrhDbHandlings(message) {
     }*/
 }
 
-async function insertToDb(Info, db, nameID){     
-    if(process.env.debugOnLaptop=="true") return //console.log("Skip Database Storing");
+async function insertToDb(Info, db, nameID, forceLog){     
+    if(process.env.debugOnLaptop=="true" && forceLog!=="ForceLog") return //console.log("Skip Database Storing");
     // console.log(Info);   
     const createTable = `CREATE TABLE IF NOT EXISTS Device_${Info.Ty}_${nameID}(	        
         _id int NOT NULL AUTO_INCREMENT,
@@ -99,7 +99,7 @@ async function insertToDb(Info, db, nameID){
       console.log("Maria DB Error", ex.message);
     } finally {
       if (connection) connection.end();
-      console.log("DB log complete");
+      console.log(`Device_${Info.Ty}_${nameID} DB log complete`);
     }   
 }
 

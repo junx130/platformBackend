@@ -2,18 +2,21 @@ const { updateDevActChecklist } = require("../../../devActiveCheck/updateDevActC
 const { checkNotification } = require("../../../notification/checkNotification");
 const { listedInbuildingDevices } = require("../../queryData");
 const { checkPid } = require("../../../ControlDevice/checkMapPID");
+const { getSensorOwnerBy_TydevID } = require("../../V2_DeviceRecord/v2_SensorOwner");
 
 async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){    
     const database = "RawDataLog";
     const buildingDb = "Buildings";
+    const V2_bdDev_BD = "V2_DevDataLog";
 
     try {
         const deviceInfo = JSON.parse(message);
         if (deviceInfo.Ty ===devType) {            
             let validateErr = validateMessage(deviceInfo).error;
             if (!validateErr){
-                await f_InsertDb(deviceInfo, database, deviceInfo.ID);
+                // await f_InsertDb(deviceInfo, database, deviceInfo.ID);   // 211030 skip store data to raw table.
                 // console.log(deviceInfo);
+                /** V1, check and store into DB */
                 let CheckListResult = await listedInbuildingDevices(deviceInfo.Ty, deviceInfo.ID);
                 if (CheckListResult) {
                     for (const c of CheckListResult) {
@@ -26,6 +29,24 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                         await checkPid(c, deviceInfo);
                     }   
                 }
+                /** V2 check and store to V2_DevDataLog */
+                    let info ={
+                        type:deviceInfo.Ty,
+                        devID: deviceInfo.ID
+                    }
+                    // console.log(info);
+                    let bdDevLinked = await getSensorOwnerBy_TydevID(info);
+                    let linkToBdDev=true;
+                    if(!bdDevLinked || !bdDevLinked[0]) linkToBdDev=false;
+                    if(linkToBdDev){    /** proceed to store DB if dev link to bd (valid bdDev)*/
+                        // console.log(bdDevLinked);
+                        for (const c of bdDevLinked) {
+                            /** log data into DB */
+                            await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id, 'ForceLog');    // local setting
+                            // await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id);                   // server setting
+                            // console.log(logDbRel);                            
+                        }
+                    }
             }else{
                 console.log(validateErr);
             }

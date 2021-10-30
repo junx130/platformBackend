@@ -59,7 +59,7 @@ async function insertToDb(Info, db, nameID, sensorPara){
       console.log("Maria DB Error", ex.message);
     } finally {
       if (connection) connection.end();
-      console.log("Status node DB log complete");
+      console.log(`Device_${Info.ht}_${nameID} DB log complete`);
     }   
 }
 
