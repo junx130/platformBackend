@@ -42,8 +42,8 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                         // console.log(bdDevLinked);
                         for (const c of bdDevLinked) {
                             /** log data into DB */
-                            await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id, 'ForceLog');    // local setting
-                            // await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id);                   // server setting
+                            // await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id, 'ForceLog');    // local setting
+                            await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id);                   // server setting
                             // console.log(logDbRel);                            
                         }
                     }
