@@ -34,7 +34,8 @@ require("./Routes/routes")(app);
 
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
-prgTelegram();
+prgTelegram();   
+
 // sendEmail();
 
 // interval 0.5 11:59:59.9987  12:00:01.0002

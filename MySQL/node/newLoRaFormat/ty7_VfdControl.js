@@ -144,7 +144,7 @@ async function insertToDb(Info, db, nameID){
       console.log("Maria DB Error", ex.message);
     } finally {
       if (connection) connection.end();
-      console.log("DB log complete");
+      console.log(`Device_${Info.ht}_${nameID} DB log complete`);
     }   
 }
 

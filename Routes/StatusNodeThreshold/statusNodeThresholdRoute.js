@@ -8,7 +8,7 @@ const { getLatestThreshold_byDevId, setThreshold } = require("../../MySQL/status
 router.post("/getthresholdbydevid", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
-        console.log(req.body.devID);
+        // console.log(req.body.devID);
         
         let result = await getLatestThreshold_byDevId(req.body.devID);
         // console.log(result);

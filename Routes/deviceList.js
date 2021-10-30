@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, V2_insertDevice } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, V2_insertDevice, getDevBy_SnRegcode } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
@@ -264,9 +264,23 @@ router.post("/v2regdevlist", auth, async (req, res) => {
         console.log('getdevbytyndevid error');
         console.log(error.message);
         return res.status(200).send(statusRel);
-    }
-    
+    }    
 });
+
+router.post("/getdevbysndevreg", auth, async (req, res) => {
+    // const { error } = validateUpdate(req.body);
+    // stop seq if error\
+    try {
+        let body = req.body;        
+        let rel = await getDevBy_SnRegcode(body);
+        // console.log(rel);
+        return res.status(200).send(rel);
+    } catch (error) {
+        console.log('getdevbysndevreg error');
+        return res.status(200).send([]);
+    }
+});
+
 
 
 module.exports = router;
