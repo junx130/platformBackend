@@ -85,12 +85,12 @@ router.post("/area/getrelated", auth, async (req, res) => {
         /** get owned building area */
         let ownedArea = await getAreaByOwner_id(info.user_id, info.selectedBuilding);
         // console.log("ownedArea", ownedArea);
-        if(!ownedArea) return res.status(203).send({msg:'Database Server Invalid'});
+        if(!ownedArea) return res.status(203).send({errMsg:'DB(Own) Invalid'});
 
         /** get shared Area  */
         let sharedArea = await getAreaByActiveUser_id(info.user_id, info.selectedBuilding);
         // console.log("sharedArea", sharedArea);
-        if(!sharedArea) return res.status(203).send({msg:'Database Server Invalid'});
+        if(!sharedArea) return res.status(203).send({errMsg:'DB(Share) Invalid'});
         
         /** Filter duplicated data */
         let uniqueTable = Array.from(
@@ -116,7 +116,7 @@ router.post("/area/getrelated", auth, async (req, res) => {
                     }
                 // relatedBuilding=[...relatedBuilding, ...ownBuilding];
             }else{
-                return res.status(203).send({msg:'Database Server Invalid'});
+                return res.status(203).send({errMsg:'Database Server Invalid'});
             }
         }
         
