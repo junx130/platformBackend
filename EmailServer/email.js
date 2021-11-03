@@ -5,8 +5,8 @@ let transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         // port: 2525,
         auth: {
-            user: "jxdan2@gmail.com",
-            pass: "A110676!"
+            user: "aploudsnoreply@gmail.com",
+            pass: "AploudsGmail123"
         }
 })
 
@@ -50,5 +50,26 @@ async function sendPassResetEmail(userEmail, resetLink){
   });
 }
 
-exports.sendPassResetEmail=sendPassResetEmail
+async function sendValidationEmail(userEmail, validationLink) {
+  let validationMessage={
+    from: "jxdan2@gmail.com",
+    to: userEmail,
+    subject: "Aplouds Account Validation",
+    html: `<h1>Hi Aplouds user. Please <a href="${validationLink}">click here</a> to validate your account.</h1>`
+    // text: "Hello SMTP Email"
+
+  }
+  await transporter.sendMail(validationMessage, async function(err, info) {
+      if (err) {
+        console.log(err)
+        return false;
+      } else {
+        console.log(info);
+        return true;
+      }
+  });
+}
+
+exports.sendPassResetEmail = sendPassResetEmail;
 exports.sendEmail = sendEmail;
+exports.sendValidationEmail = sendValidationEmail;

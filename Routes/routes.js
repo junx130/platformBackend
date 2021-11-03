@@ -25,7 +25,7 @@ const acControl= require("./ControlDevice/AcControl")
 const devMgnt_V2= require("./devMgnt_V2/regDev_V2")
 const areaList_V2= require("./present_V2/areaListRoute")
 const sumList_V2= require("./present_V2/summaryListRoute")
-
+const userRoute_V2 = require("./users_V2");
 
 
 const error= require("../Middleware/error")
@@ -58,8 +58,8 @@ module.exports = function (app) {
     app.use("/t1list/", T1list);    
     app.use("/eleList/", eleList);    
     app.use("/sensormng/", sensorManagement);   
-    app.use("/devmngv2/", devMgnt_V2);   
-    
+    app.use("/devmngv2/", devMgnt_V2);
+    app.use("/user/", userRoute_V2);
     
     
     
