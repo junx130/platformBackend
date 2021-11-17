@@ -3,7 +3,7 @@ const router = express.Router();
 const Joi = require("joi");
 const { regV2Sensor } = require("../../Features/addV2Sensor/addV2Sensor");
 const auth = require("../../Middleware/auth");
-const { getSensorList_ByVendorId, getSensorParaBy_TypeList, updateSensorList, updateSensorParameter } = require("../../MySQL/SensorManagement/sensorManagement");
+const { getSensorList_ByVendorId, getSensorParaBy_TypeList, updateSensorList, updateSensorParameter, getSensorListBy_typeList } = require("../../MySQL/SensorManagement/sensorManagement");
 
 
 router.post("/regnewsensor", auth, async (req, res) => {    
@@ -81,6 +81,20 @@ router.post("/updatesensorparameter", auth, async (req, res) => {
         return res.status(200).send("Update Success");        
     } catch (ex) {
         console.log("Update ParaList Error");
+        return res.status(404).send(ex.message);        
+    }
+});
+
+router.post("/getsensorlistbytylist", auth, async (req, res) => {    
+    try {
+        // console.log(req.params.userid);
+        // console.log("did COme in");
+        // console.log(req.body);
+        let typeList = req.body.typeList;
+        let result = await getSensorListBy_typeList(typeList);
+        return res.status(200).send(result);        
+    } catch (ex) {
+        console.log("Get ParaList Error");
         return res.status(404).send(ex.message);        
     }
 });

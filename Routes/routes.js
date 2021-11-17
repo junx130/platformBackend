@@ -26,8 +26,8 @@ const devMgnt_V2= require("./devMgnt_V2/regDev_V2")
 const areaList_V2= require("./present_V2/areaListRoute")
 const sumList_V2= require("./present_V2/summaryListRoute");
 const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
-
-
+const V2_Querydata = require("./V2_QueryData/v2_QueryBdDevData");
+const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
 
 const error= require("../Middleware/error")
 
@@ -62,6 +62,9 @@ module.exports = function (app) {
     app.use("/sensormng/", sensorManagement);   
     app.use("/devmngv2/", devMgnt_V2);    
     app.use("/devrec/", V2_DeviceRecord);  
+    app.use("/query/", V2_Querydata);  
+    app.use("/v2bddevsetting/", V2_bdDevSetting);  
+    
     
     
     

@@ -242,6 +242,23 @@ router.post("/building/checkvaliduser", auth, async (req, res) => {
     }
 });
 
+
+router.post("/building/getbddevby_idlist", auth, async (req, res) => {    
+    try {
+        let {bdDev_idList} = req.body;
+        let bdDev_list = await getBddevBy_idList(bdDev_idList);
+        console.log(bdDev_list);
+        if(!bdDev_list) return res.status(204).send({errMsg: "Database Error"});
+        
+        return res.status(200).send(bdDev_list);
+        
+    } catch (error) {
+        console.log("/building/checkvaliduser Error");
+        console.log(error.message);
+        return res.status(204).send({errMsg: "Server Exc Error"});   
+    }
+});
+
 router.post("/building/getbddev", auth, async (req, res) => {    
     try {
         // console.log("/building/getbddev");
@@ -284,7 +301,7 @@ router.post("/building/getbddev", auth, async (req, res) => {
     } catch (error) {
         console.log("/building/checkvaliduser Error");
         console.log(error.message);
-        return res.status(203).send({errMsg: "Server Exc Error"});        
+        return res.status(204).send({errMsg: "Server Exc Error"});        
     }
 });
 

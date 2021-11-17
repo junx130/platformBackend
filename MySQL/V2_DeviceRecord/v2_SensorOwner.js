@@ -18,7 +18,7 @@ async function getAreaInfoBy_id (area_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -32,7 +32,7 @@ async function getAreaByOwner_id (owner_id, selectedBuilding){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -50,7 +50,7 @@ async function getBdInfoBy_id (buidling_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -65,7 +65,7 @@ async function getBuildingByOwner_id (owner_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -81,7 +81,7 @@ async function getSensorOwnerBy_TydevID (Info){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }

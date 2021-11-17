@@ -63,6 +63,7 @@ async function insertSensorPara(body, leastType, user){
             scaleTop float,
             scaleBottom float,
             defaultDisplay TINYINT,
+            V2_OvvDisplay TINYINT,
             userAmmend varchar(80),
             PRIMARY KEY (_id)
         )`;
@@ -141,7 +142,7 @@ async function getSensorList_ByVendorId(vendor_id){
         return rows;    
     } catch (error) {
         console.log("getSensorList_ByVendorId Error")        
-        console.log(ex.message)
+        console.log(error.message)
         return [];
     }
 }
@@ -164,7 +165,7 @@ async function getSensorParaBy_TypeList(typeList){
         return rows;    
     } catch (error) {
         console.log("getSensorParaBy_TypeList Error")        
-        console.log(ex.message)
+        console.log(error.message)
         return [];
     }
 
@@ -209,6 +210,31 @@ async function updateSensorParameter(data){
     }
 }
 
+async function getSensorListBy_typeList(typeList){
+    try {
+        let sList = '';
+        for (const iterator of typeList) {
+            if(sList!=='') sList+=', '
+            sList+=iterator;
+        }        
+        const quertCmd = `SELECT * from ${sensorTable} WHERE 
+        type in (${sList});
+        `;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getSensorListBy_typeList Done");
+        if(!result[0]) return [];     // no item found in list
+        const rows = result.map(b=>b);
+        // console.log(rows);
+        return rows;    
+    } catch (error) {
+        console.log("getSensorParaBy_TypeList Error")        
+        console.log(error.message)
+        return [];
+    }
+
+}
+
+exports.getSensorListBy_typeList=getSensorListBy_typeList;
 exports.updateSensorParameter=updateSensorParameter;
 exports.updateSensorList=updateSensorList;
 exports.insertSensorPara=insertSensorPara;
