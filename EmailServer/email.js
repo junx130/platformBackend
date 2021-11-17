@@ -32,7 +32,7 @@ function sendEmail(){
 async function sendPassResetEmail(userEmail, resetLink){
   // console.log("Send Email Start");
   let passResetMessage={
-    from: "jxdan2@gmail.com",
+    from: "aploudsnoreply@gmail.com",
     to: userEmail,
     subject: "Aplouds Password Reset",
     html: `<h1>Hi Aplouds user. Please <a href="${resetLink}">click here</a> to reset password.</h1>`
@@ -52,13 +52,14 @@ async function sendPassResetEmail(userEmail, resetLink){
 
 async function sendValidationEmail(userEmail, validationLink) {
   let validationMessage={
-    from: "jxdan2@gmail.com",
+    from: "aploudsnoreply@gmail.com",
     to: userEmail,
     subject: "Aplouds Account Validation",
     html: `<h1>Hi Aplouds user. Please <a href="${validationLink}">click here</a> to validate your account.</h1>`
     // text: "Hello SMTP Email"
 
   }
+
   await transporter.sendMail(validationMessage, async function(err, info) {
       if (err) {
         console.log(err)
@@ -72,4 +73,4 @@ async function sendValidationEmail(userEmail, validationLink) {
 
 exports.sendPassResetEmail = sendPassResetEmail;
 exports.sendEmail = sendEmail;
-exports.sendValidationEmail = sendValidationEmail;
+  exports.sendValidationEmail = sendValidationEmail;

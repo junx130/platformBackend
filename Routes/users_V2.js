@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken } = require("../MySQL/userManagement_V2/users_V2");
+const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword } = require("../MySQL/userManagement_V2/users_V2");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -10,6 +10,7 @@ const { getByRecoveryCode, insertResetPassReq, getByUserName_WithinMins, updateC
 const { sendPassResetEmail, sendValidationEmail } = require("../EmailServer/email");
 const moment = require("moment");
 const recaptcha = require("../Middleware/recaptcha");
+const { getByUserId, getByEmail, getByToken, insertResetPassword, updateResetStatus } = require("../MySQL/userManagement_V2/user_ResetPassword");
 
 
 router.post("/register/validation", async (req, res) => {        
@@ -115,6 +116,96 @@ router.post("/recaptcha", async (req, res) => {
             return res.status(205).send("User is robot");
     } catch (error) {
         console.log("Get Recaptcha Error");
+        return res.status(404).send(error.message);
+    }
+})
+
+router.post("/login", async (req, res) => {
+    try {
+        let info = req.body;
+        console.log(info);
+        let user = await getUserByUsername(info.username);
+        if (!user) return res.status(401).send('User not exist');
+        // check password
+        // console.log("User: ",user);
+        const validPassword = await bcrypt.compare(info.password, user.password);
+        if(!validPassword) return res.status(405).send('Invalid password.');
+
+        const token = genLoginToken(user);
+        res.send(token);
+    } catch (error) {
+        console.log("Login Error");
+        return res.status(404).send(error.message);
+    }
+})
+
+router.post("/forgetpassword", async (req, res) => {
+    try {
+        let info = req.body;
+        console.log(info);
+        if (info.username) {
+            let user = await getUserByUsername(info.username);
+            if (!user) return res.status(401).send("Username does not exist");
+            info.user_id = user._id;
+            info.email = user.email;
+        }
+        
+        let user = await getUserByEmail(info.email);
+        if (!user) return res.status(402).send("Email not registered");
+        info.user_id = user._id;
+        let userReset = await getByUserId(info.user_id);
+        if (userReset) {
+            if (userReset.sendUnix > (moment().unix() - 7200) * 1000) return res.status(403).send("On Cooldown");
+        }
+        const { randomBytes } = await import("crypto");
+                info.resettoken = randomBytes(20).toString('hex');
+        info.sendUnix = moment().unix();
+        await insertResetPassword(info);
+        let resetLink = `http://localhost:3000/user/resetpw/${info.resettoken}`;
+        let email_rel = await sendPassResetEmail(info.email, resetLink);
+        console.log(email_rel);
+            return res.status(200).send("Email sent");
+    } catch (error) {
+        console.log("Forget Password Error");
+        return res.status(404).send(error.message);
+    }
+})
+
+router.post("/checkrplink", async (req, res) => {
+    try {
+        let info = req.body;
+        console.log(info);
+        let result = await getByToken(info.token);
+        console.log(result);
+        if (!result) return res.status(203).send("Invalid Token");
+        if (result.sendUnix > (moment().unix() - 7200) * 1000) return res.status(201).send("Token Expired");
+        if (result.status) return res.status(202).send("Link has been used");
+        return res.status(200).send("Valid Token");
+    } catch (error) {
+        console.log("Check RP Link Error");
+        return res.status(404).send(error.message);
+    }
+})
+
+router.post("/resetpassword", async (req, res) => {
+    try {
+        let info = req.body;
+        console.log(info);
+        let newInfo = {};
+        console.log(newInfo);
+        let resetinfo = await getByToken(info.token);
+        newInfo._id = resetinfo.user_id;
+        let user = await getUserByEmail(resetinfo.email);
+        const validPassword = await bcrypt.compare(info.password, user.password);
+        if(!validPassword) return res.status(205).send('Repeating password.');
+        const salt = await bcrypt.genSalt(10);
+        newInfo.password = await bcrypt.hash(info.password, salt);
+        let result = await updatePassword(newInfo);
+        console.log(result);
+        await updateResetStatus(info.token);
+        return res.status(200).send("Password reset done");
+    } catch (error) {
+        console.log("Set Password Error");
         return res.status(404).send(error.message);
     }
 })

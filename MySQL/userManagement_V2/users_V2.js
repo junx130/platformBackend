@@ -110,6 +110,17 @@ async function insertUser(user) {
     await insertTemplate(userDatabase, createTable, insertData, "InsertNewUserFinally");
 }
 
+async function updatePassword(user) {
+    const queryCmd = `UPDATE ${dbTable} SET password = "${user.password}" WHERE _id = "${user._id}";`;
+    try {
+        let result = await queryTemplate(userDatabase, queryCmd, "Update Password Done");
+        return result[0];
+    } catch (ex) {
+        console.log(ex.message);
+        return null;
+    }
+}
+
 async function updateActToken(info) {
     const queryCmd = `UPDATE ${dbTable} SET activationToken = "${info.actToken}", tokenExpire = "${info.tokenExp}" WHERE email = "${info.email}"`;
     try {
@@ -127,6 +138,14 @@ function genAuthToken(user) {
         username: user.username,
         email: user.email,
         password: user.password,
+    }, process.env.jwtPrivateKey);
+    return token;
+}
+
+function genLoginToken(user) {
+    const token = jwt.sign({
+        username: user.username,
+        email: user.email,
     }, process.env.jwtPrivateKey);
     return token;
 }
@@ -153,3 +172,5 @@ exports.getTokenExpiry = getTokenExpiry;
 exports.setUserActive = setUserActive;
 exports.updateActToken = updateActToken;
 exports.verifyToken = verifyToken;
+exports.genLoginToken = genLoginToken;
+exports.updatePassword = updatePassword;
