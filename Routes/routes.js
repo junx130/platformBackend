@@ -28,6 +28,8 @@ const sumList_V2= require("./present_V2/summaryListRoute");
 const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
 const V2_Querydata = require("./V2_QueryData/v2_QueryBdDevData");
 const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
+const userRoute_V2 = require("./users_V2");
+
 
 const error= require("../Middleware/error")
 
@@ -67,6 +69,7 @@ module.exports = function (app) {
     
     
     
+    app.use("/user/", userRoute_V2);
     
     
     
