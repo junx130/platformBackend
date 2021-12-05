@@ -212,6 +212,8 @@ async function updateSensorParameter(data){
 
 async function getSensorListBy_typeList(typeList){
     try {
+        // console.log(typeList);
+        if(!Array.isArray(typeList) || typeList.length < 1) return [];
         let sList = '';
         for (const iterator of typeList) {
             if(sList!=='') sList+=', '
@@ -227,7 +229,7 @@ async function getSensorListBy_typeList(typeList){
         // console.log(rows);
         return rows;    
     } catch (error) {
-        console.log("getSensorParaBy_TypeList Error")        
+        console.log("getSensorListBy_typeList Error")        
         console.log(error.message)
         return [];
     }

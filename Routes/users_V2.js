@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword } = require("../MySQL/userManagement_V2/users_V2");
+const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email_username } = require("../MySQL/userManagement_V2/users_V2");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -15,7 +15,7 @@ const { getByUserId, getByEmail, getByToken, insertResetPassword, updateResetSta
 
 router.post("/register/validation", async (req, res) => {        
     try {
-        console.log(req.body);
+        // console.log(req.body);
         const{error} = validateRegUser(req.body);
     
         if (error) return res.status(400).send(error.details[0].message);
@@ -33,13 +33,13 @@ router.post("/register/validation", async (req, res) => {
         // const { randomBytes } = await import("crypto");
         // userInfo.activationToken = randomBytes(20).toString('hex');
         let activationToken = await genAuthToken(userInfo);
-        console.log(activationToken);
+        // console.log(activationToken);
         // insert user into user database 
         // await regUser(userInfo);
 
         let validationLink = `http://localhost:3000/register/validation/${activationToken}`;
         let email_rel = await sendValidationEmail(userInfo.email, validationLink);
-        console.log(email_rel);
+        // console.log(email_rel);
         return res.status(200).send("OK");
         
         // const token = genAuthToken(userInfo);
@@ -58,7 +58,7 @@ router.post("/setuseractive", async (req, res) => {
         let info = req.body;
         // let userinfo = await getTokenExpiry(info.actToken);
         let userinfo = verifyToken(info.actToken);
-        console.log(userinfo);
+        // console.log(userinfo);
         if (userinfo) {
             // if (userinfo.active) return res.status(202).send("Account already active.");
             let email = await getUserByEmail(userinfo.email);
@@ -83,17 +83,17 @@ router.post("/resendactlink", async (req, res) => {
         let user = await getUserByEmail(info.email);
         // console.log("USer :", user);
         if (!user) return res.status(205).send("Email not found");
-        console.log(user);
+        // console.log(user);
         if (user.tokenExpire < moment().unix() * 1000) {
             const { randomBytes } = await import("crypto");
             info.actToken = randomBytes(20).toString('hex');
             info.tokenExp = Date.now() + 7200000;
-            console.log(info);
+            // console.log(info);
             let result = await updateActToken(info);
-            console.log(result);
+            // console.log(result);
             let validationLink = `http://localhost:3000/register/validation/${info.actToken}`;
             let email_rel = await sendValidationEmail(info.email, validationLink);
-            console.log(email_rel);
+            // console.log(email_rel);
             return res.status(200).send("Email sent");
         }
         else return res.status(202).send("Token on CD");
@@ -107,9 +107,9 @@ router.post("/resendactlink", async (req, res) => {
 router.post("/recaptcha", async (req, res) => {
     try {
         let info = req.body;
-        console.log(info);
+        // console.log(info);
         let result = await recaptcha(info.humanKey);
-        console.log(result);
+        // console.log(result);
         if (result)
             return res.status(200).send("User is human");
         else
@@ -123,18 +123,21 @@ router.post("/recaptcha", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         let info = req.body;
-        console.log(info);
+        // console.log(info);
         let user = await getUserByUsername(info.username);
-        if (!user) return res.status(401).send('User not exist');
+        // console.log(user);
+        if (!user) return res.status(204).send('User not exist');
         // check password
         // console.log("User: ",user);
         const validPassword = await bcrypt.compare(info.password, user.password);
-        if(!validPassword) return res.status(405).send('Invalid password.');
+        if(!validPassword) return res.status(204).send('Invalid password.');
 
         const token = genLoginToken(user);
-        res.send(token);
+        res.status(200).send(token);
+        // res.send(token);
     } catch (error) {
         console.log("Login Error");
+        console.log(error.message);
         return res.status(404).send(error.message);
     }
 })
@@ -142,7 +145,7 @@ router.post("/login", async (req, res) => {
 router.post("/forgetpassword", async (req, res) => {
     try {
         let info = req.body;
-        console.log(info);
+        // console.log(info);
         if (info.username) {
             let user = await getUserByUsername(info.username);
             if (!user) return res.status(401).send("Username does not exist");
@@ -163,7 +166,7 @@ router.post("/forgetpassword", async (req, res) => {
         await insertResetPassword(info);
         let resetLink = `http://localhost:3000/user/resetpw/${info.resettoken}`;
         let email_rel = await sendPassResetEmail(info.email, resetLink);
-        console.log(email_rel);
+        // console.log(email_rel);
             return res.status(200).send("Email sent");
     } catch (error) {
         console.log("Forget Password Error");
@@ -174,9 +177,9 @@ router.post("/forgetpassword", async (req, res) => {
 router.post("/checkrplink", async (req, res) => {
     try {
         let info = req.body;
-        console.log(info);
+        // console.log(info);
         let result = await getByToken(info.token);
-        console.log(result);
+        // console.log(result);
         if (!result) return res.status(203).send("Invalid Token");
         if (result.sendUnix > (moment().unix() - 7200) * 1000) return res.status(201).send("Token Expired");
         if (result.status) return res.status(202).send("Link has been used");
@@ -190,9 +193,9 @@ router.post("/checkrplink", async (req, res) => {
 router.post("/resetpassword", async (req, res) => {
     try {
         let info = req.body;
-        console.log(info);
+        // console.log(info);
         let newInfo = {};
-        console.log(newInfo);
+        // console.log(newInfo);
         let resetinfo = await getByToken(info.token);
         newInfo._id = resetinfo.user_id;
         let user = await getUserByEmail(resetinfo.email);
@@ -201,12 +204,29 @@ router.post("/resetpassword", async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         newInfo.password = await bcrypt.hash(info.password, salt);
         let result = await updatePassword(newInfo);
-        console.log(result);
+        // console.log(result);
         await updateResetStatus(info.token);
         return res.status(200).send("Password reset done");
     } catch (error) {
         console.log("Set Password Error");
         return res.status(404).send(error.message);
+    }
+})
+
+
+router.post("/checkactivation", async (req, res) => {
+    try {
+        let info = req.body;
+        // console.log(info);
+        let userFound = await getUserById_email_username(info);
+        if(!userFound) return res.status(203).send({errMsg:"User Not Found"});
+        // console.log(userFound);        
+        return res.status(200).send({active:userFound.active});
+        // res.send(token);
+    } catch (error) {
+        console.log("Check Activation Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg:"DB Server Invalid"});
     }
 })
 

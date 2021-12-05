@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
+const { getUserByEmail } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
@@ -136,6 +137,7 @@ router.post("/building/getrelated", auth, async (req, res) => {
     try {
         // console.log(req.body);
         let info = req.body;
+        // console.log("info", info);
         /** get owned building */
         let ownedBd = await getBuildingByOwner_id(info.user_id);
         if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
@@ -152,7 +154,7 @@ router.post("/building/getrelated", auth, async (req, res) => {
             return sharedBd.find((a) => a.buidling_id === buidling_id);
         });
         
-        // console.log(uniqueSharedBd);
+        // console.log("uniqueSharedBd", uniqueSharedBd);
 
         let relatedBuilding=[...ownedBd];
 
@@ -161,10 +163,11 @@ router.post("/building/getrelated", auth, async (req, res) => {
             let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
             if(ownBuilding){
                 if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
-                    for (const bd of ownBuilding) {
-                        bd.isSharedBd = true;
-                        let duplicated = ownedBd.find(c=>c._id === bd._id);
-                        if(!duplicated) relatedBuilding.push(bd);
+                    for (const owbBd of ownBuilding) {
+                        owbBd.isSharedBd = true;
+                        owbBd.accessLevel = bd.accessLevel;
+                        let duplicated = ownedBd.find(c=>c._id === owbBd._id);
+                        if(!duplicated) relatedBuilding.push(owbBd);
                     }
                 // relatedBuilding=[...relatedBuilding, ...ownBuilding];
             }else{
@@ -197,9 +200,6 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
     }
 });
 
-
-
-
 router.post("/sensorshared/getbytyid", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
@@ -215,6 +215,59 @@ router.post("/sensorshared/getbytyid", auth, async (req, res) => {
     }
 });
 
+router.post("/sensorshared/sharesensor", auth, async (req, res) => {    
+    try {
+        let {shareInfo} = req.body;
+        // console.log("shareInfo", shareInfo);
+        /** check email list ??? 211204*/
+        let {receiverList, owner_id, devList, buidling_id} = shareInfo;
+        // console.log('receiverList', receiverList);
+        for (const eachEmail of receiverList) {
+            let user = await getUserByEmail(eachEmail);
+            // console.log("user" , user);
+            if(!user) {
+                console.log('User Not valid');
+                continue 
+            }
+            if(user._id === owner_id || user._id === user_id) {
+                console.log('Skip share to own account');
+                continue
+            }
+            /*********** Update share building *************/
+            let sharedBd = await getSharedBdBy_user_id_bd_id(user._id, buidling_id);
+            console.log(sharedBd);
+            /** if building already shared, make sure  sharedBd.active is 1*/
+                /** if sharedBd.active is not 1, update to 1 */
+
+            /** else, share building is not exist, add to shared building */
+            
+
+
+            /************ update share device list ************/
+            for (const eachDev of devList) {
+                /** query V2_ShareList_bdDev, by buidling_id, user_id*/
+                /** forof eachDev */
+                    /** if eachDev.selected, */
+                        /** if exist in V2_ShareList_bdDev */
+                            /** make sure active is 1 */
+                        /** if not exist in V2_ShareList_bdDev */
+                            /** insert to V2_ShareList_bdDev */
+                    /** else (!eachDev.selected) */    
+                        /** if exist in V2_ShareList_bdDev */
+                            /** set active to 0 */
+                        /** if not exist in V2_ShareList_bdDev */
+                            /** no action needed */                
+            }
+        }
+        
+
+        return res.status(200).send();        
+    } catch (ex) {
+        console.log("sensorshared/sharesensor Error");
+        console.log(ex.message);
+        return res.status(404).send(ex.message);        
+    }
+});
 
 router.post("/building/checkvaliduser", auth, async (req, res) => {    
     try {
@@ -241,7 +294,6 @@ router.post("/building/checkvaliduser", auth, async (req, res) => {
         return res.status(203).send({errMsg: "Server Exc Error"});        
     }
 });
-
 
 router.post("/building/getbddevby_idlist", auth, async (req, res) => {    
     try {

@@ -7,9 +7,9 @@ const dbTable = "V2_Users";
 
 function validateMessage(user){    
     const schema = {       
-        username: Joi.string().required().min(6).max(80).label("Username"),
-        email: Joi.string().email().max(80).required().label("Email"),
-        password: Joi.string().required().min(8).max(80).label("Password"),
+        username: Joi.string().required().min(6).max(30).label("Username"),
+        email: Joi.string().email().max(255).required().label("Email"),
+        password: Joi.string().required().min(8).max(255).label("Password"),
     }
     return Joi.validate(user, schema);
 }
@@ -60,10 +60,9 @@ async function getUserByUsername(username) {
     }
 }
 
-async function getUserByEmail(email) {    
-    const quertCmd = `SELECT * from ${dbTable} WHERE email = "${email}"`;
-
+async function getUserByEmail(email) {        
     try {
+        const quertCmd = `SELECT * from ${dbTable} WHERE email = "${email}"`;
         let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
         return result[0];        
     } catch (ex) {
@@ -100,8 +99,9 @@ async function insertUser(user) {
     const createTable = `CREATE TABLE IF NOT EXISTS ${dbTable}(	
         _id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
         username varchar(30) NOT NULL,
-        email varchar(50) NOT NULL,
-        password varchar(100) NOT NULL
+        email varchar(255) NOT NULL,
+        password varchar(255) NOT NULL,
+        active smallint default 1
     );`;
     
     const insertData = `INSERT INTO ${dbTable} (username, email, password) 
@@ -146,7 +146,9 @@ function genLoginToken(user) {
     const token = jwt.sign({
         username: user.username,
         email: user.email,
-    }, process.env.jwtPrivateKey);
+        active:user.active,
+        user_id : user._id,
+    }, process.env.jwtPrivateKey, { expiresIn: '10m' });
     return token;
 }
 
@@ -156,6 +158,19 @@ function verifyToken(token) {
         return decoded;
     } catch (err) {
         console.log(err);
+        return null;
+    }
+}
+
+
+async function getUserById_email_username(user) {
+    try {
+        const queryCmd = `SELECT * FROM ${dbTable} WHERE _id = "${user._id}" AND username = "${user.username}" AND email = "${user.email}"`;
+        let result = await queryTemplate(userDatabase, queryCmd, "Get User By 3 Para Finish");
+        if(!Array.isArray(result) || result.length < 1) return null
+        return result[0];
+    } catch (ex) {
+        console.log(ex.message);
         return null;
     }
 }
@@ -174,3 +189,4 @@ exports.updateActToken = updateActToken;
 exports.verifyToken = verifyToken;
 exports.genLoginToken = genLoginToken;
 exports.updatePassword = updatePassword;
+exports.getUserById_email_username = getUserById_email_username;

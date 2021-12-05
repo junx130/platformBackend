@@ -20,10 +20,10 @@ router.post("/bddev/getlastndata", auth, async (req, res) => {
 
 router.post("/bddev/getnMinb4nUnix", auth, async (req, res) => {    
     try {
-        console.log(req.body);
+        // console.log(req.body);
         let {type, _id, endUnix, nMin} = req.body;
         let rel = await v2GetBdDevData_durationB4Unix(type, _id, endUnix, nMin);
-        console.log("endUnix", endUnix);
+        // console.log("endUnix", endUnix);
         if(!rel) return res.status(204).send({errMsg:'Database Query Err'}); 
         return res.status(200).send(rel);        
     } catch (ex) {

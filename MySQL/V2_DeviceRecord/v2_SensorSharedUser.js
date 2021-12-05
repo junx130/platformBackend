@@ -25,7 +25,8 @@ async function getAreaByActiveUser_id (user_id, selectedBuilding){
 
 async function getBuildingByActiveUser_id (user_id){
     try {
-        const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and accessLevel = 1`;
+        // const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and accessLevel = 1`;
+        const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getBuildingByActiveUser_id Finally");
         // console.log(result);
