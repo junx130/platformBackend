@@ -40,7 +40,6 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
         let sensorDuplication = await getSensorOwnerBy_TydevID(body);
         if(!Array.isArray(sensorDuplication)) return res.status(203).send({errMsg:"DB server Error"});
         if(sensorDuplication.length > 0) return res.status(203).send({errMsg:"Device Duplicated"});
-        // console.log(sensorDuplication);
         /** check whether is new BD */
         let bd_id=body.buildingId;  /** Existing Building Will use this */
         if(body.bNewBuilding){   /** new building, */
@@ -50,7 +49,7 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
             if(!insBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
             if(insBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
             bd_id = insBdRel.insertId;
-            console.log(bd_id);
+            // console.log(bd_id);
         }
 
         let area_id = body.areaId;
@@ -60,7 +59,7 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
             if(!insAreaRel) return res.status(203).send({errMsg:"Add New Area Not Success(1)"});
             if(insAreaRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Area Not Success(2)"});
             area_id = insAreaRel.insertId;
-            console.log(area_id);
+            // console.log(area_id);
         }
 
         /** Log into dev DB */
@@ -80,12 +79,9 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
 /** get InvolvedArea */
 router.post("/area/getrelated", auth, async (req, res) => {    
     try {
-        // console.log("Come in");
-        // console.log(req.body);
         let info = req.body;
         /** get owned building area */
-        let ownedArea = await getAreaByOwner_id(info.user_id, info.selectedBuilding);
-        // console.log("ownedArea", ownedArea);
+        let ownedArea = await getAreaByOwner_id(info.user_id, info.selectedBuilding);        
         if(!ownedArea) return res.status(203).send({errMsg:'DB(Own) Invalid'});
 
         /** get shared Area  */
@@ -100,8 +96,6 @@ router.post("/area/getrelated", auth, async (req, res) => {
             return sharedArea.find((a) => a.area_id === area_id);
         });
         
-        // console.log(uniqueTable);
-      
         let relatedArea=[...ownedArea];
 
         /** convert shared building into own building Form */
@@ -246,7 +240,7 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
             /************ update share device list ************/
             let shareBdDev = await getAllSharedevBy_userId_bdId(user._id, buidling_id);
             // console.log("sharebddev", shareBdDev);
-            console.log("Dev Len",shareBdDev.length);
+            // console.log("Dev Len",shareBdDev.length);
             for (const eachDev of devList) {
                 let found = null;
                 if (Array.isArray(shareBdDev) && shareBdDev.length > 0)
@@ -309,7 +303,7 @@ router.post("/building/getbddevby_idlist", auth, async (req, res) => {
     try {
         let {bdDev_idList} = req.body;
         let bdDev_list = await getBddevBy_idList(bdDev_idList);
-        console.log(bdDev_list);
+        // console.log(bdDev_list);
         if(!bdDev_list) return res.status(204).send({errMsg: "Database Error"});
         
         return res.status(200).send(bdDev_list);

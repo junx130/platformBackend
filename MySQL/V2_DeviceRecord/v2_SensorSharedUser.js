@@ -59,7 +59,7 @@ async function getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
     try {
         let quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id} `;
         if(!bCheckActive) quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and buidling_id=${bd_id} `;
-        console.log(quertCmd);
+        // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getSharedBdBy_user_id_bd_id Finally");
         // console.log(result);
         const rtnResult = result.map(b=>b);
@@ -126,7 +126,7 @@ async function addSharedBd(info, user_id) {
 async function setSharedBdDevActiveStatus(bdDev_id, active, accessLevel, user_id) {
     try {
         const queryCmd = `UPDATE ${devTableName} SET active = ${active}, accessLevel = ${accessLevel} WHERE bdDev_id = ${bdDev_id} and user_id=${user_id};`;
-        console.log(queryCmd);
+        // console.log(queryCmd);
         let result = await queryTemplate(db, queryCmd, "setSharedBdDevActive Finally");
         return result;
     } catch (error){
