@@ -218,89 +218,58 @@ router.post("/sensorshared/getbytyid", auth, async (req, res) => {
 router.post("/sensorshared/sharesensor", auth, async (req, res) => {    
     try {
         let {shareInfo} = req.body;
-        console.log("shareInfo", shareInfo);
-        /** check email list ??? 211204*/
         let {receiverList, owner_id, devList, buidling_id, user_id, accessLevel} = shareInfo;
-        // console.log('receiverList', receiverList);
         for (const eachEmail of receiverList) {
             let user = await getUserByEmail(eachEmail);
-            // console.log("user" , user);
             if(!user) {
-                console.log('User Not valid');
+                // console.log('User Not valid');
                 continue 
             }
             if(user._id === owner_id || user._id === user_id) {
-                console.log('Skip share to own account');
+                // console.log('Skip share to own account');
                 continue
             }
             /*********** Update share building *************/
             let sharedBd = await getSharedBdBy_user_id_bd_id(user._id, buidling_id, false);
-            // console.log("sharedBd", sharedBd);
-            // console.log(sharedBd);
 
             if (Array.isArray(sharedBd) &&  sharedBd.length > 0) {    /** check array is not empty */
                 if (sharedBd.active !== true || sharedBd.accessLevel !== accessLevel) {
-                    console.log("setbdactive");
-                    let result = await setSharedBdActive(user._id, buidling_id, accessLevel);
+                    // console.log("setbdactive");
+                    await setSharedBdActive(user._id, buidling_id, accessLevel);
                 } 
-            }
-            else {
-                let result = await addSharedBd(shareInfo, user._id);
+            }else {     /** user is in shared bd List */
+                await addSharedBd(shareInfo, user._id);
                 // console.log("addsharedbd" + result);
             }
-            /** if building already shared, make sure  sharedBd.active is 1*/
-                /** if sharedBd.active is not 1, update to 1 */
-
-            /** else, share building is not exist, add to shared building */
-            
 
 
             /************ update share device list ************/
             let shareBdDev = await getAllSharedevBy_userId_bdId(user._id, buidling_id);
             // console.log("sharebddev", shareBdDev);
+            console.log("Dev Len",shareBdDev.length);
             for (const eachDev of devList) {
                 let found = null;
                 if (Array.isArray(shareBdDev) && shareBdDev.length > 0)
                     found = shareBdDev.find(e => e.bdDev_id === eachDev.bdDev_id);
                 if (eachDev.selected) {     /** user checked */
-                    if (found) {        /** exist in DB */
-                        if (!found.active || found.accessLevel !== accessLevel) {
-                            let result = await setSharedBdDevActiveStatus(eachDev.bdDev_id, true, accessLevel);
-                            // console.log("setactive");
-                            // console.log(result);
+                    if (found) {        /** device exist in DB */
+                        if (!found.active || found.accessLevel !== accessLevel) {   /** device not active, or access level changed */
+                            await setSharedBdDevActiveStatus(eachDev.bdDev_id, true, accessLevel, user._id);
                         }
-                    }
-                    else {
+                    }else {     /** device not exist in DB */
                         shareInfo.bdDev_id = eachDev.bdDev_id;
-                        let result = await addSharedBdDev(shareInfo, user._id);
-                        // console.log("addnew");
-                        // console.log(result);
+                        await addSharedBdDev(shareInfo, user._id);
                     }
                 }
                 else {      /** user didint check */
-                    if (found) {
-                        if (found.active) {
-                            let result = await setSharedBdDevActiveStatus(eachDev.bdDev_id, false, accessLevel);
-                            // console.log("setinactive");
-                            // console.log(result);
+                    if (found) {    /** device exist in DB */
+                        if (found.active) {     /** set device active to false */
+                            await setSharedBdDevActiveStatus(eachDev.bdDev_id, false, accessLevel, user._id);
                         }
                     }
                 }
-                /** query V2_ShareList_bdDev, by buidling_id, user_id*/
-                /** forof eachDev */
-                    /** if eachDev.selected, */
-                        /** if exist in V2_ShareList_bdDev */
-                            /** make sure active is 1 */
-                        /** if not exist in V2_ShareList_bdDev */
-                            /** insert to V2_ShareList_bdDev */
-                    /** else (!eachDev.selected) */    
-                        /** if exist in V2_ShareList_bdDev */
-                            /** set active to 0 */
-                        /** if not exist in V2_ShareList_bdDev */
-                            /** no action needed */
             }
-        }
-        
+        }        
 
         return res.status(200).send();        
     } catch (ex) {
