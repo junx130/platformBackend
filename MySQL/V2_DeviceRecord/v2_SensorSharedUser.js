@@ -44,7 +44,7 @@ async function getSensorSharedBy_user_bd_accesslvl (Info){
         const quertCmd = `SELECT * from ${devTableName} WHERE buidling_id = ${Info.buidling_id} and user_id = ${Info.user_id} and accessLevel = ${Info.accessLevel}`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getSensorSharedBy_user_bd_accesslvl Finally");
-        console.log(result);
+        // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
         return rtnResult;       

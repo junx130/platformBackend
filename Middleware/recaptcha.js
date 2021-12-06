@@ -12,7 +12,7 @@ module.exports = async function (humanKey) {
     let body = `secret=${RECAPTCHA_SERVER_KEY}&response=${humanKey}`;
     
     let result = await axios.post(url, body, { headers: headers });
-    console.log(result);
+    // console.log(result);
     return result.data.success;
     // Validate Human
     // const isHuman = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
