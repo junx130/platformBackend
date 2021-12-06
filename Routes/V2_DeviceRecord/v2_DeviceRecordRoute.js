@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
@@ -218,9 +218,9 @@ router.post("/sensorshared/getbytyid", auth, async (req, res) => {
 router.post("/sensorshared/sharesensor", auth, async (req, res) => {    
     try {
         let {shareInfo} = req.body;
-        // console.log("shareInfo", shareInfo);
+        console.log("shareInfo", shareInfo);
         /** check email list ??? 211204*/
-        let {receiverList, owner_id, devList, buidling_id} = shareInfo;
+        let {receiverList, owner_id, devList, buidling_id, user_id, accessLevel} = shareInfo;
         // console.log('receiverList', receiverList);
         for (const eachEmail of receiverList) {
             let user = await getUserByEmail(eachEmail);
@@ -234,8 +234,20 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
                 continue
             }
             /*********** Update share building *************/
-            let sharedBd = await getSharedBdBy_user_id_bd_id(user._id, buidling_id);
-            console.log(sharedBd);
+            let sharedBd = await getSharedBdBy_user_id_bd_id(user._id, buidling_id, false);
+            // console.log("sharedBd", sharedBd);
+            // console.log(sharedBd);
+
+            if (Array.isArray(sharedBd) &&  sharedBd.length > 0) {    /** check array is not empty */
+                if (sharedBd.active !== true || sharedBd.accessLevel !== accessLevel) {
+                    console.log("setbdactive");
+                    let result = await setSharedBdActive(user._id, buidling_id, accessLevel);
+                } 
+            }
+            else {
+                let result = await addSharedBd(shareInfo, user._id);
+                // console.log("addsharedbd" + result);
+            }
             /** if building already shared, make sure  sharedBd.active is 1*/
                 /** if sharedBd.active is not 1, update to 1 */
 
@@ -244,7 +256,36 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
 
 
             /************ update share device list ************/
+            let shareBdDev = await getAllSharedevBy_userId_bdId(user._id, buidling_id);
+            // console.log("sharebddev", shareBdDev);
             for (const eachDev of devList) {
+                let found = null;
+                if (Array.isArray(shareBdDev) && shareBdDev.length > 0)
+                    found = shareBdDev.find(e => e.bdDev_id === eachDev.bdDev_id);
+                if (eachDev.selected) {     /** user checked */
+                    if (found) {        /** exist in DB */
+                        if (!found.active || found.accessLevel !== accessLevel) {
+                            let result = await setSharedBdDevActiveStatus(eachDev.bdDev_id, true, accessLevel);
+                            // console.log("setactive");
+                            // console.log(result);
+                        }
+                    }
+                    else {
+                        shareInfo.bdDev_id = eachDev.bdDev_id;
+                        let result = await addSharedBdDev(shareInfo, user._id);
+                        // console.log("addnew");
+                        // console.log(result);
+                    }
+                }
+                else {      /** user didint check */
+                    if (found) {
+                        if (found.active) {
+                            let result = await setSharedBdDevActiveStatus(eachDev.bdDev_id, false, accessLevel);
+                            // console.log("setinactive");
+                            // console.log(result);
+                        }
+                    }
+                }
                 /** query V2_ShareList_bdDev, by buidling_id, user_id*/
                 /** forof eachDev */
                     /** if eachDev.selected, */
@@ -282,7 +323,7 @@ router.post("/building/checkvaliduser", auth, async (req, res) => {
         if(ownBd.length > 0) return res.status(200).send({bdAccess:true, status:'Owner'});
 
         /** User Not owner, Check shared building */
-        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id);
+        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
         if(!sharedBd || !Array.isArray(sharedBd)) return res.status(204).send({errMsg: "Database(Share) Exc Error"});
         if(sharedBd.length > 0) return res.status(200).send({bdAccess:true, status:'Shared'});
 
