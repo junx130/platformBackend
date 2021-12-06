@@ -244,9 +244,9 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
 
 
             /************ update share device list ************/
+            /** query V2_ShareList_bdDev, by buidling_id, user_id*/
             for (const eachDev of devList) {
-                /** query V2_ShareList_bdDev, by buidling_id, user_id*/
-                /** forof eachDev */
+                /** forof devList */
                     /** if eachDev.selected, */
                         /** if exist in V2_ShareList_bdDev */
                             /** make sure active is 1 */
@@ -256,7 +256,7 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
                         /** if exist in V2_ShareList_bdDev */
                             /** set active to 0 */
                         /** if not exist in V2_ShareList_bdDev */
-                            /** no action needed */                
+                            /** no action needed */
             }
         }
         
