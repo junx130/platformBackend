@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
@@ -194,12 +194,21 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
     }
 });
 
-router.post("/sensorshared/getbytyid", auth, async (req, res) => {    
-    try {
-        // console.log(req.params.userid);
-        // console.log(req.body);
-        
-        let result = await getSensorSharedBy_TydevID(req.body);
+// router.post("/sensorshared/getbytyid", auth, async (req, res) => {    
+//     try {        
+//         let result = await getSensorSharedBy_TydevID(req.body);
+//         // console.log(result);
+//         if(!result) return res.status(204).send(result);    // catch error
+//         return res.status(200).send(result);        
+//     } catch (ex) {
+//         console.log("Get Status Threshold Error");
+//         return res.status(404).send(ex.message);        
+//     }
+// });
+
+router.post("/sensorshared/getbyuserbdaccesslvl", auth, async (req, res) => {    
+    try {        
+        let result = await getSensorSharedBy_user_bd_accesslvl(req.body);
         // console.log(result);
         if(!result) return res.status(204).send(result);    // catch error
         return res.status(200).send(result);        
@@ -208,6 +217,7 @@ router.post("/sensorshared/getbytyid", auth, async (req, res) => {
         return res.status(404).send(ex.message);        
     }
 });
+
 
 router.post("/sensorshared/sharesensor", auth, async (req, res) => {    
     try {

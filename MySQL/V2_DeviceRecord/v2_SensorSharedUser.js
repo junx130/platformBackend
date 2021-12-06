@@ -16,7 +16,7 @@ async function getAreaByActiveUser_id (user_id, selectedBuilding){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -34,25 +34,24 @@ async function getBuildingByActiveUser_id (user_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
 
-async function getSensorSharedBy_TydevID (Info){
-    return null;    
-    // try {
-    //     const quertCmd = `SELECT * from ${tableName} WHERE type = ${Info.type} and devID = ${Info.devID}`;
-    //     // console.log(quertCmd);
-    //     let result = await queryTemplate(db, quertCmd, "getSensorSharedBy_TydevID Finally");
-    //     console.log(result);
-    //     if(!result[0]) return [];     // return empty array
-    //     const rtnResult = result.map(b=>b);
-    //     return rtnResult;       
-    // } catch (error) {
-    //     console.log(ex.message)
-    //     return null;       
-    // }
+async function getSensorSharedBy_user_bd_accesslvl (Info){    
+    try {
+        const quertCmd = `SELECT * from ${devTableName} WHERE buidling_id = ${Info.buidling_id} and user_id = ${Info.user_id} and accessLevel = ${Info.accessLevel}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getSensorSharedBy_user_bd_accesslvl Finally");
+        console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
 }
 
 async function getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
@@ -65,7 +64,7 @@ async function getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -153,7 +152,7 @@ async function addSharedBdDev(info, email_user) {
 exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
 exports.getAreaByActiveUser_id=getAreaByActiveUser_id;
 exports.getBuildingByActiveUser_id=getBuildingByActiveUser_id;
-exports.getSensorSharedBy_TydevID = getSensorSharedBy_TydevID;
+exports.getSensorSharedBy_user_bd_accesslvl = getSensorSharedBy_user_bd_accesslvl;
 exports.getSharedevBy_userId_bdId = getSharedevBy_userId_bdId;
 exports.setSharedBdActive = setSharedBdActive;
 exports.addSharedBd = addSharedBd;
