@@ -157,7 +157,7 @@ async function getCountSharedBdDev_byBd(bd_id) {
         let result = await queryTemplate(db, queryCmd, "getCountSharedBdDev_byBd Finally");
         // console.log(result);
         const rtnResult = result.map(b => b);
-        console.log(rtnResult[0].count); 
+        // console.log(rtnResult[0].count); 
         return rtnResult[0].count;     
     } catch (error){
         console.log(error.message);
@@ -165,6 +165,22 @@ async function getCountSharedBdDev_byBd(bd_id) {
     }
 }
 
+async function getUniqueUserIdList_ByBdList(bdList) {
+    try {
+        let sBdList = bdList.toString();
+        const queryCmd = `select DISTINCT user_id from ${devTableName} where active =1 and buidling_id in (${sBdList});`
+        let result = await queryTemplate(db, queryCmd, "getUniqueUserIdList_ByBdList Finally");
+        // console.log(result);
+        const rtnResult = result.map(b => b);
+        return rtnResult;
+    } catch (error){
+        console.log(error.message);
+        return null;
+    }
+}
+
+
+exports.getUniqueUserIdList_ByBdList=getUniqueUserIdList_ByBdList;
 exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
 exports.getAreaByActiveUser_id=getAreaByActiveUser_id;
 exports.getBuildingByActiveUser_id=getBuildingByActiveUser_id;

@@ -175,6 +175,22 @@ async function getUserById_email_username(user) {
     }
 }
 
+async function getUserBy_idList(user_idList) {
+    try {
+        let sList = user_idList.toString();
+        const queryCmd = `SELECT email, username, _id, active FROM ${dbTable} WHERE _id in (${sList})`;
+        let result = await queryTemplate(userDatabase, queryCmd, "getUserBy_idList Finish");
+        
+        const rtnResult = result.map(b => b);
+        return rtnResult;
+        
+    } catch (ex) {
+        console.log(ex.message);
+        return null;
+    }
+}
+
+exports.getUserBy_idList = getUserBy_idList;
 exports.deleteUser=deleteUser;
 exports.getAllUser=getAllUser;
 exports.valUpdateUser = validateUpdateUser;
