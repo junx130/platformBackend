@@ -122,9 +122,10 @@ async function addSharedBd(info, user_id) {
     }
 }
 
-async function setSharedBdDevActiveStatus(bdDev_id, active, accessLevel, user_id) {
+// async function setSharedBdDevActiveStatus(bdDev_id, active, accessLevel, user_id) {
+async function setSharedBdDevActiveStatus(_id, active, accessLevel) {
     try {
-        const queryCmd = `UPDATE ${devTableName} SET active = ${active}, accessLevel = ${accessLevel} WHERE bdDev_id = ${bdDev_id} and user_id=${user_id};`;
+        const queryCmd = `UPDATE ${devTableName} SET active = ${active}, accessLevel = ${accessLevel} WHERE _id = ${_id};`;
         // console.log(queryCmd);
         let result = await queryTemplate(db, queryCmd, "setSharedBdDevActive Finally");
         return result;

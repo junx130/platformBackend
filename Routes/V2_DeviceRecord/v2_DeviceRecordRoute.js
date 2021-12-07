@@ -258,17 +258,16 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
                 if (eachDev.selected) {     /** user checked */
                     if (found) {        /** device exist in DB */
                         if (!found.active || found.accessLevel !== accessLevel) {   /** device not active, or access level changed */
-                            await setSharedBdDevActiveStatus(eachDev.bdDev_id, true, accessLevel, user._id);
+                            await setSharedBdDevActiveStatus(found._id , true, accessLevel);
                         }
                     }else {     /** device not exist in DB */
                         shareInfo.bdDev_id = eachDev.bdDev_id;
                         await addSharedBdDev(shareInfo, user._id);
                     }
-                }
-                else {      /** user didint check */
+                }else {      /** user didint check */
                     if (found) {    /** device exist in DB */
                         if (found.active) {     /** set device active to false */
-                            await setSharedBdDevActiveStatus(eachDev.bdDev_id, false, accessLevel, user._id);
+                            await setSharedBdDevActiveStatus(found._id, false, accessLevel);
                         }
                     }
                 }
