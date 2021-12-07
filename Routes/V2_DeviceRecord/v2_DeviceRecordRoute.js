@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
@@ -126,10 +126,9 @@ router.post("/area/getrelated", auth, async (req, res) => {
     
 });
 
-/** get involved building */
-router.post("/building/getrelated", auth, async (req, res) => {    
+
+const getRelBdFn=async (req, res, _accessLevel) =>{
     try {
-        // console.log(req.body);
         let info = req.body;
         // console.log("info", info);
         /** get owned building */
@@ -137,7 +136,7 @@ router.post("/building/getrelated", auth, async (req, res) => {
         if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
 
         /** get shared building (access level = 1 , co-owned),  */
-        let sharedBd = await getBuildingByActiveUser_id(info.user_id);
+        let sharedBd = await getBuildingByActiveUser_id(info.user_id, _accessLevel);
         if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
         
         
@@ -170,12 +169,71 @@ router.post("/building/getrelated", auth, async (req, res) => {
         }
         
         // console.log("relatedBuilding", relatedBuilding);
-        return res.status(200).send(relatedBuilding);      
-        
-    } catch (error) {
+        return res.status(200).send(relatedBuilding);  
+    } catch (error) {        
         console.log("Error : /building/getrelated");
         return res.status(404).send(error.message);     
     }
+}
+
+router.post("/building/getrelatedownLevel", auth, async (req, res) => {
+    await getRelBdFn(req, res, 1);
+})
+
+
+
+
+/** get involved building */
+router.post("/building/getrelated", auth, async (req, res) => {
+    await getRelBdFn(req, res);
+    // try {
+    //     // console.log(req.body);
+    //     let info = req.body;
+    //     // console.log("info", info);
+    //     /** get owned building */
+    //     let ownedBd = await getBuildingByOwner_id(info.user_id);
+    //     if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
+
+    //     /** get shared building (access level = 1 , co-owned),  */
+    //     let sharedBd = await getBuildingByActiveUser_id(info.user_id);
+    //     if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
+        
+        
+    //     /** Filter duplicated data */
+    //     let uniqueSharedBd = Array.from(
+    //         new Set(sharedBd.map((a) => a.buidling_id))
+    //     ).map((buidling_id) => {
+    //         return sharedBd.find((a) => a.buidling_id === buidling_id);
+    //     });
+        
+    //     // console.log("uniqueSharedBd", uniqueSharedBd);
+
+    //     let relatedBuilding=[...ownedBd];
+
+    //     /** convert shared building into own building Form */
+    //     for (const bd of uniqueSharedBd) {
+    //         let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
+    //         if(ownBuilding){
+    //             if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
+    //                 for (const owbBd of ownBuilding) {
+    //                     owbBd.isSharedBd = true;
+    //                     owbBd.accessLevel = bd.accessLevel;
+    //                     let duplicated = ownedBd.find(c=>c._id === owbBd._id);
+    //                     if(!duplicated) relatedBuilding.push(owbBd);
+    //                 }
+    //             // relatedBuilding=[...relatedBuilding, ...ownBuilding];
+    //         }else{
+    //             return res.status(203).send({msg:'Database Server Invalid'});
+    //         }
+    //     }
+        
+    //     // console.log("relatedBuilding", relatedBuilding);
+    //     return res.status(200).send(relatedBuilding);      
+        
+    // } catch (error) {
+    //     console.log("Error : /building/getrelated");
+    //     return res.status(404).send(error.message);     
+    // }
     
 });
 
@@ -367,6 +425,22 @@ router.post("/building/getbddev", auth, async (req, res) => {
         console.log("/building/checkvaliduser Error");
         console.log(error.message);
         return res.status(204).send({errMsg: "Server Exc Error"});        
+    }
+});
+
+router.post("/building/getcountbddev", auth, async (req, res) => {    
+    try {
+        let info = req.body
+        let count = await getCountSharedBdDev_byBd(info.bd_id);
+        console.log(count);
+        if(count === null) return res.status(204).send({errMsg: "Database Error"});
+        
+        return res.status(200).send({ count });
+        
+    } catch (error) {
+        console.log("/building/getcountbddev Error");
+        console.log(error.message);
+        return res.status(204).send({errMsg: "Server Exc Error"});   
     }
 });
 

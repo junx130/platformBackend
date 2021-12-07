@@ -23,10 +23,11 @@ async function getAreaByActiveUser_id (user_id, selectedBuilding){
 
 
 
-async function getBuildingByActiveUser_id (user_id){
+async function getBuildingByActiveUser_id (user_id, accessLevel){
     try {
         // const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and accessLevel = 1`;
-        const quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1`;
+        let quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1`;
+        if(accessLevel) quertCmd = `SELECT * from ${bdTableName} WHERE user_id = ${user_id} and active = 1 and accessLevel = ${accessLevel}`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getBuildingByActiveUser_id Finally");
         // console.log(result);
@@ -150,6 +151,20 @@ async function addSharedBdDev(info, email_user) {
     }
 }
 
+async function getCountSharedBdDev_byBd(bd_id) {
+    try {
+        const queryCmd = `SELECT COUNT(*) as count FROM ${devTableName} WHERE buidling_id = ${bd_id} and active = true;`;
+        let result = await queryTemplate(db, queryCmd, "getCountSharedBdDev_byBd Finally");
+        // console.log(result);
+        const rtnResult = result.map(b => b);
+        console.log(rtnResult[0].count); 
+        return rtnResult[0].count;     
+    } catch (error){
+        console.log(error.message);
+        return null;
+    }
+}
+
 exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
 exports.getAreaByActiveUser_id=getAreaByActiveUser_id;
 exports.getBuildingByActiveUser_id=getBuildingByActiveUser_id;
@@ -160,3 +175,4 @@ exports.addSharedBd = addSharedBd;
 exports.setSharedBdDevActiveStatus = setSharedBdDevActiveStatus;
 exports.addSharedBdDev = addSharedBdDev;
 exports.getAllSharedevBy_userId_bdId = getAllSharedevBy_userId_bdId;
+exports.getCountSharedBdDev_byBd = getCountSharedBdDev_byBd;
