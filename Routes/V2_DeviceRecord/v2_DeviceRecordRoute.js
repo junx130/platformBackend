@@ -3,8 +3,8 @@ const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 
 
 
@@ -386,20 +386,66 @@ router.post("/building/getuniqueuserlistbybdlist", auth, async (req, res) => {
     try {
         let info = req.body
         // console.log(info.bdList);
+        // * ???
         let user_idList = await getUniqueUserIdList_ByBdList(info.bdList);
         if(!user_idList) return res.status(203).send({errMsg:"Get User List Error"});
-        // console.log("user_idList", user_idList);
-        let userIdList = [];
-        for (const eachUser of user_idList) {
-            userIdList.push(eachUser.user_id);
-        }
-        let userInfoRel = await getUserBy_idList(userIdList);
-        if(!userInfoRel) return res.status(203).send({errMsg:"Get User Info Error"});
-        // console.log(userInfoRel);
+        console.log("user_idList", user_idList);
+        let idx = 0;
+        let userList = [];
+        let sliceSize = 50;
+        let totalItn = user_idList.length / sliceSize;
+        
+        do {
+            let temp = user_idList.slice(0, sliceSize);
+            console.log("temp", temp);
+            user_idList = user_idList.slice(sliceSize, user_idList.length);
+            let userIdList = [];
+            for (const eachUser of temp) {
+                userIdList.push(eachUser.user_id);
+            }
+            console.log(userIdList);
+            let userInfoRel = await getUserBy_idList(userIdList);
+            if (!userInfoRel) return res.status(203).send({ errMsg: "Get User Info Error" });
+            userList = [...userList, ...userInfoRel];
+            idx++;
+        } while (idx < totalItn);
+        console.log(userList);
 
-        /** success */
-        const rtnResult = userInfoRel.map(b => b);
-        return res.status(200).send(rtnResult);
+        return res.status(200).send(userList);
+        
+    } catch (error) {
+        console.log("/building/getcountbddev Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
+
+router.post("/building/getbdlistbyuid", auth, async (req, res) => {    
+    try {
+        let info = req.body
+        let result = await getUniqueBdId_byUserId(info.user_id);
+        console.log(result);
+        // console.log(count);
+        if(result === null) return res.status(203).send({errMsg: "Database Error"});
+        
+        let idx = 0;
+        let bdList = [];
+        let sliceSize = 50;
+        let totalItn = result.length / sliceSize;
+        
+        do {
+            let temp = result.slice(0, sliceSize);
+            result = result.slice(sliceSize, result.length);
+            let idList = [];
+            for (const eachRel of temp) {
+                idList.push(eachRel.buidling_id);
+            }
+            let bd = await getBdList_byid(idList);
+            if(bd === null) return res.status(203).send({errMsg: "Database Error"});
+            bdList = [...bdList, ...bd];
+            idx++;
+        } while (idx < totalItn)
+        return res.status(200).send(bdList);
         
     } catch (error) {
         console.log("/building/getcountbddev Error");

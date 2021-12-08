@@ -179,6 +179,18 @@ async function getUniqueUserIdList_ByBdList(bdList) {
     }
 }
 
+async function getUniqueBdId_byUserId(user_id) {
+    try {
+        const queryCmd = `SELECT DISTINCT buidling_id FROM ${devTableName} WHERE active = 1 AND user_id = ${user_id};`
+        let result = await queryTemplate(db, queryCmd, "getUniqueBdId_byUserId Finally");
+        // console.log(result);
+        const rtnResult = result.map(b => b);
+        return rtnResult;
+    } catch (error){
+        console.log(error.message);
+        return null;
+    }
+}
 
 exports.getUniqueUserIdList_ByBdList=getUniqueUserIdList_ByBdList;
 exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
@@ -192,3 +204,4 @@ exports.setSharedBdDevActiveStatus = setSharedBdDevActiveStatus;
 exports.addSharedBdDev = addSharedBdDev;
 exports.getAllSharedevBy_userId_bdId = getAllSharedevBy_userId_bdId;
 exports.getCountSharedBdDev_byBd = getCountSharedBdDev_byBd;
+exports.getUniqueBdId_byUserId = getUniqueBdId_byUserId;
