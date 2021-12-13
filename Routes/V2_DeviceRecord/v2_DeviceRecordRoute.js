@@ -278,6 +278,20 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
     }
 });
 
+router.post("/sensorshared/getsharedbddevbyuseridbdid", auth, async (req, res) => {    
+    /** get device */
+    try {
+        let {user_id, bd_id} = req.body;
+        let sharedBd = await getSharedevBy_userId_bdId(user_id, bd_id, true);
+        if(!sharedBd) return res.status(203).send({errMsg: "Database Error"});
+        // return res.status(203).send({errMsg: "Database Error Test"});       // ???
+        return res.status(200).send(sharedBd);        
+    } catch (error) {
+        console.log("getsharedbddevbyuseridbdid err : ",error.message);
+        return res.status(203).send({errMsg: "Database Error"});
+    }
+});
+
 router.post("/building/checkvaliduser", auth, async (req, res) => {    
     try {
         // console.log("/building/checkvaliduser");
