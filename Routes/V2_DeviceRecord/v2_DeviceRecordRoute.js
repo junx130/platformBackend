@@ -385,31 +385,44 @@ router.post("/building/getcountbddev", auth, async (req, res) => {
 router.post("/building/getuniqueuserlistbybdlist", auth, async (req, res) => {    
     try {
         let info = req.body
+        // console.log(info);
         // console.log(info.bdList);
         // * ???
-        let user_idList = await getUniqueUserIdList_ByBdList(info.bdList);
-        if(!user_idList) return res.status(203).send({errMsg:"Get User List Error"});
-        console.log("user_idList", user_idList);
         let idx = 0;
+        let sliceSize = 1;
+        let user_idList = [];
+        let totalItn = info.bdList.length / sliceSize;
+        do {
+            let temp = info.bdList.slice(0, sliceSize);
+            // console.log("temp", temp);
+            info.bdList = info.bdList.slice(sliceSize, info.bdList.length);
+            let userinfoList = await getUniqueUserIdList_ByBdList(temp);
+            if(!userinfoList) return res.status(203).send({errMsg:"Get User List Error"});
+            user_idList = [...user_idList, ...userinfoList];
+            // console.log("userlist", user_idList);
+            idx++;
+        } while (idx < totalItn);
+        
+        
+        idx = 0;
         let userList = [];
-        let sliceSize = 50;
-        let totalItn = user_idList.length / sliceSize;
+        totalItn = user_idList.length / sliceSize;
         
         do {
             let temp = user_idList.slice(0, sliceSize);
-            console.log("temp", temp);
+            // console.log("temp", temp);
             user_idList = user_idList.slice(sliceSize, user_idList.length);
             let userIdList = [];
             for (const eachUser of temp) {
                 userIdList.push(eachUser.user_id);
             }
-            console.log(userIdList);
+            // console.log(userIdList);
             let userInfoRel = await getUserBy_idList(userIdList);
             if (!userInfoRel) return res.status(203).send({ errMsg: "Get User Info Error" });
             userList = [...userList, ...userInfoRel];
             idx++;
         } while (idx < totalItn);
-        console.log(userList);
+        // console.log(userList);
 
         return res.status(200).send(userList);
         
