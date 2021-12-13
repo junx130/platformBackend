@@ -399,9 +399,6 @@ router.post("/building/getcountbddev", auth, async (req, res) => {
 router.post("/building/getuniqueuserlistbybdlist", auth, async (req, res) => {    
     try {
         let info = req.body
-        // console.log(info);
-        // console.log(info.bdList);
-        // * ???
         let idx = 0;
         let sliceSize = 1;
         let user_idList = [];
