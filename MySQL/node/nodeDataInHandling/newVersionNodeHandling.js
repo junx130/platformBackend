@@ -1,4 +1,5 @@
 const { updateDevActChecklist } = require("../../../devActiveCheck/updateDevActChecklist");
+const { V2_Reaction } = require("../../../MainPrg/V2_Reaction");
 const { checkNotification } = require("../../../notification/checkNotification");
 const { listedInbuildingDevices } = require("../../queryData");
 const { getSensorOwnerBy_TydevID } = require("../../V2_DeviceRecord/v2_SensorOwner");
@@ -21,6 +22,7 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
                 await checkNotification(c);
                 /**Check Device Active here */
                 await updateDevActChecklist(c._id);
+
             }   
         }
 
@@ -40,7 +42,10 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
                 // await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id, 'ForceLog');    // local setting
                 // await f_InsertDb(deviceInfo, V2_bdDev_BD, c._id);                   // server setting
                 await insertToDb(deviceInfo, V2_bdDev_BD, c._id, sensorPara);  
-                // console.log(logDbRel);                            
+                // console.log(logDbRel);           
+                
+                /** v2 reaction */
+                await V2_Reaction(c, deviceInfo);                 
             }
         }
 

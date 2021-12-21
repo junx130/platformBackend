@@ -131,6 +131,60 @@ getYY=()=>{
     return YY;
 }
 
+intTimeToTime=(nTime)=>{
+    let time = moment(`${nTime/100}:${nTime%100}`, "hh:mm").tz("Asia/Kuala_Lumpur");
+    return time;
+}
+
+momentNow = ()=>{
+    return moment().tz("Asia/Kuala_Lumpur");
+}
+
+
+// let tStart = intTimeToTime(1800);
+// let tEnd = intTimeToTime(1900);
+// // let tTest = intTimeToTime(1200);
+// let rel = checkBetweenTime(tStart, tEnd);
+// console.log(rel);
+// let sTime = intTimeToTime(eachAlgo.starttime);
+checkBetweenTime=(tStart, tEnd, tTime)=>{
+    let _tStart = tStart;
+    let _tEnd = tEnd;
+    let bBetween = false;
+    if (!tTime) tTime = momentNow();
+    if(_tEnd > _tStart){
+        bBetween =tTime >= _tStart && tTime < _tEnd;
+    }else{      // 1800 ~ 0700 , 1800 ~ 1800
+        // console.log("Inverse")
+        let bInverseBetween = tTime < _tStart && tTime >= _tEnd;
+        bBetween = !bInverseBetween;
+    }
+    return bBetween;
+}
+
+intToDOWSelected=(nDow)=>{
+    /** [0] => Sunday */
+    let arrDow = [];
+    for (let i = 0; i < 7; i++) {        
+        let dow = (nDow >> i) %2 === 1 ? true: false;
+        // console.log(`[${i}]: ${dow}`);
+        arrDow.push(dow);
+    }
+    return arrDow;
+}
+
+getDow_0_6=()=>{
+    let dow = momentNow().isoWeekday();
+    if(dow===7) return 0;
+    return dow
+}
+
+exports.checkBetweenTime=checkBetweenTime;
+exports.intTimeToTime=intTimeToTime;
+exports.intToDOWSelected=intToDOWSelected;
+exports.getDow_0_6=getDow_0_6;
+exports.momentNow=momentNow;
+
 exports.getYY=getYY;
 exports.getWeekNo = getWeekNo;
 exports.fUnixOneDayEarlier=fUnixOneDayEarlier;
