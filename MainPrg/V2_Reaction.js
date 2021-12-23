@@ -19,19 +19,33 @@ function Dow_ActiveNow(tStart, tEnd, dowSche){
     return DowSel[dow];
 }
 
+function isNewNode_ByLastData(lastData){
+    /**  */
+    if(!lastData.hasOwnProperty('ht')) return
+    if(!lastData.hasOwnProperty('hi')) return
+    if(!lastData.hasOwnProperty('hs')) return
+    if(!lastData.hasOwnProperty('hd')) return
+    if(!lastData.hasOwnProperty('hf')) return
+    if(!lastData.hasOwnProperty('hbs')) return
+    if(!lastData.hasOwnProperty('hfs')) return
+    if(!lastData.hasOwnProperty('his')) return
+    if(!lastData.hasOwnProperty('hns')) return
+    if(!lastData.hasOwnProperty('ft')) return
+    if(!lastData.hasOwnProperty('fc')) return
+    if(lastData.hasOwnProperty('type')) return true
+    return true
+    // if(lastData.type > 0 && lastData.type < 5) return false;
+    // if(lastData.type >= 1001 && lastData.type <= 1002) return false;
+    // return true
+}
 
-async function handleCondi_Var(eachCondi, lastData){
+async function handleCondi_Var(eachCondi, lastData, newNode){
     /** get bdDev_id */
     try {
         let bdDev= await getBddevBy_idList([eachCondi.input_id]);
         if(!Array.isArray(bdDev) || bdDev.length < 1 ) return   /** not data or not array */
         if(bdDev[0].devID !== lastData.hi) return;  /** incoming data not related to this condition */
         /** get input value */
-        // let a_dataKey = eachCondi.dataKey.split('_');
-        // // console.log(a_dataKey);
-        // if(!Array.isArray(a_dataKey) || a_dataKey.length!== 2) return;
-        // let inputVal = lastData[a_dataKey[0]][a_dataKey[1]];
-        let newNode = true;     // ???
         let inputVal;
         if(newNode) inputVal = getLastValue_NewNode(lastData, eachCondi.dataKey);
         else{}      // ???
@@ -43,7 +57,7 @@ async function handleCondi_Var(eachCondi, lastData){
         try {
             let bFulfillCondi = Function(`"use strict"; return(${sEval})`)()
             console.log(bFulfillCondi);
-            /** pending Logic here ???*/
+            /** pending Logic here, update database ???*/
         } catch (error) {
             return console.log("--- --- V2_Reaction Evaluate Error : ", error.message);            
         }
@@ -63,20 +77,26 @@ function getLastValue_NewNode(lastData, dataKey){
     if(!Array.isArray(a_dataKey) || a_dataKey.length!== 2) return;
     return lastData[a_dataKey[0]][a_dataKey[1]];
 }
+function getLastValue_OldNode(lastData, dataKey){
+    // let a_dataKey = dataKey;
+    // console.log(a_dataKey);
+    // console.log("getLastValue_OldNode lastData: ", lastData);
+    // console.log("getLastValue_OldNode dataKey: ", dataKey);
+    if(!dataKey) return
+    // if(!Array.isArray(a_dataKey) || a_dataKey.length!== 2) return;
+    return lastData[dataKey];
+}
 
-async function handleCondi_For(eachCondi, lastData){
-    /** use eachCondi.input_id query V2_ReactFormulaTemplate, _id 
-     * use eachCondi._id query V2_ReactFormulaVarTable condition_id
-    */
-    // console.log("eachCondi", eachCondi);
+async function handleCondi_For(eachCondi, lastData, newNode){
     try {
         let forTemplate = await getForTemplateBy_id(eachCondi.input_id);
         if(notArrOrEmptyArr(forTemplate)) return 
+        let singleForTemplate = forTemplate[0];
         // console.log(forTemplate);
         let forVar = await getForVarBy_condi_id(eachCondi._id);
         if(notArrOrEmptyArr(forVar)) return 
         // console.log(forVar);
-        let varNameList = forTemplate[0].variable.split(",");
+        let varNameList = singleForTemplate.variable.split(",");
         // console.log("varNameList", varNameList);
         if(notArrOrEmptyArr(varNameList)) return 
         let totallyNotRelated = true;
@@ -91,17 +111,16 @@ async function handleCondi_For(eachCondi, lastData){
             if(notArrOrEmptyArr(bdDev)) return 
             if(bdDev[0].devID === lastData.hi){     /** last update is realetd to this formula */
                 let lastValue;
-                let newNode = true;     // ???
                 if(newNode) lastValue = getLastValue_NewNode(lastData, matchSymbol.dataKey);
                 else{ }     // old node    ???
     
                 if(!lastValue) return     /** get last var value failed */
     
-                arr_var.push({symbol: eachVar, bdDev_id:bdDev[0]._id, type:bdDev[0].type, lastValue})
+                arr_var.push({symbol: eachVar, bdDev_id:bdDev[0]._id, type:bdDev[0].type, lastValue, dataKey:matchSymbol.dataKey})
                 console.log("Related");
                 totallyNotRelated = false;
-            }else{      /** last update is note related to this formula */
-                arr_var.push({symbol: eachVar, bdDev_id:bdDev[0]._id, type:bdDev[0].type})
+            }else{      /** last update is not related to this formula */
+                arr_var.push({symbol: eachVar, bdDev_id:bdDev[0]._id, type:bdDev[0].type, dataKey:matchSymbol.dataKey})
                 console.log("NotRelated");
             }
         }
@@ -111,22 +130,64 @@ async function handleCondi_For(eachCondi, lastData){
         for (const eachVar of arr_var) {
             if(eachVar.lastValue) continue  //  last value already get, no need query
             let {type, bdDev_id} = eachVar;
-            let lastVal = await v2GetBdDevData_lastN(type, bdDev_id, 1);
-            console.log(eachVar);
-            console.log(lastVal);
-            /** from lastVal[0], get last var value 
-             * determine is new node or old node
-            */
+            let _lastDataArr = await v2GetBdDevData_lastN(type, bdDev_id, 1);
+            if(notArrOrEmptyArr(_lastDataArr)) return console.log("--- --- Get Last Value Error");
+            let _lastData = _lastDataArr[0];
+            console.log("eachVar", eachVar);
+            console.log("_lastData", _lastData);
+
+            /** from lastVal[0], get last var value */
+            let _lastValue;
+            let isNewNode = isNewNode_ByLastData(_lastData);
+            if(isNewNode) _lastValue = getLastValue_NewNode(_lastData, eachVar.dataKey);
+            else _lastValue = getLastValue_OldNode(_lastData, eachVar.dataKey)     // old node  
+            console.log("_lastValue", _lastValue);
+            /** complete the arr_var, insert last data into arr_var */
+            if(!_lastValue) return      /** data format invalid */
+            eachVar.lastValue = _lastValue; /** insert last value into arr_var */
         }
-        
+        console.log("new arr_var", arr_var);
+
+        /** evaluate the formula */
+        console.log("formula",singleForTemplate.formula); 
+        let sEval = singleForTemplate.formula;
+        let x=1; let y=1; let z=1; let a=1; let b=1; let c=1;
+
+        for (const eachForVar of arr_var) {
+            // eachForVar.symbol = eachForVar.lastValue
+            if(!eachForVar.symbol) return
+            switch (eachForVar.symbol) {
+                case "a": a = eachForVar.lastValue; break;
+                case "b": b = eachForVar.lastValue; break;
+                case "c": c = eachForVar.lastValue; break;
+                case "x": x = eachForVar.lastValue; break;
+                case "y": y = eachForVar.lastValue; break;
+                case "z": z = eachForVar.lastValue; break;       
+            }
+        }
+
+        let calcFn = new Function("x", "y", "z", "a", "b", "c", `return (${sEval})`);
+        let formulaAns = calcFn(x,y,z,a,b,c);
+        console.log("formulaAns", formulaAns);
+
+        console.log("eachCondi", eachCondi);
+        let sCondiEval = `${formulaAns} ${eachCondi.operator} ${eachCondi.setpoint}`
+        console.log("Formula Eval : ", sCondiEval);
+        try {
+            let bFulfillCondi = Function(`"use strict"; return(${sCondiEval})`)()
+            console.log(bFulfillCondi);     
+            /** update condition table database ??? */       
+        } catch (error) {
+            return console.log("--- --- For Evaluate Error : ", error.message);  
+        }
+        return true     // false => error, true => provcess OK
     } catch (error) {
         console.log("handleCondi_For Err: ", error.message);
         return
     }
-
 }
 
-async function V2_Reaction(bdDev, lastData){
+async function V2_Reaction(bdDev, lastData, newNode){
     try {
         // console.log("V2_Reaction", bdDev);
         console.log("lastData", lastData);
@@ -152,10 +213,10 @@ async function V2_Reaction(bdDev, lastData){
             
             for (const eachCondi of conditionList) {    /** determine each condition */
                 if(eachCondi.inputType===1){        /** Variable */
-                    let goodHandling_Var = await handleCondi_Var(eachCondi, lastData);
+                    let goodHandling_Var = await handleCondi_Var(eachCondi, lastData, newNode);
                     if(!goodHandling_Var) continue;
                 }else{      /** formula */
-                    let goodHandling_For= await handleCondi_For(eachCondi, lastData);
+                    let goodHandling_For= await handleCondi_For(eachCondi, lastData, newNode);
                     if(!goodHandling_For) continue;
                 }   
             }
