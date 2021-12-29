@@ -49,7 +49,8 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                             // console.log(logDbRel);                    
                             
                             /** v2 reaction */
-                            // await V2_Reaction(c, deviceInfo, false);     
+                            console.log("~~~~~~~~~~~~c~~~~~~~~~~~~~~~~", c);
+                            await V2_Reaction(c, deviceInfo);     
                         }
                     }
             }else{

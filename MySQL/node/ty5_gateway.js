@@ -34,10 +34,10 @@ async function gatewayHandling(message){
         if(!deviceInfo.GSM) deviceInfo.GSM=null;
 
         let validateErr = validateMessage(deviceInfo).error;
-        if(validateErr) return console.log(validateErr);
-        console.log(deviceInfo);
+        if(validateErr) return console.log(validateErr)
+        // console.log(deviceInfo);
         let result = await gatewayLogging(deviceInfo);
-        console.log(result);
+        // console.log(result);
     } catch (error) {
         console.log("Gateway DB handling Err:", error.message);
     }

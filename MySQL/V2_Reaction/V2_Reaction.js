@@ -8,6 +8,46 @@ const FormulaTable = "V2_ReactFormulaTemplate";
 const FormulaVarTable = "V2_ReactFormulaVarTable";
 
 
+async function setForVarFulfillmentCnt(condi_id, bddev_id, fulfillCnt){
+    try {
+        const quertCmd = `UPDATE ${FormulaVarTable} SET 
+            lastUpdate_unix=UNIX_TIMESTAMP(),
+            fulfillmentCnt = ${fulfillCnt} 
+            where condition_id = ${condi_id} and 
+            bddev_id =${bddev_id}`;
+        
+        let result = await queryTemplate(db, quertCmd, "increaseForVarFulfillmentCnt Finally");
+        // console.log(result);
+        if(!result || !result.affectedRows) return null;
+        if(result.affectedRows > 0 ) return true;
+        return null       
+    } catch (error) {
+        console.log("Error : increaseFulfillmentCnt");
+        console.log(error.message)
+        return null;       
+    }
+}
+
+async function setFulfillmentCnt(condi_id, fulfillCnt){
+    try {
+        const quertCmd = `UPDATE ${ConditionTable} SET 
+            lastUpdate_unix=UNIX_TIMESTAMP(),
+            fulfillmentCnt = ${fulfillCnt} 
+            where _id = ${condi_id}`;
+        
+        let result = await queryTemplate(db, quertCmd, "increaseFulfillmentCnt Finally");
+        // console.log(result);
+        if(!result || !result.affectedRows) return null;
+        if(result.affectedRows > 0 ) return true;
+        return null       
+
+    } catch (error) {
+        console.log("Error : increaseFulfillmentCnt");
+        console.log(error.message)
+        return null;       
+    }
+}
+
 async function getForVarBy_condi_id (condi_id){
     try {
         const quertCmd = `SELECT * from ${FormulaVarTable} WHERE condition_id = ${condi_id}`;
@@ -76,7 +116,9 @@ async function getGetCondition_byAlgo_id (algo_id){
     }
 }
 
+exports.setForVarFulfillmentCnt=setForVarFulfillmentCnt;
 exports.getAlgoBy_bdDev_id = getAlgoBy_bdDev_id;
 exports.getGetCondition_byAlgo_id=getGetCondition_byAlgo_id;
 exports.getForTemplateBy_id=getForTemplateBy_id;
 exports.getForVarBy_condi_id=getForVarBy_condi_id;
+exports.setFulfillmentCnt=setFulfillmentCnt;
