@@ -4,7 +4,7 @@
  */
 
 const { getBddevBy_idList } = require("../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { v2GetBdDevData_lastN } = require("../MySQL/V2_QueryData/v2_QueryBdDevData");
+const { v2GetBdDevData_lastN, v2GetBdDevData_T1_T2 } = require("../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getAlgoBy_bdDev_id, getGetCondition_byAlgo_id, getForTemplateBy_id, getForVarBy_condi_id, setFulfillmentCnt, setForVarFulfillmentCnt } = require("../MySQL/V2_Reaction/V2_Reaction");
 const { intTimeToTime, checkBetweenTime, intToDOWSelected, getDow_0_6, momentNow, _unixNow } = require("../utilities/timeFn");
 const { cvrtDbKeyToRawKey } = require("./sensorKeyDBKeyMapping");
@@ -155,23 +155,74 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
         
         if(!inputVal) return {errMsg:"no input value"};     /** cannot get input value */
         // console.log(inputVal);
-        let sEval = `${inputVal} ${eachCondi.operator} ${eachCondi.setpoint}`
-        console.log("Var Eval : ", sEval);
-        try {
-            let bFulfillCondi = Function(`"use strict"; return(${sEval})`)()
-            // console.log(bFulfillCondi);
-            if(bFulfillCondi){
-                if(ScheActiveNow){
+        /** handle operator(Variable) here ??? */
+        // console.log("Type of : ", typeof(eachCondi.operator));
+        if(typeof(eachCondi.operator) !== "string") return {errMsg:"Operator Not Valid"}
+        let grdFound = eachCondi.operator.indexOf("grd");
+        // console.log("grdFound", grdFound)
+        let sEval="";
+        if(grdFound<0){     // normal operator
+            sEval = `${inputVal} ${eachCondi.operator} ${eachCondi.setpoint}`
+            console.log("Var Eval : ", sEval);
+            try {
+                let bFulfillCondi = Function(`"use strict"; return(${sEval})`)()
+                // console.log(bFulfillCondi);
+                if(bFulfillCondi){
+                    if(ScheActiveNow){
+                        await increaseConditionFulfillCnt_Var(eachCondi);
+                        return {bTrig:true};
+                    }
+                }else{
+                    await clearConditionFulfillCnt_Var(eachCondi);
+                }
+                // return {bFulfilled:bFulfillCondi}
+            } catch (error) {
+                console.log("--- --- V2_Reaction Evaluate Error : ", error.message);            
+                return {errMsg:"exc err"}
+            }
+        }else{          /** gradient changes handle */
+            let a_ope=eachCondi.operator.split('_');
+            console.log(a_ope); // [ 'grd', 'inc', 'P' ]
+            if(a_ope[0]==="grd"){            
+                /** get last value of <eachCondi.gradientDuration> time */   
+                let aData_LastNMin = await v2GetBdDevData_T1_T2(lastInfo.ht, bdDev[0]._id, _unixNow()-(eachCondi.gradientDuration*60), _unixNow());
+                // console.log("setpoint",eachCondi.setpoint );
+                // console.log("aData_LastNMin", aData_LastNMin );
+                let boundlyVal=0; 
+                if(a_ope[2]==="P" && a_ope[1]==="inc")  {
+                    boundlyVal = inputVal/(1+(eachCondi.setpoint/100));
+                }
+                if(a_ope[2]==="P" && a_ope[1]==="dec")  {
+                    if(eachCondi.setpoint > 100 ) return {errMsg:"Dec set point over"}
+                    if(eachCondi.setpoint === 100 ) boundlyVal=0;
+                    else boundlyVal = inputVal/(1-(eachCondi.setpoint/100));
+                }
+                if(a_ope[2]==="V" && a_ope[1]==="inc")  {
+                    boundlyVal=inputVal-eachCondi.setpoint;
+                }
+                if(a_ope[2]==="V" && a_ope[1]==="dec")  {
+                    boundlyVal=inputVal+eachCondi.setpoint;
+                }
+                
+                console.log("inputVal", inputVal );
+                console.log("boundlyVal", boundlyVal );
+                // console.log("eachCondi.dataKey", eachCondi.dataKey );
+
+                let foundOverBoundary;
+                if(a_ope[1]==="inc"){
+                    foundOverBoundary = aData_LastNMin.find(c=>c[eachCondi.dataKey]<=boundlyVal)
+                }else if(a_ope[1]==="dec"){
+                    foundOverBoundary = aData_LastNMin.find(c=>c[eachCondi.dataKey]>=boundlyVal)
+                }
+                // console.log("foundOverBoundary", foundOverBoundary);
+                if(foundOverBoundary) {
+                    /** there are some condition fulfilled, increase the counter */
                     await increaseConditionFulfillCnt_Var(eachCondi);
                     return {bTrig:true};
+                }else{
+                    await clearConditionFulfillCnt_Var(eachCondi);
                 }
-            }else{
-                await clearConditionFulfillCnt_Var(eachCondi);
             }
-            // return {bFulfilled:bFulfillCondi}
-        } catch (error) {
-            console.log("--- --- V2_Reaction Evaluate Error : ", error.message);            
-            return {errMsg:"exc err"}
         }
         return true        
     } catch (error) {
@@ -274,6 +325,7 @@ async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
         let formulaAns = calcFn(x,y,z,a,b,c);
         // console.log("formulaAns", formulaAns);
         // console.log("eachCondi", eachCondi);
+        /** handle operator(formula) here ??? */
         let sCondiEval = `${formulaAns} ${eachCondi.operator} ${eachCondi.setpoint}`
         console.log("Formula Eval : ", sCondiEval);
         try {
@@ -282,8 +334,7 @@ async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
             // console.log("ScheActiveNow", ScheActiveNow);   
             if(bFulfillCondi) {     /** condition pass */
                 if(ScheActiveNow){
-                    await increaseForVarFulfillCnt(eachCondi._id, dataInBdDev_id, arr_var, eachCondi.occurBuffer);
-                    /** condition to update fulfillCount will be different changes here ??? */
+                    await increaseForVarFulfillCnt(eachCondi._id, dataInBdDev_id, arr_var, eachCondi.occurBuffer);                    
                     await increaseConditionFulfillCnt_For(eachCondi._id);                    
                     return {bTrig:true};
                 }
@@ -318,9 +369,6 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
         Y:false,
         Z:false,
     }
-    
-    /** get current data in related condition ???*/
-
 
     for (const eachCondi of condiList) {
         let currCondiInvolve = updatedCondiList.find(c=>c===eachCondi.condIdx);
@@ -329,7 +377,7 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
             if(eachCondi.occurBuffer === eachCondi.fulfillmentCnt){
                 if(currCondiInvolve) bTrigAllow = true;   /** Occur Buffer = 2, Prevent 3, 3(new in), 2 false alarm*/ 
             }
-            /** bug here, if C keep at occurBuffer value, A / B keep come in, will trigger Action also */
+            /** bug here, if C keep at occurBuffer value, A / B keep come in, will trigger Action also ??? Test 33(new)2 bug*/
         }else if(eachAlgo.triggerMode === 1){   // always trigger mode
             bTrigAllow = true;      
         }
