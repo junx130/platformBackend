@@ -1,4 +1,5 @@
 const { updateDevActChecklist } = require("../../../devActiveCheck/updateDevActChecklist");
+const { ioEmit } = require("../../../MainPrg/Prg_SocketIo");
 const { V2_Reaction } = require("../../../MainPrg/V2_Reaction");
 const { checkNotification } = require("../../../notification/checkNotification");
 const { listedInbuildingDevices } = require("../../queryData");
@@ -45,8 +46,12 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
                 // console.log(logDbRel);           
                 
                 /** v2 reaction */
-                console.log("~~~~~~~~~~~~c~~~~~~~~~~~~~~~~", c);
-                await V2_Reaction(c, deviceInfo);                 
+                console.log("~~~~~~~~~~~~c new~~~~~~~~~~~~~~~~", c);
+                await V2_Reaction(c, deviceInfo);       
+                
+                /** omit to update frontend */
+                let topic=`v2_${c.type}_${c._id}`
+                ioEmit(topic, c.unix);
             }
         }
 

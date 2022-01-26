@@ -4,6 +4,7 @@ const { listedInbuildingDevices } = require("../../queryData");
 const { checkPid } = require("../../../ControlDevice/checkMapPID");
 const { getSensorOwnerBy_TydevID } = require("../../V2_DeviceRecord/v2_SensorOwner");
 const { V2_Reaction } = require("../../../MainPrg/V2_Reaction");
+const { ioEmit } = require("../../../MainPrg/Prg_SocketIo");
 
 async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){    
     const database = "RawDataLog";
@@ -51,6 +52,10 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                             /** v2 reaction */
                             console.log("~~~~~~~~~~~~c~~~~~~~~~~~~~~~~", c);
                             await V2_Reaction(c, deviceInfo);     
+                            
+                            /** omit to update frontend */
+                            let topic=`v2_${c.type}_${c._id}`
+                            ioEmit(topic, c.unix);
                         }
                     }
             }else{

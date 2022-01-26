@@ -44,7 +44,7 @@ function isNewNode_ByLastData(lastData){
 
 function isNewNode_ByDbData(lastDbData){
     /**  */
-    console.log(lastDbData);
+    // console.log(lastDbData);
     let {type} = lastDbData;
     if(type > 0 && type < 5) return false
     if(type>=1001 &&  type <= 1002) return false
@@ -163,7 +163,7 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
         let sEval="";
         if(grdFound<0){     // normal operator
             sEval = `${inputVal} ${eachCondi.operator} ${eachCondi.setpoint}`
-            console.log("Var Eval : ", sEval);
+            // console.log("Var Eval : ", sEval);
             try {
                 let bFulfillCondi = Function(`"use strict"; return(${sEval})`)()
                 // console.log(bFulfillCondi);
@@ -182,7 +182,7 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
             }
         }else{          /** gradient changes handle */
             let a_ope=eachCondi.operator.split('_');
-            console.log(a_ope); // [ 'grd', 'inc', 'P' ]
+            // console.log(a_ope); // [ 'grd', 'inc', 'P' ]
             if(a_ope[0]==="grd"){            
                 /** get last value of <eachCondi.gradientDuration> time */   
                 let aData_LastNMin = await v2GetBdDevData_T1_T2(lastInfo.ht, bdDev[0]._id, _unixNow()-(eachCondi.gradientDuration*60), _unixNow());
@@ -204,8 +204,8 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
                     boundlyVal=inputVal+eachCondi.setpoint;
                 }
                 
-                console.log("inputVal", inputVal );
-                console.log("boundlyVal", boundlyVal );
+                // console.log("inputVal", inputVal );
+                // console.log("boundlyVal", boundlyVal );
                 // console.log("eachCondi.dataKey", eachCondi.dataKey );
 
                 let foundOverBoundary;
@@ -234,15 +234,15 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
 async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
     try {
         let forTemplate = await getForTemplateBy_id(eachCondi.input_id);
-        if(notArrOrEmptyArr(forTemplate)) return console.log("Empty formula Template");
+        if(notArrOrEmptyArr(forTemplate)) return //console.log("Empty formula Template");
         let singleForTemplate = forTemplate[0];
         let forVar = await getForVarBy_condi_id(eachCondi._id);
         // console.log("forVar", forVar);
-        if(notArrOrEmptyArr(forVar)) return console.log("Empty formula Var");
+        if(notArrOrEmptyArr(forVar)) return //console.log("Empty formula Var");
         // console.log(forVar);
         let varNameList = singleForTemplate.variable.split(",");
         // console.log("varNameList", varNameList);
-        if(notArrOrEmptyArr(varNameList)) return console.log("Empty Var Variable");
+        if(notArrOrEmptyArr(varNameList)) return //console.log("Empty Var Variable");
         let totallyNotRelated = true;
         let arr_var=[];
 
@@ -287,12 +287,12 @@ async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
             let {type, bdDev_id} = eachVar;
             /** query other variable not in this update sensor */
             let _lastDataArr = await v2GetBdDevData_lastN(type, bdDev_id, 1);
-            if(notArrOrEmptyArr(_lastDataArr)) return console.log("--- --- Get Last Value Error");
+            if(notArrOrEmptyArr(_lastDataArr)) return //console.log("--- --- Get Last Value Error");
             let lastDbData = _lastDataArr[0];
 
             // console.log("eachVar", eachVar);
             // console.log("_lastData", _lastData);
-            if( _unixNow() - lastDbData.unix > dataExpiredTime_s) return console.log(`Other Sensor Data Expired`);
+            if( _unixNow() - lastDbData.unix > dataExpiredTime_s) return //console.log(`Other Sensor Data Expired`);
             /** from lastVal[0], get last var value */
             
             /** no matter old or new node, method to get value is same */
@@ -327,7 +327,7 @@ async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
         // console.log("eachCondi", eachCondi);
         /** handle operator(formula) here ??? */
         let sCondiEval = `${formulaAns} ${eachCondi.operator} ${eachCondi.setpoint}`
-        console.log("Formula Eval : ", sCondiEval);
+        // console.log("Formula Eval : ", sCondiEval);
         try {
             let bFulfillCondi = Function(`"use strict"; return(${sCondiEval})`)()
             // console.log(bFulfillCondi);         
@@ -385,14 +385,14 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
         AlgoStatus[eachCondi.condIdx] = eachCondi.fulfillmentCnt >= eachCondi.occurBuffer;        
     }
 
-    console.log('AlgoStatus', AlgoStatus);
+    // console.log('AlgoStatus', AlgoStatus);
     /** evaluate Algo logic */
     try {
         let {A, B, C, X, Y, Z} = AlgoStatus;
         let algoEval = eachAlgo.algo;
         let calcFn = new Function("A", "B", "C", "X", "Y", "Z", `return (${algoEval})`);
         let bAlgoFulfill = calcFn(A, B, C, X, Y, Z);
-        console.log(`${algoEval}: ${bAlgoFulfill}`);
+        // console.log(`${algoEval}: ${bAlgoFulfill}`);
         return {bTrigAction : bAlgoFulfill && bTrigAllow};
     } catch (error) {
         console.log("Evaluate Algo Logic Err: ", error.message);
@@ -450,12 +450,12 @@ async function V2_Reaction(bdDev, lastData){
             }
 
             /** check algo  */
-            console.log("Check Algo needed: ", bCheckAlgoNeeded);
+            // console.log("Check Algo needed: ", bCheckAlgoNeeded);
             if(!bCheckAlgoNeeded) continue
 
             let objTrigAction = await EvaluateAlgo(eachAlgo, updatedCondiList);
             if(!objTrigAction) return console.log("Evaluate Algo Error");
-            console.log("Trigger Action : ", objTrigAction.bTrigAction); 
+            // console.log("Trigger Action : ", objTrigAction.bTrigAction); 
 
             /** Trigger Action */
             

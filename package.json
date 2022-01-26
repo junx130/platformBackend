@@ -16,6 +16,7 @@
     "es6-promise": "^4.2.8",
     "exceljs": "^4.1.1",
     "express": "^4.17.1",
+    "http": "0.0.1-security",
     "isomorphic-fetch": "^3.0.0",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
