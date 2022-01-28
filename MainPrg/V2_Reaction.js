@@ -3,13 +3,18 @@
  * 
  */
 
+const { getActiveActionByAlgo_id, getActiveActTeleByAct_id, getActiveActTeleSubByAct_id } = require("../MySQL/V2_Action/V2_Action");
 const { getBddevBy_idList } = require("../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastN, v2GetBdDevData_T1_T2 } = require("../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getAlgoBy_bdDev_id, getGetCondition_byAlgo_id, getForTemplateBy_id, getForVarBy_condi_id, setFulfillmentCnt, setForVarFulfillmentCnt } = require("../MySQL/V2_Reaction/V2_Reaction");
+const { v2_sendNotifyMsg } = require("../notification/v2_telegram");
 const { intTimeToTime, checkBetweenTime, intToDOWSelected, getDow_0_6, momentNow, _unixNow } = require("../utilities/timeFn");
+const { notArrOrEmptyArr } = require("../utilities/validateFn");
 const { cvrtDbKeyToRawKey } = require("./sensorKeyDBKeyMapping");
 
 const dataExpiredTime_s = 600;
+
+const logActive=true;
 
 function Dow_ActiveNow(tStart, tEnd, dowSche){
     let dow = getDow_0_6();
@@ -56,9 +61,9 @@ function isNewNode_ByDbData(lastDbData){
 
 
 
-function notArrOrEmptyArr(arr){
-    return (!Array.isArray(arr) || arr.length<1);
-}
+// function notArrOrEmptyArr(arr){
+//     return (!Array.isArray(arr) || arr.length<1);
+// }
 
 function getLastValue_NewNode(lastData, dataKey){
     // console.log("lastData", lastData);
@@ -385,14 +390,14 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
         AlgoStatus[eachCondi.condIdx] = eachCondi.fulfillmentCnt >= eachCondi.occurBuffer;        
     }
 
-    // console.log('AlgoStatus', AlgoStatus);
+    if(logActive) console.log('AlgoStatus', AlgoStatus);
     /** evaluate Algo logic */
     try {
         let {A, B, C, X, Y, Z} = AlgoStatus;
         let algoEval = eachAlgo.algo;
         let calcFn = new Function("A", "B", "C", "X", "Y", "Z", `return (${algoEval})`);
         let bAlgoFulfill = calcFn(A, B, C, X, Y, Z);
-        // console.log(`${algoEval}: ${bAlgoFulfill}`);
+        if(logActive) console.log(`${algoEval}: ${bAlgoFulfill}`);
         return {bTrigAction : bAlgoFulfill && bTrigAllow};
     } catch (error) {
         console.log("Evaluate Algo Logic Err: ", error.message);
@@ -407,6 +412,10 @@ async function V2_Reaction(bdDev, lastData){
         let algoList = await getAlgoBy_bdDev_id(bdDev._id);
         // console.log("algoList", algoList);
         for (const eachAlgo of algoList) {
+            /** skip logic if algo is not in use */
+            if(eachAlgo.inUse !== 1) continue   
+
+            if(logActive) console.log("~~~~~~~~loop~~~~~~~~~~~~");
             let tStart = intTimeToTime(eachAlgo.starttime);
             let tEnd = intTimeToTime(eachAlgo.endtime);
                
@@ -450,15 +459,50 @@ async function V2_Reaction(bdDev, lastData){
             }
 
             /** check algo  */
-            // console.log("Check Algo needed: ", bCheckAlgoNeeded);
+            if(logActive) console.log("Check Algo needed: ", bCheckAlgoNeeded);
             if(!bCheckAlgoNeeded) continue
 
+            /** evaluate algo condition */
             let objTrigAction = await EvaluateAlgo(eachAlgo, updatedCondiList);
             if(!objTrigAction) return console.log("Evaluate Algo Error");
-            // console.log("Trigger Action : ", objTrigAction.bTrigAction); 
+            if(logActive) console.log("Trigger Action : ", objTrigAction.bTrigAction);
 
-            /** Trigger Action */
+            /** skip next step if triger action is not needed */
+            if(!objTrigAction.bTrigAction) continue;
             
+            /** query V2_ActionTable by algo_id */
+            let actionList = await getActiveActionByAlgo_id(eachAlgo._id);
+            // console.log("actionList", actionList);
+            if(notArrOrEmptyArr(actionList)) continue;
+
+            
+            for (const eachAction of actionList) {
+                switch (eachAction.actionType) {
+                    case "Act_Tele":        // handle telegram notification
+                        /** foreach action query V2_Act_Tele by act_id(from V2_ActionTable), switch case */
+                        let actTele_List = await getActiveActTeleByAct_id(eachAction.act_id);
+                        // console.log("actTele_List",actTele_List);
+                        if(notArrOrEmptyArr(actTele_List)) continue;
+                        for (const eachTeleList of actTele_List) {                            
+                            /** query V2_Act_Tele_Sub by _id(from V2_Act_Tele) = act_tele_id */
+                            let teleSubList = await getActiveActTeleSubByAct_id(eachTeleList._id);
+                            // console.log("teleSubList", teleSubList);
+                            if(notArrOrEmptyArr(teleSubList)) continue;
+                            for (const eachTeleChatId of teleSubList) {
+                                /** send telegram message */
+                                await v2_sendNotifyMsg(eachTeleChatId.chatId, eachAlgo.notifyMsg);
+                                if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleChatId.name}`);
+                            }                            
+                        }
+                        break;
+                
+                    default:
+                        console.log("No switch case handle");
+                        break;
+                }
+            }
+
+    
         }
     } catch (error) {
         console.log("****checkNotification Err******");

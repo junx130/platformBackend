@@ -9,6 +9,7 @@ const { prgTelegram } = require("./notification/telegram");
 const { devCheckTimer } = require("./devActiveCheck/devCheckTimer");
 const {sendEmail} = require('./EmailServer/email');
 const { socketIoPrg, ioEmit } = require("./MainPrg/Prg_SocketIo");
+const { v2_prgTelegram } = require("./notification/v2_telegram");
 
 
 require("./Routes/routes")(app);
@@ -52,7 +53,7 @@ socketIoPrg(server);
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
 prgTelegram();   
-
+v2_prgTelegram();
 // sendEmail();
 
 // interval 0.5 11:59:59.9987  12:00:01.0002
