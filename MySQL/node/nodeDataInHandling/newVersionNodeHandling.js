@@ -50,7 +50,7 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
                 await V2_Reaction(c, deviceInfo);       
                 
                 /** omit to update frontend */
-                let topic=`v2_${c.type}_${c._id}`
+                let topic=`v2_${c.type}_${c._id}`       // v2_1_100
                 ioEmit(topic, c.unix);
             }
         }

@@ -28,6 +28,7 @@ const sumList_V2= require("./present_V2/summaryListRoute");
 const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
 const V2_Querydata = require("./V2_QueryData/v2_QueryBdDevData");
 const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
+const V2_reactionRoute = require("./V2_ReactionRoute/V2_reactionRoute");
 const userRoute_V2 = require("./users_V2");
 
 
@@ -66,6 +67,7 @@ module.exports = function (app) {
     app.use("/devrec/", V2_DeviceRecord);  
     app.use("/query/", V2_Querydata);  
     app.use("/v2bddevsetting/", V2_bdDevSetting);  
+    app.use("/v2reaction/", V2_reactionRoute);  
     
     
     
