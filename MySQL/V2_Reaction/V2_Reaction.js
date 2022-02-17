@@ -139,7 +139,7 @@ async function insertFormulaTemplate(info) {
     let result = await insertTemplate(db, createTable, insertData, "InsertNewUserFinally");
     // console.log("insertFormula rel: ", result);
     if(!result) return false    // insert error
-    if(result.affectedRows > 0 && result.insertId > 0) return true
+    if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
     // console.log("Insert Error");
     return false;   // insert no row effec
 }
@@ -170,18 +170,18 @@ async function updateFormula(info, _id){
 }
 
 /** Select   */
-async function getOneInaciveFormulaBy_UserId (user_id){
+async function getOneInaciveFormula (){
     try {
-        const quertCmd = `SELECT * from ${FormulaTable} WHERE user_id = ${user_id} and active = 0 limit 1`;
+        const quertCmd = `SELECT * from ${FormulaTable} WHERE active = 0 limit 1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getOneInaciveFormulaBy_UserId Finally");
+        let result = await queryTemplate(db, quertCmd, "getOneInaciveFormula Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log("Error : getOneInaciveFormulaBy_UserId");
+        console.log("Error : getOneInaciveFormula");
         console.log(error.message)
         return null;       
     }
@@ -189,7 +189,7 @@ async function getOneInaciveFormulaBy_UserId (user_id){
 
 async function getFormulaBy_UserId (user_id){
     try {
-        const quertCmd = `SELECT * from ${FormulaTable} WHERE user_id = ${user_id}`;
+        const quertCmd = `SELECT * from ${FormulaTable} WHERE user_id = ${user_id} and active=1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getFormulaBy_UserId Finally");
@@ -211,7 +211,7 @@ exports.getForTemplateBy_id=getForTemplateBy_id;
 exports.getForVarBy_condi_id=getForVarBy_condi_id;
 exports.setFulfillmentCnt=setFulfillmentCnt;
 /** formula */
-exports.getOneInaciveFormulaBy_UserId=getOneInaciveFormulaBy_UserId;
+exports.getOneInaciveFormula=getOneInaciveFormula;
 exports.insertFormulaTemplate=insertFormulaTemplate;
 exports.updateFormula=updateFormula;
 exports.getFormulaBy_UserId=getFormulaBy_UserId;
