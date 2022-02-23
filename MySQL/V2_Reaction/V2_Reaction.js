@@ -154,7 +154,7 @@ async function updateFormula(info, _id){
             name = "${info.name}",
             active = 1
             where _id = ${_id}`;
-        console.log("quertCmd", quertCmd);
+        // console.log("quertCmd", quertCmd);
         
         let result = await queryTemplate(db, quertCmd, "updateFormula Finally");
         // console.log(result);

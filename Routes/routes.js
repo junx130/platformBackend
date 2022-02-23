@@ -29,6 +29,7 @@ const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
 const V2_Querydata = require("./V2_QueryData/v2_QueryBdDevData");
 const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
 const V2_reactionRoute = require("./V2_ReactionRoute/V2_reactionRoute");
+const V2_act_tele = require("./V2_Action/TeleRoute/V2_Act_TeleRoute");
 const userRoute_V2 = require("./users_V2");
 
 
@@ -46,6 +47,8 @@ module.exports = function (app) {
     app.use("/diag/batt/", battDiag);
     app.use("/present/area/", areaList_V2);
     app.use("/present/sum/", sumList_V2);
+    app.use("/action/tele/", V2_act_tele);
+    
 
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
