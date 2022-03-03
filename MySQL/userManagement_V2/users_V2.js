@@ -148,7 +148,7 @@ function genLoginToken(user) {
         email: user.email,
         active:user.active,
         user_id : user._id,
-    }, process.env.jwtPrivateKey, { expiresIn: '10m' });
+    }, process.env.jwtPrivateKey, { expiresIn: '60m' });
     return token;
 }
 

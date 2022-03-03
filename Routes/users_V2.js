@@ -62,13 +62,13 @@ router.post("/setuseractive", async (req, res) => {
         if (userinfo) {
             // if (userinfo.active) return res.status(202).send("Account already active.");
             let email = await getUserByEmail(userinfo.email);
-            if (email) return res.status(202).send("Account already activated.");
+            if (email) return res.status(203).send("Account already activated.");
             if (userinfo.iat + 7200 > moment().unix() ) {
                 // let result = await setUserActive(info.actToken);
                 await regUser(userinfo);
                 return res.status(200).send("Validate done");
             }
-            else return res.status(201).send("Link expired.");
+            else return res.status(203).send("Link expired.");
         }
         else return res.status(404).send("Token not found");
     } catch (error) {
