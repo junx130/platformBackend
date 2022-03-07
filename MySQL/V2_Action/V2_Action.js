@@ -59,6 +59,24 @@ async function getActiveActTeleSubByAct_id (act_tele_id){
     }
 }
 
+async function getActiveAction(){
+    let fnName = "getActiveAction";
+    try {        
+        const quertCmd = `SELECT * from ${ActionTable} WHERE inUse=1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${fnName} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`Error : ${fnName}`);
+        console.log(error.message)
+        return null;       
+    }
+}
+
 exports.getActiveActionByAlgo_id=getActiveActionByAlgo_id;
 exports.getActiveActTeleByAct_id=getActiveActTeleByAct_id;
-exports.getActiveActTeleSubByAct_id=getActiveActTeleSubByAct_id;
+exports.getActiveActTeleSubByAct_id = getActiveActTeleSubByAct_id;
+exports.getActiveAction = getActiveAction;

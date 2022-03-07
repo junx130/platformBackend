@@ -31,6 +31,7 @@ const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
 const V2_reactionRoute = require("./V2_ReactionRoute/V2_reactionRoute");
 const V2_act_tele = require("./V2_Action/TeleRoute/V2_Act_TeleRoute");
 const userRoute_V2 = require("./users_V2");
+const V2_actionRoute = require("./V2_Action/V2_Action");
 
 
 const error= require("../Middleware/error")
@@ -71,6 +72,7 @@ module.exports = function (app) {
     app.use("/query/", V2_Querydata);  
     app.use("/v2bddevsetting/", V2_bdDevSetting);  
     app.use("/v2reaction/", V2_reactionRoute);  
+    app.use("/v2action/", V2_actionRoute);
     
     
     
