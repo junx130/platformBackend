@@ -93,6 +93,7 @@ async function insertAlgo(info) {
             timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             unix INT(11) NOT NULL,
             algo varchar(255),
+            algoName varchar(80),
             notifyMsg varchar(255),
             user_id int,
             bd_id int,
@@ -107,8 +108,8 @@ async function insertAlgo(info) {
             PRIMARY KEY (_id)
         );`;
     
-        const insertData = `INSERT INTO ${AlgoTable} (unix, algo, notifyMsg , user_id, bd_id, bdDevInvolve, starttime, endtime, trigRefreshTime, repeatWeekly, triggerMode)
-        VALUES (UNIX_TIMESTAMP(), "${info.algo}", "${info.notifyMsg}", ${info.user_id}, ${info.bd_id}, "${info.bdDevInvolve}", "${info.starttime}", "${info.endtime}","${info.trigRefreshTime}", ${info.repeatWeekly}, ${info.triggerMode});`;
+        const insertData = `INSERT INTO ${AlgoTable} (unix, algo, algoName, notifyMsg , user_id, bd_id, bdDevInvolve, starttime, endtime, trigRefreshTime, repeatWeekly, triggerMode)
+        VALUES (UNIX_TIMESTAMP(), "${info.algo}", "${info.algoName}", "${info.notifyMsg}", ${info.user_id}, ${info.bd_id}, "${info.bdDevInvolve}", "${info.starttime}", "${info.endtime}","${info.trigRefreshTime}", ${info.repeatWeekly}, ${info.triggerMode});`;
         // console.log("insertData: ", insertData);
         
         let result = await insertTemplate(v2ReactionDb, createTable, insertData, "insertAlgo");
@@ -129,6 +130,7 @@ async function updateAlgo(info, _id){
         const quertCmd = `UPDATE ${AlgoTable} SET 
             unix=UNIX_TIMESTAMP(),
             algo = "${info.algo}",
+            algoName = "${info.algoName}",
             notifyMsg = "${info.notifyMsg}",
             user_id = ${info.user_id},
             bd_id  = ${info.bd_id },
