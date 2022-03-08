@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { getSingleNotInuse_Common } = require("../../MySQL/V2_DbCommon/V2_dbCommon");
-const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar } = require("../../MySQL/V2_Reaction/V2_Reaction");
+const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id } = require("../../MySQL/V2_Reaction/V2_Reaction");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
 router.post("/formula/savenew", auth, async (req, res) => {    
@@ -170,19 +170,7 @@ const compileForVarInfo=(varSymbol, template_id, condition_id, var_n)=>{
         varSymbol,
         dataKey:var_n.paraKey,
     }
-    return forVarInfo;
-    /**
-     * 
-     * | name           // not in use       
-     * | template_id        cd_for_id
-     * | condition_id       return form condi insert
-     * | bddev_id           cd_var_<x>._id
-     * | varSymbol          'x', 'y'
-     * | dataKey            cd_var_<x>.paraKey
-     * | lastUpdate_unix 
-     * | fulfillmentCnt |
-     * 
-     * */
+    return forVarInfo;    
 }
 
 
@@ -219,5 +207,55 @@ router.post("/algo/insert", auth, async (req, res) => {
         return res.status(203).send({errMsg: "Database Error (Exp)"});        
     }
 });
+
+
+/** get algo related info by algo_id */
+router.post("/algo/getbyalgo_id", auth, async (req, res) => {    
+    try {
+        let {algo_id} = req.body;
+        // console.log("body", body);
+        /** get algo list by algo_id */
+        let algoList = await getAlgoBy_id(algo_id)
+        console.log("algoList", algoList);
+        if(notArrOrEmptyArr(algoList)) return res.status(203).send({errMsg:'Query Event Error (DB)'});
+        // if(condiErr) return res.status(203).send({errMsg:'Insert Condition Error (DB)'});
+        /** get confition list base on algoList[0] */
+        let condiList = await getGetCondition_byAlgo_id(algoList[0]._id);
+        if(notArrOrEmptyArr(condiList)) return res.status(203).send({errMsg:'Query Condition List Error (DB)'});
+        console.log("condiList", condiList);
+        let involveSensorList = [];
+        let formulaList = [];
+        for (const eachCondi of condiList) {
+            /** input type is formula */
+            if(eachCondi.inputType===2){    
+                /** query formula info  */
+                let formulaRel = await getFormulaBy_Id(eachCondi.input_id);
+                if(notArrOrEmptyArr(formulaRel)) continue;
+                formulaList.push(formulaRel[0]);
+            }
+            
+        }
+        /** for each condition, 
+         * 1. if input type is formula, query condition 
+         * 2. query input sensor info also (add to sensor list)
+         * 2. if output type is sensor, sensor info (add to sensor list)
+         * */
+        
+
+        /** query sensor info by list */
+
+
+
+
+        return res.status(200).send({success:true, algoInfo:algoList[0], condiList, formulaList});        
+    } catch (error) {
+        console.log("getbyuserid : ", error.message);
+        return res.status(203).send({errMsg: "Database Error (Exp)"});        
+    }
+});
+
+
+
+
 
 module.exports = router;
