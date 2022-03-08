@@ -235,16 +235,16 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
         console.log("condiList", condiList);
         let involveSensorList = [];
         let formulaList = [];
-        for (const eachCondi of condiList) {
-            /** input type is formula */
-            if (eachCondi.inputType === 2) {
-                /** query formula info  */
-                let formulaRel = await getFormulaBy_Id(eachCondi.input_id);
-                if (notArrOrEmptyArr(formulaRel)) continue;
-                formulaList.push(formulaRel[0]);
-            }
+        // for (const eachCondi of condiList) {
+        //     /** input type is formula */
+        //     if (eachCondi.inputType === 2) {
+        //         /** query formula info  */
+        //         let formulaRel = await getFormulaBy_Id(eachCondi.input_id);
+        //         if (notArrOrEmptyArr(formulaRel)) continue;
+        //         formulaList.push(formulaRel[0]);
+        //     }
 
-        }
+        // }
         /** for each condition, 
          * 1. if input type is formula, query condition 
          * 2. query input sensor info also (add to sensor list)

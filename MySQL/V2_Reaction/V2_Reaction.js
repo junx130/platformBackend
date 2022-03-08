@@ -198,7 +198,7 @@ async function getAlgoActiveByUserAndBd(info) {
 
 async function getAlgoBy_id(algo_id) {
     try {
-        const quertCmd = `SELECT * from ${AlgoTable} WHERE _id = ${algo_id} and active=1`;
+        const quertCmd = `SELECT * from ${AlgoTable} WHERE _id = ${algo_id} and inUse=1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
         let result = await queryTemplate(v2ReactionDb, quertCmd, "getAlgoBy_id Finally");
