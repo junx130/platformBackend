@@ -164,7 +164,7 @@ async function updateAlgo(info, _id) {
 
 async function getAlgoBy_bdDev_id(bdDev_id) {
     try {
-        const quertCmd = `SELECT * from ${AlgoTable} WHERE bdDevInvolve like "%,${bdDev_id},%"`;
+        const quertCmd = `SELECT * from ${AlgoTable} WHERE bdDevInvolve like "%,${bdDev_id},%" and active=1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
         let result = await queryTemplate(v2ReactionDb, quertCmd, "getAlgoBy_bdDev_id Finally");
@@ -191,6 +191,23 @@ async function getAlgoActiveByUserAndBd(info) {
         return rtnResult;
     } catch (error) {
         console.log("Error : getAlgoActiveByUserAndBd");
+        console.log(error.message)
+        return null;
+    }
+}
+
+async function getAlgoBy_id(algo_id) {
+    try {
+        const quertCmd = `SELECT * from ${AlgoTable} WHERE _id = ${algo_id} and active=1`;
+        // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
+        // console.log(quertCmd);
+        let result = await queryTemplate(v2ReactionDb, quertCmd, "getAlgoBy_id Finally");
+        // console.log(result);
+        if (!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b => b);
+        return rtnResult;
+    } catch (error) {
+        console.log("Error : getAlgoBy_id");
         console.log(error.message)
         return null;
     }
@@ -300,6 +317,22 @@ async function getFormulaBy_UserId(user_id) {
     }
 }
 
+async function getFormulaBy_Id(_id) {
+    try {
+        const quertCmd = `SELECT * from ${FormulaTable} WHERE _id = ${_id} and active=1`;
+        // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
+        // console.log(quertCmd);
+        let result = await queryTemplate(v2ReactionDb, quertCmd, "getFormulaBy_UserId Finally");
+        // console.log(result);
+        if (!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b => b);
+        return rtnResult;
+    } catch (error) {
+        console.log("Error : getFormulaBy_UserId");
+        console.log(error.message)
+        return null;
+    }
+}
 
 
 /******************* condi *************** */
@@ -452,14 +485,15 @@ exports.FormulaVarTable = FormulaVarTable;
 
 /** algo */
 exports.getAlgoBy_bdDev_id = getAlgoBy_bdDev_id;
-exports.getGetCondition_byAlgo_id = getGetCondition_byAlgo_id;
 exports.insertAlgo = insertAlgo;
 exports.updateAlgo = updateAlgo;
+exports.getAlgoBy_id = getAlgoBy_id;
 exports.getAlgoActiveByUserAndBd = getAlgoActiveByUserAndBd;
 
 /** condi */
 exports.insertCondi = insertCondi;
 exports.updateCondi = updateCondi;
+exports.getGetCondition_byAlgo_id = getGetCondition_byAlgo_id;
 
 /** for var */
 exports.getForTemplateBy_id = getForTemplateBy_id;
@@ -474,3 +508,4 @@ exports.getOneInaciveFormula = getOneInaciveFormula;
 exports.insertFormulaTemplate = insertFormulaTemplate;
 exports.updateFormula = updateFormula;
 exports.getFormulaBy_UserId = getFormulaBy_UserId;
+exports.getFormulaBy_Id = getFormulaBy_Id;
