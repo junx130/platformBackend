@@ -164,7 +164,7 @@ async function updateAlgo(info, _id) {
 
 async function getAlgoBy_bdDev_id(bdDev_id) {
     try {
-        const quertCmd = `SELECT * from ${AlgoTable} WHERE bdDevInvolve like "%,${bdDev_id},%" and active=1`;
+        const quertCmd = `SELECT * from ${AlgoTable} WHERE bdDevInvolve like "%,${bdDev_id},%" and inUse=1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
         let result = await queryTemplate(v2ReactionDb, quertCmd, "getAlgoBy_bdDev_id Finally");
@@ -215,7 +215,7 @@ async function getAlgoBy_id(algo_id) {
 
 async function getGetCondition_byAlgo_id(algo_id) {
     try {
-        const quertCmd = `SELECT * from ${ConditionTable} WHERE algo_id = ${algo_id}`;
+        const quertCmd = `SELECT * from ${ConditionTable} WHERE algo_id = ${algo_id} and inUse = 1;`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
         let result = await queryTemplate(v2ReactionDb, quertCmd, "getGetCondition_byAlgo_id Finally");

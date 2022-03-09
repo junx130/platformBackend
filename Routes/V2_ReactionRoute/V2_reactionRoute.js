@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { getSingleNotInuse_Common } = require("../../MySQL/V2_DbCommon/V2_dbCommon");
-const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id, getAlgoActiveByUserAndBd } = require("../../MySQL/V2_Reaction/V2_Reaction");
-const { notArrOrEmptyArr } = require("../../utilities/validateFn");
+const { getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id, getAlgoActiveByUserAndBd, getForVarBy_condi_id } = require("../../MySQL/V2_Reaction/V2_Reaction");
+const { notArrOrEmptyArr, pushUnique } = require("../../utilities/validateFn");
 
 router.post("/formula/savenew", auth, async (req, res) => {
     try {
@@ -226,38 +227,54 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
         // console.log("body", body);
         /** get algo list by algo_id */
         let algoList = await getAlgoBy_id(algo_id)
-        console.log("algoList", algoList);
+        // console.log("algoList", algoList);
         if (notArrOrEmptyArr(algoList)) return res.status(203).send({ errMsg: 'Query Event Error (DB)' });
         // if(condiErr) return res.status(203).send({errMsg:'Insert Condition Error (DB)'});
         /** get confition list base on algoList[0] */
         let condiList = await getGetCondition_byAlgo_id(algoList[0]._id);
         if (notArrOrEmptyArr(condiList)) return res.status(203).send({ errMsg: 'Query Condition List Error (DB)' });
-        console.log("condiList", condiList);
+        // console.log("condiList", condiList);
         let involveSensorList = [];
         let formulaList = [];
-        // for (const eachCondi of condiList) {
-        //     /** input type is formula */
-        //     if (eachCondi.inputType === 2) {
-        //         /** query formula info  */
-        //         let formulaRel = await getFormulaBy_Id(eachCondi.input_id);
-        //         if (notArrOrEmptyArr(formulaRel)) continue;
-        //         formulaList.push(formulaRel[0]);
-        //     }
+        let formulaVarList = [];
+        for (const eachCondi of condiList) {
+            /** input type is formula */
+            if (eachCondi.inputType === 2) {
+                /** query formula template info  */
+                let formulaRel = await getFormulaBy_Id(eachCondi.input_id);
+                if (notArrOrEmptyArr(formulaRel)) continue;
+                formulaList.push(formulaRel[0]);
+                /** query formula variable list */
+                let forVar = await getForVarBy_condi_id(eachCondi._id);
+                if (notArrOrEmptyArr(forVar)) continue;
+                for (const eachVar of forVar) {
+                    involveSensorList = pushUnique(involveSensorList, eachVar.bddev_id);
+                    // involveSensorList.pushUnique(eachVar.bddev_id);
+                }
+                formulaVarList.push(...forVar);
+                console.log("forVar", forVar);
+            }else if(eachCondi.inputType === 1){
+                /** input type is sensor, insert get involve sensor info list */
+                console.log("eachCondi (sensor type) : ", eachCondi);
+                involveSensorList = pushUnique(involveSensorList, eachCondi.input_id);
+                // involveSensorList.pushUnique(eachCondi.input_id);
+            }
 
-        // }
-        /** for each condition, 
-         * 1. if input type is formula, query condition 
-         * 2. query input sensor info also (add to sensor list)
-         * 2. if output type is sensor, sensor info (add to sensor list)
-         * */
+            /** insert involve bdDev if output is sensor */
+            if(eachCondi.spBdDev_id) involveSensorList = pushUnique(involveSensorList, eachCondi.spBdDev_id);
+        }
 
+        /** query sensor info by involveSensorList */
+        let bdDevList = await getBddevBy_idList(involveSensorList);        
 
-        /** query sensor info by list */
-
-
-
-
-        return res.status(200).send({ success: true, algoInfo: algoList[0], condiList, formulaList });
+        return res.status(200).send({ 
+            success: true, 
+            algoInfo: algoList[0], 
+            condiList, 
+            formulaList,
+            formulaVarList,
+            bdDevList,
+        });
     } catch (error) {
         console.log("getbyuserid : ", error.message);
         return res.status(203).send({ errMsg: "Database Error (Exp)" });
