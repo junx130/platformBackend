@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
+const { getSensorParaBy_TypeList } = require("../../MySQL/SensorManagement/sensorManagement");
 const { getSingleNotInuse_Common } = require("../../MySQL/V2_DbCommon/V2_dbCommon");
 const { getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id, getAlgoActiveByUserAndBd, getForVarBy_condi_id } = require("../../MySQL/V2_Reaction/V2_Reaction");
@@ -109,7 +110,7 @@ const handleCondi = async (eachCondi, algo_id) => {
                 condi_id = notInuse[0]._id;
             }
         }
-        console.log("eachCondi", eachCondi);
+        // console.log("eachCondi", eachCondi);
 
 
         /** value type skip insert formula variable */
@@ -122,15 +123,15 @@ const handleCondi = async (eachCondi, algo_id) => {
             // console.log("curVar.name", curVar.name);
             let forVarInfo = compileForVarInfo(eachVarSym, eachCondi.input_id, condi_id, curVar);
             if (forVarInfo.bddev_id === 0 || !forVarInfo.bddev_id) continue;
-            console.log("forVarInfo", forVarInfo);
+            // console.log("forVarInfo", forVarInfo);
             /** insert to for var DB ??? */
             let forVarrel = await handleForVar(forVarInfo);
-            console.log("forVarrel", forVarrel);
+            // console.log("forVarrel", forVarrel);
             if (!forVarrel) return false;
-            console.log("Reach Here");
+            // console.log("Reach Here");
         }
 
-        console.log("Goint to be TRUE");
+        // console.log("Goint to be TRUE");
         return true;
     } catch (error) {
         console.log(error.message);
@@ -145,12 +146,12 @@ const handleForVar = async (forVarInfo) => {
         if (notArrOrEmptyArr(notInuse)) {
             /** all accupy, insert */
             let insertRel = await insertForVar(forVarInfo);
-            console.log("insertRel", insertRel);
+            // console.log("insertRel", insertRel);
             if (!insertRel.success) queryErr = true;
         } else {
             /** some not inuse, update */
             let updatRel = await updateForVar(forVarInfo, notInuse[0]._id);
-            console.log("updatRel", updatRel);
+            // console.log("updatRel", updatRel);
             if (!updatRel) queryErr = true;
         }
         return !queryErr;
@@ -186,15 +187,15 @@ router.post("/algo/insert", auth, async (req, res) => {
         if (err) return res.status(203).send({ errMsg: 'Insert Event Error (DB)' });
 
         /***** Inser into V2_ReactCondition ************* */
-        console.log("algo_id", algo_id)
+        // console.log("algo_id", algo_id)
         let condiErr = false;
         for (const eachCondi of Condi_info) {
-            console.log("~~~~~~~eachCondi counting~~~~", eachCondi);
+            // console.log("~~~~~~~eachCondi counting~~~~", eachCondi);
             let condiRel = await handleCondi(eachCondi, algo_id)
-            console.log("*********condiRel****************", condiRel);
+            // console.log("*********condiRel****************", condiRel);
             if (!condiRel) condiErr = true;
         }
-        console.log();
+        // console.log();
         if (condiErr) return res.status(203).send({ errMsg: 'Insert Condition Error (DB)' });
 
         /** Inser into V2_ReactFormulaVarTable; */
@@ -252,10 +253,10 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
                     // involveSensorList.pushUnique(eachVar.bddev_id);
                 }
                 formulaVarList.push(...forVar);
-                console.log("forVar", forVar);
+                // console.log("forVar", forVar);
             }else if(eachCondi.inputType === 1){
                 /** input type is sensor, insert get involve sensor info list */
-                console.log("eachCondi (sensor type) : ", eachCondi);
+                // console.log("eachCondi (sensor type) : ", eachCondi);
                 involveSensorList = pushUnique(involveSensorList, eachCondi.input_id);
                 // involveSensorList.pushUnique(eachCondi.input_id);
             }
@@ -267,6 +268,15 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
         /** query sensor info by involveSensorList */
         let bdDevList = await getBddevBy_idList(involveSensorList);        
 
+        /** get parameter name */
+        let tyList = [];
+        for (const eachDev of bdDevList) {
+            let found = tyList.find(c=>c===eachDev.type);
+            if(!found) tyList.push(eachDev.type);
+        }
+        // console.log("tyList", tyList);
+        let sensorParaList = await getSensorParaBy_TypeList(tyList);
+
         return res.status(200).send({ 
             success: true, 
             algoInfo: algoList[0], 
@@ -274,6 +284,7 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
             formulaList,
             formulaVarList,
             bdDevList,
+            sensorParaList,
         });
     } catch (error) {
         console.log("getbyuserid : ", error.message);
