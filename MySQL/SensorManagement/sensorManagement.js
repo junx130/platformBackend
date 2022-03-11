@@ -1,3 +1,4 @@
+const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 const { insertTemplate, queryTemplate } = require("../queryData");
 
 
@@ -149,6 +150,7 @@ async function getSensorList_ByVendorId(vendor_id){
 
 async function getSensorParaBy_TypeList(typeList){
     try {
+        if(notArrOrEmptyArr(typeList)) return [];
         let sList = '';
         for (const iterator of typeList) {
             if(sList!=='') sList+=', '
