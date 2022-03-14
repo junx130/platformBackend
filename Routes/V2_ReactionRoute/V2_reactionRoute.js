@@ -201,6 +201,8 @@ router.post("/algo/insert", auth, async (req, res) => {
         /** Inser into V2_ReactFormulaVarTable; */
         // let result = await getFormulaBy_UserId(user_id);
         // if(!result) return res.status(203).send([]);    // catch error
+
+        /** insert into action, telegram */
         return res.status(200).send({ success: true });
     } catch (error) {
         console.log("getbyuserid : ", error.message);
@@ -276,6 +278,12 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
         }
         // console.log("tyList", tyList);
         let sensorParaList = await getSensorParaBy_TypeList(tyList);
+
+        /********* load action involve **********/
+        /** telegram */
+        /** load V2_tele_AlgoSubList */
+
+
 
         return res.status(200).send({ 
             success: true, 
