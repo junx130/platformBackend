@@ -12,5 +12,15 @@ function pushUnique(arr, obj){
     return _arr;
 }
 
+function isEmptyObject(obj){
+    for (const key in obj) {
+        if (Object.hasOwnProperty.call(obj, key)) {
+            return false
+        }
+    }
+    return true;
+}
+
+exports.isEmptyObject=isEmptyObject;
 exports.notArrOrEmptyArr = notArrOrEmptyArr;
 exports.pushUnique=pushUnique;

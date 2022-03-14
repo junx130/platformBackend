@@ -1,34 +1,66 @@
+const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 const { insertTemplate, queryTemplate } = require("../queryData");
 
-const db = "V2_Action";
+const V2_actionDb = "V2_Action";
 
 const contactTable = 'V2_tele_contactList';
 const groupTable = 'V2_tele_groupList';
 const contactUnderGroupTable = 'V2_tele_contactUnderGroup';
 const bdDefSubListTable = 'V2_tele_bdDefaultSubList';
+const teleEventSubListTable = 'V2_tele_AlgoSubList';
+
 
 async function insertTeleContactList(contactInfo, user_id) {    
-    const createTable = `CREATE TABLE IF NOT EXISTS ${contactTable}(	
-        _id int NOT NULL AUTO_INCREMENT,
-        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        unix INT(11) NOT NULL,
-        name varchar(40),
-        chatId varchar(20),
-        addByUser_id int,
-        inUse tinyint default 1,
-        PRIMARY KEY (_id)
-    );`;
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${contactTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            name varchar(40),
+            chatId varchar(20),
+            addByUser_id int,
+            inUse tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
 
-    const insertData = `INSERT INTO ${contactTable} (unix, name, chatId, addByUser_id)
-    VALUES (UNIX_TIMESTAMP(), "${contactInfo.name}", "${contactInfo.chatId}", ${user_id});`;
-    // console.log("insertData: ", insertData);
-    
-    let result = await insertTemplate(db, createTable, insertData, "insertTeleContactList");
-    // console.log("insertFormula rel: ", result);
-    if(!result) return false    // insert error
-    if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
-    // console.log("Insert Error");
-    return false;   // insert no row effec
+        const insertData = `INSERT INTO ${contactTable} (unix, name, chatId, addByUser_id)
+        VALUES (UNIX_TIMESTAMP(), "${contactInfo.name}", "${contactInfo.chatId}", ${user_id});`;
+        // console.log("insertData: ", insertData);
+        
+        let result = await insertTemplate(V2_actionDb, createTable, insertData, "insertTeleContactList");
+        // console.log("insertFormula rel: ", result);
+        if(!result) return false    // insert error
+        if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
+        // console.log("Insert Error");
+        return false;   // insert no row effec
+        
+    } catch (error) {
+        console.log("insertTeleContactList Err : ", error.message);
+        return false
+    }  
+}
+
+async function getTeleContactListBy_IdList(_idList){
+    try {
+        if(notArrOrEmptyArr(_idList)) return [];
+        let sList = '';
+        for (const iterator of _idList) {
+            if(sList!=='') sList+=', '
+            sList+=iterator;
+        }        
+        const quertCmd = `SELECT * from ${contactTable} WHERE 
+        _id in (${sList}) and inUse = 1;
+        `;
+        // console.log(quertCmd);
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getTeleContactListBy_IdList Done");
+        if(!result[0]) return [];     // no item found in list
+        const rows = result.map(b=>b);
+        // console.log(rows);
+        return rows;    
+    } catch (error) {
+        console.log("getTeleContactListBy_IdList Error", error.message);
+        return [];
+    }
 }
 
 
@@ -38,7 +70,7 @@ async function checkName_ChatID_duplicated (contact, user_id){
         const quertCmd = `SELECT * from ${contactTable} WHERE (name = "${contact.name}" or chatId = "${contact.chatId}") and addByUser_id=${user_id} and inUse = 1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "checkName_ChatID_duplicated Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "checkName_ChatID_duplicated Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -56,7 +88,7 @@ async function getSingleNotInuse (){
         const quertCmd = `SELECT * from ${contactTable} WHERE inUse = 0 limit 1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getSingleNotInuse Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getSingleNotInuse Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -74,7 +106,7 @@ async function getInuseContactbyUser_id (user_id){
         const quertCmd = `SELECT * from ${contactTable} WHERE inUse = 1 and addByUser_id=${user_id}`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getInuseContactbyUser_id Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getInuseContactbyUser_id Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -90,7 +122,7 @@ async function getInuseContactby_id (_id){
         const quertCmd = `SELECT * from ${contactTable} WHERE inUse = 1 and _id=${_id}`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getInuseContactby_id Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getInuseContactby_id Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -107,7 +139,7 @@ async function getInuseGroupbyUser_id (user_id){
         const quertCmd = `SELECT * from ${groupTable} WHERE inUse = 1 and addByUser_id=${user_id}`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getInuseGroupbyUser_id Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getInuseGroupbyUser_id Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -123,7 +155,7 @@ async function getInuseGroupby_id (_id){
         const quertCmd = `SELECT * from ${groupTable} WHERE inUse = 1 and _id=${_id}`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getInuseGroupby_id Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getInuseGroupby_id Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -133,6 +165,30 @@ async function getInuseGroupby_id (_id){
         return [];       
     }
 }
+
+async function getTeleGroupListBy_IdList(_idList){
+    try {
+        if(notArrOrEmptyArr(_idList)) return [];
+        let sList = '';
+        for (const iterator of _idList) {
+            if(sList!=='') sList+=', '
+            sList+=iterator;
+        }        
+        const quertCmd = `SELECT * from ${groupTable} WHERE 
+        _id in (${sList}) and inUse = 1;
+        `;
+        // console.log(quertCmd);
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getTeleGroupListBy_IdList Done");
+        if(!result[0]) return [];     // no item found in list
+        const rows = result.map(b=>b);
+        // console.log(rows);
+        return rows;    
+    } catch (error) {
+        console.log("getTeleGroupListBy_IdList Error", error.message);
+        return [];
+    }
+}
+
 
 
 async function updateContactList(info, user_id, _id){
@@ -146,7 +202,7 @@ async function updateContactList(info, user_id, _id){
             where _id = ${_id}`;
         // console.log("quertCmd", quertCmd);
         
-        let result = await queryTemplate(db, quertCmd, "updateContactList Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "updateContactList Finally");
         // console.log(result);
         if(!result || !result.affectedRows) return null;
         if(result.affectedRows > 0 ) return true;
@@ -176,7 +232,7 @@ async function insertGroupTable(groupName, user_id) {
         VALUES (UNIX_TIMESTAMP(), "${groupName}", ${user_id});`;
         // console.log("insertData: ", insertData);
         
-        let result = await insertTemplate(db, createTable, insertData, "insertGroupTable");
+        let result = await insertTemplate(V2_actionDb, createTable, insertData, "insertGroupTable");
         // console.log("insertFormula rel: ", result);
         if(!result) return false    // insert error
         if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
@@ -206,7 +262,7 @@ async function insertContactUnderGroup(group_id, contact_id, user_id) {
         VALUES (UNIX_TIMESTAMP(), ${group_id}, ${contact_id}, ${user_id});`;
         // console.log("insertData: ", insertData);
         
-        let result = await insertTemplate(db, createTable, insertData, "insertContactUnderGroup");
+        let result = await insertTemplate(V2_actionDb, createTable, insertData, "insertContactUnderGroup");
         // console.log("insertFormula rel: ", result);
         if(!result) return false    // insert error
         if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
@@ -225,7 +281,7 @@ async function getBdDefSubBy_bd_id (bd_id){
         const quertCmd = `SELECT * from ${bdDefSubListTable} WHERE inUse = 1 and bd_id=${bd_id}`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "getBdDefSubBy_bd_id Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getBdDefSubBy_bd_id Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -246,7 +302,7 @@ async function setNotInuseDefSub(bd_id, subType, sub_id){
             sub_id = ${sub_id} `;
         // console.log("quertCmd", quertCmd);
         
-        let result = await queryTemplate(db, quertCmd, "setNotInuseDefSub Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "setNotInuseDefSub Finally");
         // console.log(result);
         if(!result || !result.affectedRows) return null;
         if(result.affectedRows > 0 ) return true;
@@ -263,7 +319,7 @@ async function selectNotInuseDefSub (){
         const quertCmd = `SELECT * from ${bdDefSubListTable} WHERE inUse = 0 limit 1`;
         // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
         // console.log(quertCmd);
-        let result = await queryTemplate(db, quertCmd, "selectNotInuseDefSub Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "selectNotInuseDefSub Finally");
         // console.log(result);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -292,7 +348,7 @@ async function insertDefSub(bd_id, subType, sub_id, user_id) {
         VALUES (UNIX_TIMESTAMP(), ${bd_id}, ${subType}, ${sub_id}, ${user_id});`;
         // console.log("insertData: ", insertData);
         
-        let result = await insertTemplate(db, createTable, insertData, "insertDefSub finally");
+        let result = await insertTemplate(V2_actionDb, createTable, insertData, "insertDefSub finally");
         // console.log("insertFormula rel: ", result);
         if(!result) return false    // insert error
         if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
@@ -315,7 +371,7 @@ async function updateAsInUseDefSub(bd_id, subType, sub_id, _id){
             where _id = ${_id}`;
         // console.log("quertCmd", quertCmd);
         
-        let result = await queryTemplate(db, quertCmd, "updateAsInUseDefSub Finally");
+        let result = await queryTemplate(V2_actionDb, quertCmd, "updateAsInUseDefSub Finally");
         // console.log(result);
         if(!result || !result.affectedRows) return null;
         if(result.affectedRows > 0 ) return true;
@@ -327,17 +383,101 @@ async function updateAsInUseDefSub(bd_id, subType, sub_id, _id){
     }
 }
 
+/** Tele event subscribe list  */
+async function insertTeleEventSub(info) {
+    console.log("insert info", info);
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${teleEventSubListTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            algo_id int,
+            subType smallint,
+            sub_id int,
+            addByUser_id int,
+            inUse tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+    
+        const insertData = `INSERT INTO ${teleEventSubListTable} (unix, algo_id, subType, sub_id, addByUser_id)
+        VALUES (UNIX_TIMESTAMP(), ${info.algo_id}, ${info.subType}, ${info.sub_id}, ${info.addByUser_id});`;
+        // console.log("insertData: ", insertData);
+        
+        let result = await insertTemplate(V2_actionDb, createTable, insertData, "insertTeleEventSub finally");
+        // console.log("insertFormula rel: ", result);
+        if(!result) return false    // insert error
+        if(result.affectedRows > 0 && result.insertId > 0) return {success:true, insertId:result.insertId}
+        // console.log("Insert Error");
+        return false;   // insert no row effec
+    } catch (error) {
+        console.log("insertTeleEventSub Err : ", error.message);
+        return false
+    }    
+}
 
+async function updateTeleEventSub(info, _id){    
+    console.log("update info", info);
+    try {
+        const quertCmd = `UPDATE ${teleEventSubListTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            inUse = 1, 
+            algo_id = ${info.algo_id},
+            subType = ${info.subType},
+            sub_id = ${info.sub_id},
+            addByUser_id = ${info.addByUser_id}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+        
+        let result = await queryTemplate(V2_actionDb, quertCmd, "updateTeleEventSub Finally");
+        // console.log(result);
+        if(!result || !result.affectedRows) return null;
+        if(result.affectedRows > 0 ) return true;
+        return null       
+
+    } catch (error) {
+        console.log("Error : updateTeleEventSub", error.message);
+        return null;       
+    }
+}
+
+async function getTeleEventSubBy_Algo_id (algo_id){
+    try {
+        const quertCmd = `SELECT * from ${teleEventSubListTable} WHERE inUse = 1 and algo_id=${algo_id}`;
+        // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
+        // console.log(quertCmd);
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getTeleEventSubBy_Algo_id Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log("Error : getTeleEventSubBy_Algo_id", error.message);
+        return [];
+    }
+}
+
+
+
+
+/** variable */
+exports.teleEventSubListTable=teleEventSubListTable;
+exports.V2_actionDb=V2_actionDb;
+
+/** contact list */
 exports.updateContactList=updateContactList;
 exports.insertTeleContactList =insertTeleContactList;
+exports.getTeleContactListBy_IdList=getTeleContactListBy_IdList;
+
 exports.checkName_ChatID_duplicated=checkName_ChatID_duplicated;
 exports.getSingleNotInuse=getSingleNotInuse;
 exports.getInuseContactbyUser_id=getInuseContactbyUser_id;
 exports.getInuseContactby_id=getInuseContactby_id;
-exports.getInuseGroupby_id=getInuseGroupby_id;
 
+/** Tele group */
+exports.getInuseGroupby_id=getInuseGroupby_id;
 exports.getInuseGroupbyUser_id=getInuseGroupbyUser_id;
 exports.insertGroupTable=insertGroupTable;
+exports.getTeleGroupListBy_IdList=getTeleGroupListBy_IdList;
 
 exports.insertContactUnderGroup=insertContactUnderGroup;
 
@@ -346,3 +486,7 @@ exports.setNotInuseDefSub=setNotInuseDefSub;
 exports.insertDefSub=insertDefSub;
 exports.selectNotInuseDefSub=selectNotInuseDefSub;
 exports.updateAsInUseDefSub=updateAsInUseDefSub;
+
+exports.insertTeleEventSub=insertTeleEventSub;
+exports.updateTeleEventSub=updateTeleEventSub;
+exports.getTeleEventSubBy_Algo_id=getTeleEventSubBy_Algo_id;
