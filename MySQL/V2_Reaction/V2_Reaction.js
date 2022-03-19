@@ -413,6 +413,22 @@ async function updateCondi(info, _id, algo_id) {
     }
 }
 
+async function updateCondi_inUse(_id, inUse) {
+    try {
+        const quertCmd = `UPDATE ${ConditionTable} SET inUse = ${inUse} where _id = ${_id}`;
+
+        let result = await queryTemplate(v2ReactionDb, quertCmd, "updateCondi_inUse Finally");
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log("Error : updateCondi", error.message);
+        return null;
+    }
+}
+
 
 /******************* forVar *************** */
 /** insert */
@@ -494,6 +510,7 @@ exports.getAlgoActiveByUserAndBd = getAlgoActiveByUserAndBd;
 exports.insertCondi = insertCondi;
 exports.updateCondi = updateCondi;
 exports.getGetCondition_byAlgo_id = getGetCondition_byAlgo_id;
+exports.updateCondi_inUse = updateCondi_inUse;
 
 /** for var */
 exports.getForTemplateBy_id = getForTemplateBy_id;
