@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { getSensorParaBy_TypeList } = require("../../MySQL/SensorManagement/sensorManagement");
-const { insertTeleEventSub, V2_actionDb, teleEventSubListTable, updateTeleEventSub, getTeleEventSubBy_Algo_id, getTeleContactListBy_IdList, getTeleGroupListBy_IdList } = require("../../MySQL/V2_Action/V2_Tele");
+const { insertTeleEventSub, V2_actionDb, teleEventSubListTable, updateTeleEventSub, getTeleEventSubBy_Algo_id, getTeleContactListBy_IdList, getTeleGroupListBy_IdList, updateTeleEventSub_inUse } = require("../../MySQL/V2_Action/V2_Tele");
 const { getSingleNotInuse_Common, inserOrUpdate_Common } = require("../../MySQL/V2_DbCommon/V2_dbCommon");
 const { getBddevBy_idList } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id, getAlgoActiveByUserAndBd, getForVarBy_condi_id } = require("../../MySQL/V2_Reaction/V2_Reaction");
+const { getOneInaciveFormula, insertFormulaTemplate, updateFormula, getFormulaBy_UserId, v2ReactionDb, AlgoTable, insertAlgo, updateAlgo, ConditionTable, insertCondi, updateCondi, FormulaVarTable, insertForVar, updateForVar, getAlgoBy_id, getGetCondition_byAlgo_id, getFormulaBy_Id, getAlgoActiveByUserAndBd, getForVarBy_condi_id, updateCondi_inUse, updateForVar_inUse } = require("../../MySQL/V2_Reaction/V2_Reaction");
 const { notArrOrEmptyArr, pushUnique, isEmptyObject } = require("../../utilities/validateFn");
 
 router.post("/formula/savenew", auth, async (req, res) => {
@@ -162,6 +162,43 @@ const handleForVar = async (forVarInfo) => {
     }
 }
 
+const handleTele = async (algo_id, Algo_Info, actTele_info) => {
+    try {
+            // console.log("Is Telegram");
+            let insertActTeleErr = false;
+            if (actTele_info.defSubSeleced) {
+                let info_obj = {
+                    algo_id: algo_id,
+                    subType: 3,
+                    sub_id: 0,
+                    addByUser_id: Algo_Info.user_id,
+                }
+                let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
+                console.log("insertupdaterel", insertOrUpdateRel);
+                if (!insertOrUpdateRel) insertActTeleErr = true;
+            }
+
+            // subList.push();     // subType 3 == default group
+            for (const eachSub of actTele_info.teleSubList) {
+                let info_obj = {
+                    algo_id: algo_id,
+                    subType: eachSub.subType,
+                    sub_id: eachSub.sub_id,
+                    addByUser_id: Algo_Info.user_id,
+                }
+                let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
+                console.log("insertupdaterel", insertOrUpdateRel);
+                if (!insertOrUpdateRel) insertActTeleErr = true;
+            }
+            console.log("insertActTeleErr", insertActTeleErr);
+            if (insertActTeleErr) return false;
+            return true;
+    } catch (error) {
+        console.log(error.message);
+        return false
+    }
+}
+
 const compileForVarInfo = (varSymbol, template_id, condition_id, var_n) => {
     let forVarInfo = {
         name: var_n.name,
@@ -183,7 +220,7 @@ router.post("/algo/insert", auth, async (req, res) => {
         // console.log("Condi_info", Condi_info);
         // console.log("actTele_info", actTele_info);
         // return res.status(203).send({ errMsg: 'Testing return' });
-        
+
         /*************** insert algo **************/
         let { algo_id, err } = await handleAlgo(Algo_Info);
         if (err) return res.status(203).send({ errMsg: 'Insert Event Error (DB)' });
@@ -201,36 +238,41 @@ router.post("/algo/insert", auth, async (req, res) => {
         if (condiErr) return res.status(203).send({ errMsg: 'Insert Condition Error (DB)' });
 
         /** insert into action, telegram */
-        console.log("Reach Telegram");
-        if(!isEmptyObject(actTele_info)){   /** telegram selected */
-            console.log("Is Telegram");
-            let subList = []
-            let insertActTeleErr=false;
-            if(actTele_info.defSubSeleced) {
-                let info_obj = { 
-                    algo_id: algo_id, 
-                    subType: 3, 
-                    sub_id: 0 ,
-                    addByUser_id: Algo_Info.user_id, 
-                }
-                let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
-                if(!insertOrUpdateRel) insertActTeleErr=true;
-            }
+        // console.log("Reach Telegram");
+        if (!isEmptyObject(actTele_info)) { 
+            let teleRel = await handleTele(algo_id, Algo_Info, actTele_info);
+            if(!teleRel) return res.status(203).send({ errMsg: 'Insert telegram subscriber(s) error' });
+        }
 
-            // subList.push();     // subType 3 == default group
-            for (const eachSub of actTele_info.teleSubList) {
-                let info_obj = { 
-                    algo_id: algo_id, 
-                    subType: eachSub.subType, 
-                    sub_id: eachSub.sub_id ,
-                    addByUser_id: Algo_Info.user_id, 
-                }
-                let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
-                if(!insertOrUpdateRel) insertActTeleErr=true;
-            }
-            console.log("subList", subList);
-            if (insertActTeleErr) return res.status(203).send({ errMsg: 'Insert telegram subscriber(s) error' });
-        } 
+        // if (!isEmptyObject(actTele_info)) {   /** telegram selected */
+        //     // console.log("Is Telegram");
+        //     let subList = []
+        //     let insertActTeleErr = false;
+        //     if (actTele_info.defSubSeleced) {
+        //         let info_obj = {
+        //             algo_id: algo_id,
+        //             subType: 3,
+        //             sub_id: 0,
+        //             addByUser_id: Algo_Info.user_id,
+        //         }
+        //         let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
+        //         if (!insertOrUpdateRel) insertActTeleErr = true;
+        //     }
+
+        //     // subList.push();     // subType 3 == default group
+        //     for (const eachSub of actTele_info.teleSubList) {
+        //         let info_obj = {
+        //             algo_id: algo_id,
+        //             subType: eachSub.subType,
+        //             sub_id: eachSub.sub_id,
+        //             addByUser_id: Algo_Info.user_id,
+        //         }
+        //         let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
+        //         if (!insertOrUpdateRel) insertActTeleErr = true;
+        //     }
+        //     console.log("subList", subList);
+        //     if (insertActTeleErr) return res.status(203).send({ errMsg: 'Insert telegram subscriber(s) error' });
+        // }
 
         return res.status(200).send({ success: true });
     } catch (error) {
@@ -240,11 +282,11 @@ router.post("/algo/insert", auth, async (req, res) => {
 });
 
 
-const insertOrUpdateDb=async ()=>{
+const insertOrUpdateDb = async () => {
     // insertTeleEventSub
     // let notInuse = await getSingleNotInuse_Common(V2_actionDb, teleEventSubListTable);
     let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, {}, updateTeleEventSub, {});
-    
+
 }
 
 router.post("/algo/getactivebyuserbd", auth, async (req, res) => {
@@ -293,7 +335,7 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
                 }
                 formulaVarList.push(...forVar);
                 // console.log("forVar", forVar);
-            }else if(eachCondi.inputType === 1){
+            } else if (eachCondi.inputType === 1) {
                 /** input type is sensor, insert get involve sensor info list */
                 // console.log("eachCondi (sensor type) : ", eachCondi);
                 involveSensorList = pushUnique(involveSensorList, eachCondi.input_id);
@@ -301,30 +343,30 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
             }
 
             /** insert involve bdDev if output is sensor */
-            if(eachCondi.spBdDev_id) involveSensorList = pushUnique(involveSensorList, eachCondi.spBdDev_id);
+            if (eachCondi.spBdDev_id) involveSensorList = pushUnique(involveSensorList, eachCondi.spBdDev_id);
         }
 
         /** query sensor info by involveSensorList */
-        let bdDevList = await getBddevBy_idList(involveSensorList);        
+        let bdDevList = await getBddevBy_idList(involveSensorList);
 
         /** get parameter name */
         let tyList = [];
         for (const eachDev of bdDevList) {
-            let found = tyList.find(c=>c===eachDev.type);
-            if(!found) tyList.push(eachDev.type);
+            let found = tyList.find(c => c === eachDev.type);
+            if (!found) tyList.push(eachDev.type);
         }
         // console.log("tyList", tyList);
         let sensorParaList = await getSensorParaBy_TypeList(tyList);
 
         /********* load action involve **********/
-        /** telegram */        
+        /** telegram */
         let act_teleList = await getTeleEventSubBy_Algo_id(algo_id);
-        let teleUserList=[];
-        let teleGroupList=[];
+        let teleUserList = [];
+        let teleGroupList = [];
         for (const eachSub of act_teleList) {
-            if(eachSub.subType===1){    /** contact type */
+            if (eachSub.subType === 1) {    /** contact type */
                 teleUserList.push(eachSub.sub_id);
-            }else if(eachSub.subType===2){    /** group type */
+            } else if (eachSub.subType === 2) {    /** group type */
                 teleGroupList.push(eachSub.sub_id);
             }
         }
@@ -333,10 +375,10 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
         /** get tele group by list */
         let actTele_groupList = await getTeleGroupListBy_IdList(teleGroupList)
 
-        return res.status(200).send({ 
-            success: true, 
-            algoInfo: algoList[0], 
-            condiList, 
+        return res.status(200).send({
+            success: true,
+            algoInfo: algoList[0],
+            condiList,
             formulaList,
             formulaVarList,
             bdDevList,
@@ -351,7 +393,87 @@ router.post("/algo/getbyalgo_id", auth, async (req, res) => {
     }
 });
 
+router.post("/algo/edit", auth, async (req, res) => {
+    try {
+        console.log(req.body);
+        let { algo_id, Algo_Info, Condi_info, actTele_info } = req.body;
+        // console.log("algoid", algo_id);
+        // console.log("body", Algo_Info);
+        // console.log("Condi_info", Condi_info);
+        // console.log("actTele_info", actTele_info);
+        
+        //algo
+        let updateAlgoRel = await updateAlgo(Algo_Info, algo_id);
+        if (!updateAlgoRel) return res.status(203).send({ errMsg: 'Update Algo Error (DB)' });
 
+        //condi
+        const condiIdxList = ["A", "B", "C", "X", "Y", "Z"];
+        let allCondi = await getGetCondition_byAlgo_id(algo_id);
+        for(const condiIdx of condiIdxList) {
+            let uiFound = Condi_info.find(c=> c.condIdx === condiIdx);
+	        let dbFound =  allCondi.find(c=> c.condIdx === condiIdx);
+
+            if(!notArrOrEmptyArr(dbFound) && dbFound.length > 1) {
+                for(let i = 1; i < dbFound.length; i++) {
+                    let result = await updateCondi_inUse(dbFound[i]._id, 0);
+                    if (!result) return res.status(203).send({ errMsg: 'Update Condi Not InUse Error (DB)' });
+                }
+            }
+
+	        if (uiFound && dbFound){
+	            //update
+                console.log("update");
+                let updateCondiRel = await updateCondi(uiFound, dbFound._id, algo_id);
+                if (!updateCondiRel) return res.status(203).send({ errMsg: 'Update Condi Error (DB)' });
+                let updateForVarRel = await updateForVar_inUse(dbFound._id, 0);
+                // if (!updateForVarRel) return res.status(203).send({ errMsg: 'Update ForVar Not InUse Error (DB)' });
+
+                if (uiFound.inputType == 2) {
+                    /** save into formulaVar */
+                    for (const eachVarSym of C_varList) {
+                        let curVar = uiFound[`cd_var_${eachVarSym}`];
+                        console.log(`${eachVarSym} :  ${curVar}`);
+                        if(!curVar) continue;
+                        // console.log("curVar.name", curVar.name);
+                        let forVarInfo = compileForVarInfo(eachVarSym, uiFound.input_id, dbFound._id, curVar);
+                        if (forVarInfo.bddev_id === 0 || !forVarInfo.bddev_id) continue;
+                        // console.log("forVarInfo", forVarInfo);
+                        /** insert to for var DB ??? */
+                        let forVarrel = await handleForVar(forVarInfo);
+                        // console.log("forVarrel", forVarrel);
+                        if (!forVarrel) return res.status(203).send({ errMsg: 'handleForVar Error (DB)' });;
+                        // console.log("Reach Here");
+                    }
+                }
+	        }else if (uiFound && !dbFound) {
+                //add
+                console.log("add");
+                let forVarrel = await handleCondi(uiFound, algo_id);
+                if (!forVarrel) return res.status(203).send({ errMsg: 'Insert Condi Error (DB)' });
+            } 
+	        else if (!uiFound && dbFound) {
+                //delete
+                console.log("delete");
+                let result = await updateCondi_inUse(dbFound._id, 0);
+                if (!result) return res.status(203).send({ errMsg: 'Update Condi Not InUse Error (DB)' });
+            }
+
+        }
+        
+        //tele
+        if (!isEmptyObject(actTele_info)) { 
+            let updateTeleRel = await updateTeleEventSub_inUse(algo_id, 0);
+            if(!updateTeleRel) return res.status(203).send({ errMsg: 'Update Tele Not InUse Error (DB)' });
+
+            let handleTeleRel = await handleTele(algo_id, Algo_Info, actTele_info);
+            if(!handleTeleRel) return res.status(203).send({ errMsg: 'Update telegram subscriber(s) error' });
+        }
+        return res.status(200).send({ success: true });
+    } catch (error) {
+        console.log("/algo/edit : ", error.message);
+        return res.status(203).send({ errMsg: "Database Error (Exp)" });
+    }
+});
 
 
 
