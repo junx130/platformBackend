@@ -213,6 +213,7 @@ async function getAlgoBy_id(algo_id) {
     }
 }
 
+
 async function getGetCondition_byAlgo_id(algo_id) {
     try {
         const quertCmd = `SELECT * from ${ConditionTable} WHERE algo_id = ${algo_id} and inUse = 1;`;

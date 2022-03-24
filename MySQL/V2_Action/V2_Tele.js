@@ -275,6 +275,22 @@ async function insertContactUnderGroup(group_id, contact_id, user_id) {
     
 }
 
+async function getContactUnderGroupBy_teleGroup_id (teleGroup_id){
+    try {
+        const quertCmd = `SELECT * from ${contactUnderGroupTable} WHERE inUse = 1 and teleGroup_id=${teleGroup_id}`;
+        // select * from V2_ReactTrigAlgo where bdDevInvolve like "%,6,%";
+        // console.log(quertCmd);
+        let result = await queryTemplate(V2_actionDb, quertCmd, "getContactUnderGroupBy_teleGroup_id Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log("Error : getContactUnderGroupBy_teleGroup_id", error.message);
+        return {errMsg:"Load telegram group member error (DB)"};
+    }
+}
+
 
 async function getBdDefSubBy_bd_id (bd_id){
     try {
@@ -385,7 +401,7 @@ async function updateAsInUseDefSub(bd_id, subType, sub_id, _id){
 
 /** Tele event subscribe list  */
 async function insertTeleEventSub(info) {
-    console.log("insert info", info);
+    // console.log("insert info", info);
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${teleEventSubListTable}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -416,7 +432,7 @@ async function insertTeleEventSub(info) {
 }
 
 async function updateTeleEventSub(info, _id){    
-    console.log("update info", info);
+    // console.log("update info", info);
     try {
         const quertCmd = `UPDATE ${teleEventSubListTable} SET 
             unix=UNIX_TIMESTAMP(),
@@ -484,7 +500,6 @@ exports.V2_actionDb=V2_actionDb;
 exports.updateContactList=updateContactList;
 exports.insertTeleContactList =insertTeleContactList;
 exports.getTeleContactListBy_IdList=getTeleContactListBy_IdList;
-
 exports.checkName_ChatID_duplicated=checkName_ChatID_duplicated;
 exports.getSingleNotInuse=getSingleNotInuse;
 exports.getInuseContactbyUser_id=getInuseContactbyUser_id;
@@ -496,8 +511,11 @@ exports.getInuseGroupbyUser_id=getInuseGroupbyUser_id;
 exports.insertGroupTable=insertGroupTable;
 exports.getTeleGroupListBy_IdList=getTeleGroupListBy_IdList;
 
+/** contact under group */
 exports.insertContactUnderGroup=insertContactUnderGroup;
+exports.getContactUnderGroupBy_teleGroup_id=getContactUnderGroupBy_teleGroup_id;
 
+/** default sub list */
 exports.getBdDefSubBy_bd_id=getBdDefSubBy_bd_id;
 exports.setNotInuseDefSub=setNotInuseDefSub;
 exports.insertDefSub=insertDefSub;

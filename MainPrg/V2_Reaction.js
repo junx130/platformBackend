@@ -4,12 +4,13 @@
  */
 
 const { getActiveActionByAlgo_id, getActiveActTeleByAct_id, getActiveActTeleSubByAct_id } = require("../MySQL/V2_Action/V2_Action");
+const { getTeleEventSubBy_Algo_id, getBdDefSubBy_bd_id, getContactUnderGroupBy_teleGroup_id, getTeleContactListBy_IdList } = require("../MySQL/V2_Action/V2_Tele");
 const { getBddevBy_idList } = require("../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastN, v2GetBdDevData_T1_T2 } = require("../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getAlgoBy_bdDev_id, getGetCondition_byAlgo_id, getForTemplateBy_id, getForVarBy_condi_id, setFulfillmentCnt, setForVarFulfillmentCnt } = require("../MySQL/V2_Reaction/V2_Reaction");
 const { v2_sendNotifyMsg } = require("../notification/v2_telegram");
 const { intTimeToTime, checkBetweenTime, intToDOWSelected, getDow_0_6, momentNow, _unixNow } = require("../utilities/timeFn");
-const { notArrOrEmptyArr } = require("../utilities/validateFn");
+const { notArrOrEmptyArr, pushUnique } = require("../utilities/validateFn");
 const { cvrtDbKeyToRawKey } = require("./sensorKeyDBKeyMapping");
 
 const dataExpiredTime_s = 600;
@@ -160,7 +161,7 @@ async function handleCondi_Var(eachCondi, lastData, ScheActiveNow){
         
         if(!inputVal) return {errMsg:"no input value"};     /** cannot get input value */
         // console.log(inputVal);
-        /** handle operator(Variable) here ??? */
+        /** handle operator(Variable) here */
         // console.log("Type of : ", typeof(eachCondi.operator));
         if(typeof(eachCondi.operator) !== "string") return {errMsg:"Operator Not Valid"}
         let grdFound = eachCondi.operator.indexOf("grd");
@@ -330,7 +331,7 @@ async function handleCondi_For(eachCondi, lastData, ScheActiveNow){
         let formulaAns = calcFn(x,y,z,a,b,c);
         // console.log("formulaAns", formulaAns);
         // console.log("eachCondi", eachCondi);
-        /** handle operator(formula) here ??? */
+        /** handle operator(formula) here */
         let sCondiEval = `${formulaAns} ${eachCondi.operator} ${eachCondi.setpoint}`
         // console.log("Formula Eval : ", sCondiEval);
         try {
@@ -382,7 +383,7 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
             if(eachCondi.occurBuffer === eachCondi.fulfillmentCnt){
                 if(currCondiInvolve) bTrigAllow = true;   /** Occur Buffer = 2, Prevent 3, 3(new in), 2 false alarm*/ 
             }
-            /** bug here, if C keep at occurBuffer value, A / B keep come in, will trigger Action also ??? Test 33(new)2 bug*/
+            /** bug here, if C keep at occurBuffer value, A / B keep come in, will trigger Action also*/
         }else if(eachAlgo.triggerMode === 1){   // always trigger mode
             bTrigAllow = true;      
         }
@@ -404,6 +405,76 @@ async function EvaluateAlgo(eachAlgo, updatedCondiList){
         return
     }
 }
+
+
+async function act_tele_handling(algo_id, bd_id, eventMessage){
+    try {        
+        if(logActive) console.log("act_tele_handling > algo_id", algo_id);
+        if(logActive) console.log("act_tele_handling > bd_id", bd_id);
+        
+        /** get telegram subscriber list subscribe to this event */
+        let teleSubList = await getTeleEventSubBy_Algo_id(algo_id);
+        if(notArrOrEmptyArr(teleSubList)) return;   /** if telegram action is not active, return */
+
+        /** get contact_id list */ 
+        let tele_contact_idList=[];
+
+        for (const eachSub of teleSubList) {    /** for each subscriber  */
+            if(eachSub.subType === 3){      /** default subscriber group */
+                /** get default subscribers for this building  */
+                let defSubList = await getBdDefSubBy_bd_id(bd_id);
+                if(notArrOrEmptyArr(defSubList)) continue;  /** skip if not an array */
+                for (const eachDefSub of defSubList) {
+                    if(eachDefSub.subType === 2){   /** default group subscriber  */
+                        /** get contact under group by sub_id*/
+                        let groupContact =  await getContactUnderGroupBy_teleGroup_id(eachDefSub.sub_id);
+                        if(notArrOrEmptyArr(groupContact)) continue;  /** skip if not an array */
+                        for (const eachContact_underGroup of groupContact) {
+                            /** insert contact_id */
+                            pushUnique(tele_contact_idList, eachContact_underGroup.teleContact_id);                            
+                        }
+                    }else if(eachDefSub.subType === 1){     /** default contact subscriber  */
+                        pushUnique(tele_contact_idList, eachDefSub.sub_id);
+                    }
+                }
+            }else if(eachSub.subType === 2){     /** additional group */
+                /** get contact under additional group */
+                let groupContact_additional =  await getContactUnderGroupBy_teleGroup_id(eachSub.sub_id);
+                if(notArrOrEmptyArr(groupContact_additional)) continue;  /** skip if not an array */
+                for (const eachAddiContact_underGroup of groupContact_additional) {
+                    /** insert contact_id */
+                    pushUnique(tele_contact_idList, eachAddiContact_underGroup.teleContact_id);                            
+                }
+            }else if(eachSub.subType === 1){     /** additional contact */
+                pushUnique(tele_contact_idList, eachSub.sub_id);
+            }
+        }
+
+        /** query telegram list by tele_contact_idList */
+        let teleContactList = await getTeleContactListBy_IdList(tele_contact_idList);
+        for (const eachTeleContact of teleContactList) {
+            await v2_sendNotifyMsg(eachTeleContact.chatId, eventMessage);
+            if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleChatId.name}`);
+        }
+
+
+        /** handle building default group, subType=3        ??? */
+            /** handle group subType=2 */
+                /** select V2_tele_contactUnderGroup, inUse = 1 ,teleGroup_id = sub_id*/
+                    /** get teleContact_id, push to tele_contact_idList */
+            /** handle contact subType=1 */
+
+        /** handle group, subType=2 */
+            /** select V2_tele_contactUnderGroup, inUse = 1 ,teleGroup_id = sub_id*/
+                /** get teleContact_id, push to tele_contact_idList */
+        /** handle contact, subType=1 */
+            /** push to tele_contact_idList */
+    } catch (error) {
+        console.log("Telegram action error : ", error.message);        
+    }
+}
+
+
 
 async function V2_Reaction(bdDev, lastData){
     try {
@@ -468,40 +539,48 @@ async function V2_Reaction(bdDev, lastData){
             if(logActive) console.log("Trigger Action : ", objTrigAction.bTrigAction);
 
             /** skip next step if triger action is not needed */
-            if(!objTrigAction.bTrigAction) continue;
+            if(!objTrigAction.bTrigAction) continue;                       
             
-            /** query V2_ActionTable by algo_id */
-            let actionList = await getActiveActionByAlgo_id(eachAlgo._id);
-            // console.log("actionList", actionList);
-            if(notArrOrEmptyArr(actionList)) continue;
 
+            /** ------------Action----------- */
+            /** ---- Telegram ---- */
+            await act_tele_handling(eachAlgo._id, eachAlgo.bd_id, eachAlgo.notifyMsg);
             
-            for (const eachAction of actionList) {
-                switch (eachAction.actionType) {
-                    case "Act_Tele":        // handle telegram notification
-                        /** foreach action query V2_Act_Tele by act_id(from V2_ActionTable), switch case */
-                        let actTele_List = await getActiveActTeleByAct_id(eachAction.act_id);
-                        // console.log("actTele_List",actTele_List);
-                        if(notArrOrEmptyArr(actTele_List)) continue;
-                        for (const eachTeleList of actTele_List) {                            
-                            /** query V2_Act_Tele_Sub by _id(from V2_Act_Tele) = act_tele_id */
-                            let teleSubList = await getActiveActTeleSubByAct_id(eachTeleList._id);
-                            // console.log("teleSubList", teleSubList);
-                            if(notArrOrEmptyArr(teleSubList)) continue;
-                            for (const eachTeleChatId of teleSubList) {
-                                /** send telegram message */
-                                await v2_sendNotifyMsg(eachTeleChatId.chatId, eachAlgo.notifyMsg);
-                                if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleChatId.name}`);
-                            }                            
-                        }
-                        break;
-                
-                    default:
-                        console.log("No switch case handle");
-                        break;
-                }
-            }
 
+
+            /** xxxxxxxxxxxxxxx delete xxxxxxxxxxxxxxxxxxxxxxxxxx */
+                // /** query V2_ActionTable by algo_id */
+                // let actionList = await getActiveActionByAlgo_id(eachAlgo._id);
+                // // console.log("actionList", actionList);
+                // if(notArrOrEmptyArr(actionList)) continue;
+
+
+                // for (const eachAction of actionList) {
+                //     switch (eachAction.actionType) {
+                //         case "Act_Tele":        // handle telegram notification
+                //             /** foreach action query V2_Act_Tele by act_id(from V2_ActionTable), switch case */
+                //             let actTele_List = await getActiveActTeleByAct_id(eachAction.act_id);
+                //             // console.log("actTele_List",actTele_List);
+                //             if(notArrOrEmptyArr(actTele_List)) continue;
+                //             for (const eachTeleList of actTele_List) {                            
+                //                 /** query V2_Act_Tele_Sub by _id(from V2_Act_Tele) = act_tele_id */
+                //                 let teleSubList = await getActiveActTeleSubByAct_id(eachTeleList._id);
+                //                 // console.log("teleSubList", teleSubList);
+                //                 if(notArrOrEmptyArr(teleSubList)) continue;
+                //                 for (const eachTeleChatId of teleSubList) {
+                //                     /** send telegram message */
+                //                     await v2_sendNotifyMsg(eachTeleChatId.chatId, eachAlgo.notifyMsg);
+                //                     if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleChatId.name}`);
+                //                 }                            
+                //             }
+                //             break;
+                    
+                //         default:
+                //             console.log("No switch case handle");
+                //             break;
+                //     }
+                // }
+            /** xxxxxxxxxxxxxxx delete xxxxxxxxxxxxxxxxxxxxxxxxxx */
     
         }
     } catch (error) {
