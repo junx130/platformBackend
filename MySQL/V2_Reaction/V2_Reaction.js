@@ -492,6 +492,22 @@ async function updateForVar(info, _id) {
     }
 }
 
+async function updateForVar_inUse(_id, inUse) {
+    try {
+        const quertCmd = `UPDATE ${FormulaVarTable} SET inUse = ${inUse} where condition_id = ${_id}`;
+
+        let result = await queryTemplate(v2ReactionDb, quertCmd, "updateForVar_inUse Finally");
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log("Error : updateForVar_inUse", error.message);
+        return null;
+    }
+}
+
 /** variable */
 exports.v2ReactionDb = v2ReactionDb;
 exports.AlgoTable = AlgoTable;
@@ -519,6 +535,7 @@ exports.setFulfillmentCnt = setFulfillmentCnt;
 exports.setForVarFulfillmentCnt = setForVarFulfillmentCnt;
 exports.insertForVar = insertForVar;
 exports.updateForVar = updateForVar;
+exports.updateForVar_inUse = updateForVar_inUse;
 
 /** formula */
 exports.getOneInaciveFormula = getOneInaciveFormula;

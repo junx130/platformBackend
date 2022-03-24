@@ -440,6 +440,23 @@ async function updateTeleEventSub(info, _id){
     }
 }
 
+async function updateTeleEventSub_inUse(_id, inUse){
+    try {
+        const quertCmd = `UPDATE ${teleEventSubListTable} SET inUse = ${inUse} where algo_id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+        
+        let result = await queryTemplate(V2_actionDb, quertCmd, "updateTeleEventSub_inUse Finally");
+        // console.log(result);
+        if(!result || !result.affectedRows) return null;
+        if(result.affectedRows > 0 ) return true;
+        return null       
+
+    } catch (error) {
+        console.log("Error : updateTeleEventSub_inUse", error.message);
+        return null;       
+    }
+}
+
 async function getTeleEventSubBy_Algo_id (algo_id){
     try {
         const quertCmd = `SELECT * from ${teleEventSubListTable} WHERE inUse = 1 and algo_id=${algo_id}`;
@@ -489,4 +506,5 @@ exports.updateAsInUseDefSub=updateAsInUseDefSub;
 
 exports.insertTeleEventSub=insertTeleEventSub;
 exports.updateTeleEventSub=updateTeleEventSub;
+exports.updateTeleEventSub_inUse = updateTeleEventSub_inUse;
 exports.getTeleEventSubBy_Algo_id=getTeleEventSubBy_Algo_id;
