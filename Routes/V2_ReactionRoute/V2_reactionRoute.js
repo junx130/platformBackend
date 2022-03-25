@@ -179,16 +179,18 @@ const handleTele = async (algo_id, Algo_Info, actTele_info) => {
             }
 
             // subList.push();     // subType 3 == default group
-            for (const eachSub of actTele_info.teleSubList) {
-                let info_obj = {
-                    algo_id: algo_id,
-                    subType: eachSub.subType,
-                    sub_id: eachSub.sub_id,
-                    addByUser_id: Algo_Info.user_id,
+            if(!notArrOrEmptyArr(actTele_info.teleSubList)) {
+                for (const eachSub of actTele_info.teleSubList) {
+                    let info_obj = {
+                        algo_id: algo_id,
+                        subType: eachSub.subType,
+                        sub_id: eachSub.sub_id,
+                        addByUser_id: Algo_Info.user_id,
+                    }
+                    let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
+                    console.log("insertupdaterel", insertOrUpdateRel);
+                    if (!insertOrUpdateRel) insertActTeleErr = true;
                 }
-                let insertOrUpdateRel = await inserOrUpdate_Common(V2_actionDb, teleEventSubListTable, insertTeleEventSub, info_obj, updateTeleEventSub, info_obj);
-                console.log("insertupdaterel", insertOrUpdateRel);
-                if (!insertOrUpdateRel) insertActTeleErr = true;
             }
             console.log("insertActTeleErr", insertActTeleErr);
             if (insertActTeleErr) return false;
@@ -463,7 +465,7 @@ router.post("/algo/edit", auth, async (req, res) => {
         //tele
         if (!isEmptyObject(actTele_info)) { 
             let updateTeleRel = await updateTeleEventSub_inUse(algo_id, 0);
-            if(!updateTeleRel) return res.status(203).send({ errMsg: 'Update Tele Not InUse Error (DB)' });
+            // if(!updateTeleRel) return res.status(203).send({ errMsg: 'Update Tele Not InUse Error (DB)' });
 
             let handleTeleRel = await handleTele(algo_id, Algo_Info, actTele_info);
             if(!handleTeleRel) return res.status(203).send({ errMsg: 'Update telegram subscriber(s) error' });
