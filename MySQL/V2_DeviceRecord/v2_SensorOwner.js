@@ -18,7 +18,7 @@ async function getAreaInfoBy_id (area_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -32,7 +32,7 @@ async function getAreaByOwner_id (owner_id, selectedBuilding){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -50,7 +50,7 @@ async function getBdInfoBy_id (buidling_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -65,7 +65,7 @@ async function getBuildingByOwner_id (owner_id){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -81,7 +81,7 @@ async function getSensorOwnerBy_TydevID (Info){
         const rtnResult = result.map(b=>b);
         return rtnResult;       
     } catch (error) {
-        console.log(ex.message)
+        console.log(error.message)
         return null;       
     }
 }
@@ -236,6 +236,22 @@ async function getBddevBy_idList (a_list){
     }
 }
 
+async function getBdList_byid (bd_idList){
+    try {
+        let bd_id = bd_idList.toString();
+        const quertCmd = `SELECT * from ${buildingTableName} WHERE _id IN (${bd_id});`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBdList_byid Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
@@ -249,3 +265,5 @@ exports.getBdInfoBy_id = getBdInfoBy_id;
 exports.getBuildingByOwner_id=getBuildingByOwner_id;
 exports.insertV2_OwnerList_bdDev=insertV2_OwnerList_bdDev;
 exports.getSensorOwnerBy_TydevID = getSensorOwnerBy_TydevID;
+
+exports.getBdList_byid = getBdList_byid;

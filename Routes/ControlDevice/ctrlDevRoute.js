@@ -75,7 +75,7 @@ router.post("/getnfromx", auth, async (req, res) => {
         // getNRel.itemCount = count;
         // console.log(getNRel);          
         let fbData = [{totalCount:count}, ...getNRel]
-        res.status(200).send(fbData);       // ??? 
+        res.status(200).send(fbData);       // 
     } catch (error) {
         console.log("Get N Control Dev Error");
         return res.status(404).send(ex.message);    

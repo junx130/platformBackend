@@ -248,7 +248,7 @@ async function checkNotification(bdDev){
             // get telegram ID
             let building= await getBuildingName(bdDev.buildingID);
             let teleDB = await getTelegramListById(notifyItem.userID, building._id);
-            console.log(teleDB);
+            // console.log(teleDB);
             if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
             
             // console.log("building");

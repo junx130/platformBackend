@@ -76,7 +76,7 @@ async function getItemCount(){
     }
 }
 
-async function getNCtrlDevFromX(Info){      // ???
+async function getNCtrlDevFromX(Info){      // 
     // console.log(Info);
     const quertCmd = `SELECT * from ${tableName} order by unix desc limit ${Info.x}, ${Info.n}`;
     // console.log(quertCmd);

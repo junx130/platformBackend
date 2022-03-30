@@ -28,7 +28,7 @@ async function insertTemplate(db, createTable, insertData, completeMessage){
     result = await connection.query(`use ${db}`);
     result = await connection.query(createTable);
     result = await connection.query(insertData);
-    // console.log("Insert Data:", result);
+    // if(!process.env.skipDbLog) console.log("Insert Data:", result);
     return result;
   } catch (ex) {
     console.log("Maria DB Error", ex.message);

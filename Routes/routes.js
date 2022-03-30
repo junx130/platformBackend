@@ -26,7 +26,12 @@ const devMgnt_V2= require("./devMgnt_V2/regDev_V2")
 const areaList_V2= require("./present_V2/areaListRoute")
 const sumList_V2= require("./present_V2/summaryListRoute");
 const V2_DeviceRecord= require("./V2_DeviceRecord/v2_DeviceRecordRoute");
-
+const V2_Querydata = require("./V2_QueryData/v2_QueryBdDevData");
+const V2_bdDevSetting = require('./V2_DeviceRecord/v2_bdDevSetting');
+const V2_reactionRoute = require("./V2_ReactionRoute/V2_reactionRoute");
+const V2_act_tele = require("./V2_Action/TeleRoute/V2_Act_TeleRoute");
+const userRoute_V2 = require("./users_V2");
+const V2_actionRoute = require("./V2_Action/V2_Action");
 
 
 const error= require("../Middleware/error")
@@ -43,6 +48,8 @@ module.exports = function (app) {
     app.use("/diag/batt/", battDiag);
     app.use("/present/area/", areaList_V2);
     app.use("/present/sum/", sumList_V2);
+    app.use("/action/tele/", V2_act_tele);
+    
 
     app.use("/api/", queryRoute);
     app.use("/users/", userRoute);
@@ -62,8 +69,14 @@ module.exports = function (app) {
     app.use("/sensormng/", sensorManagement);   
     app.use("/devmngv2/", devMgnt_V2);    
     app.use("/devrec/", V2_DeviceRecord);  
+    app.use("/query/", V2_Querydata);  
+    app.use("/v2bddevsetting/", V2_bdDevSetting);  
+    app.use("/v2reaction/", V2_reactionRoute);  
+    app.use("/v2action/", V2_actionRoute);
     
     
+    
+    app.use("/user/", userRoute_V2);
     
     
     

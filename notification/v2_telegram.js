@@ -1,8 +1,6 @@
-process.env.NTBA_FIX_319 = 1;
-
 const TelegramBot = require('node-telegram-bot-api');
 
-const token = process.env.telegramToken;
+const token = process.env.v2_telegramToken;
 
 // console.log(token);
 // Create a bot that uses 'polling' to fetch new updates
@@ -37,5 +35,5 @@ sendTelegramMsg=async (teleID, msg)=>{
     }
 }
 
-exports.sendNotifyMsg = sendTelegramMsg;
-exports.prgTelegram = prgTelegram;
+exports.v2_sendNotifyMsg = sendTelegramMsg;
+exports.v2_prgTelegram = prgTelegram;
