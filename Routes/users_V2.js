@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email_username } = require("../MySQL/userManagement_V2/users_V2");
+const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email } = require("../MySQL/userManagement_V2/users_V2");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -18,13 +18,13 @@ router.post("/register/validation", async (req, res) => {
         // console.log(req.body);
         const{error} = validateRegUser(req.body);
     
-        if (error) return res.status(400).send(error.details[0].message);
+        if (error) return res.status(203).send(error.details[0].message);
         // check database, no username is not overlap
         let email = await getUserByEmail(req.body.email);
         // console.log("USer :", user);
-        if (email) return res.status(401).send("Email exist.");
-        let user = await getUserByUsername(req.body.username);
-        if (user) return res.status(402).send("Username exist.");
+        if (email) return res.status(203).send("Email exist.");
+        // let user = await getUserByUsername(req.body.username);
+        // if (user) return res.status(402).send("Username exist.");
         // encrypt password
         const salt = await bcrypt.genSalt(10);
         // console.log("Salt: ", salt);
@@ -39,7 +39,7 @@ router.post("/register/validation", async (req, res) => {
 
         let validationLink = `http://localhost:3000/register/validation/${activationToken}`;
         let email_rel = await sendValidationEmail(userInfo.email, validationLink);
-        // console.log(email_rel);
+        console.log(email_rel);
         return res.status(200).send("OK");
         
         // const token = genAuthToken(userInfo);
@@ -124,7 +124,7 @@ router.post("/login", async (req, res) => {
     try {
         let info = req.body;
         // console.log(info);
-        let user = await getUserByUsername(info.username);
+        let user = await getUserByEmail(info.email);
         // console.log(user);
         if (!user) return res.status(204).send('User not exist');
         // check password
@@ -146,28 +146,28 @@ router.post("/forgetpassword", async (req, res) => {
     try {
         let info = req.body;
         // console.log(info);
-        if (info.username) {
-            let user = await getUserByUsername(info.username);
-            if (!user) return res.status(401).send("Username does not exist");
-            info.user_id = user._id;
-            info.email = user.email;
-        }
-        
+        // if (info.email) {
         let user = await getUserByEmail(info.email);
-        if (!user) return res.status(402).send("Email not registered");
+        if (!user) return res.status(203).send("Email not registered");
         info.user_id = user._id;
+            // info.email = user.email;
+        // }
+        
+        // let user = await getUserByEmail(info.email);
+        // if (!user) return res.status(402).send("Email not registered");
+        // info.user_id = user._id;
         let userReset = await getByUserId(info.user_id);
         if (userReset) {
-            if (userReset.sendUnix > (moment().unix() - 7200) * 1000) return res.status(403).send("On Cooldown");
+            if (userReset.sendUnix > (moment().unix() - 7200) * 1000) return res.status(203).send("On Cooldown");
         }
         const { randomBytes } = await import("crypto");
-                info.resettoken = randomBytes(20).toString('hex');
+        info.resettoken = randomBytes(20).toString('hex');
         info.sendUnix = moment().unix();
         await insertResetPassword(info);
         let resetLink = `http://localhost:3000/user/resetpw/${info.resettoken}`;
         let email_rel = await sendPassResetEmail(info.email, resetLink);
         // console.log(email_rel);
-            return res.status(200).send("Email sent");
+        return res.status(200).send("Email sent");
     } catch (error) {
         console.log("Forget Password Error");
         return res.status(404).send(error.message);
@@ -200,7 +200,8 @@ router.post("/resetpassword", async (req, res) => {
         newInfo._id = resetinfo.user_id;
         let user = await getUserByEmail(resetinfo.email);
         const validPassword = await bcrypt.compare(info.password, user.password);
-        if(!validPassword) return res.status(205).send('Repeating password.');
+        console.log(validPassword);
+        if(validPassword) return res.status(203).send("Repeating Password");
         const salt = await bcrypt.genSalt(10);
         newInfo.password = await bcrypt.hash(info.password, salt);
         let result = await updatePassword(newInfo);
@@ -218,7 +219,7 @@ router.post("/checkactivation", async (req, res) => {
     try {
         let info = req.body;
         // console.log(info);
-        let userFound = await getUserById_email_username(info);
+        let userFound = await getUserById_email(info);
         if(!userFound) return res.status(203).send({errMsg:"User Not Found"});
         // console.log(userFound);        
         return res.status(200).send({active:userFound.active});

@@ -7,7 +7,7 @@ const dbTable = "V2_Users";
 
 function validateMessage(user){    
     const schema = {       
-        username: Joi.string().required().min(6).max(30).label("Username"),
+        // username: Joi.string().required().min(6).max(30).label("Username"),
         email: Joi.string().email().max(255).required().label("Email"),
         password: Joi.string().required().min(8).max(255).label("Password"),
     }
@@ -16,8 +16,8 @@ function validateMessage(user){
 
 function validateUpdateUser(user){       
     const schema = {        
-        username: Joi.string().min(6).max(80).required(),
-        email: Joi.string().max(80).email(),
+        // username: Joi.string().min(6).max(80).required(),
+        email: Joi.string().max(80).email().required(),
         // password: Joi.string().min(8).max(80).required(),
     }
     return Joi.validate(user, schema);
@@ -62,7 +62,7 @@ async function getUserByUsername(username) {
 
 async function getUserByEmail(email) {        
     try {
-        const quertCmd = `SELECT * from ${dbTable} WHERE email = "${email}"`;
+        const quertCmd = `SELECT * from ${dbTable} WHERE email = "${email}" and active = 1`;
         let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
         return result[0];        
     } catch (ex) {
@@ -98,14 +98,13 @@ async function setUserActive(actToken) {
 async function insertUser(user) {    
     const createTable = `CREATE TABLE IF NOT EXISTS ${dbTable}(	
         _id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        username varchar(30) NOT NULL,
         email varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
         active smallint default 1
     );`;
     
-    const insertData = `INSERT INTO ${dbTable} (username, email, password) 
-    VALUES ("${user.username}", "${user.email}", "${user.password}");`;
+    const insertData = `INSERT INTO ${dbTable} (email, password) 
+    VALUES ("${user.email}", "${user.password}");`;
     
     await insertTemplate(userDatabase, createTable, insertData, "InsertNewUserFinally");
 }
@@ -135,7 +134,6 @@ async function updateActToken(info) {
 
 function genAuthToken(user) {
     const token = jwt.sign({
-        username: user.username,
         email: user.email,
         password: user.password,
     }, process.env.jwtPrivateKey);
@@ -144,7 +142,6 @@ function genAuthToken(user) {
 
 function genLoginToken(user) {
     const token = jwt.sign({
-        username: user.username,
         email: user.email,
         active:user.active,
         user_id : user._id,
@@ -163,9 +160,9 @@ function verifyToken(token) {
 }
 
 
-async function getUserById_email_username(user) {
+async function getUserById_email(user) {
     try {
-        const queryCmd = `SELECT * FROM ${dbTable} WHERE _id = "${user._id}" AND username = "${user.username}" AND email = "${user.email}"`;
+        const queryCmd = `SELECT * FROM ${dbTable} WHERE _id = "${user._id}" AND email = "${user.email}"`;
         let result = await queryTemplate(userDatabase, queryCmd, "Get User By 3 Para Finish");
         if(!Array.isArray(result) || result.length < 1) return null
         return result[0];
@@ -205,4 +202,4 @@ exports.updateActToken = updateActToken;
 exports.verifyToken = verifyToken;
 exports.genLoginToken = genLoginToken;
 exports.updatePassword = updatePassword;
-exports.getUserById_email_username = getUserById_email_username;
+exports.getUserById_email = getUserById_email;
