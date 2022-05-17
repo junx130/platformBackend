@@ -4,7 +4,8 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
 
 
@@ -338,37 +339,56 @@ router.post("/building/getbddev", auth, async (req, res) => {
         // console.log("/building/getbddev");
         // console.log(req.body);
         let {user_id, bd_id} = req.body;
+        let _user_id = user_id;
+        /** check whether this is building owner */
+        let isOwner = await getBuildingByOwner_id_bd_id(user_id, bd_id);        
+        if(notArrOrEmptyArr(isOwner)){  // not building owner
+            // check whether is share user            
+            let isShareUser = await getSharedBdBy_user_id_bd_id(user_id, bd_id);        
+            if(notArrOrEmptyArr(isShareUser)){
+                return res.status(200).send([]);    // is not valid user, return null 
+            }else{      // is a shared user, modify the user_id
+                // console.log("isShareUser", isShareUser);
+                _user_id = isShareUser[0].owner_id;
+            }
+        }
+        // [V2_DeviceRecord]> V2_OwnerList_bd;
+
+        
         /** get own device under this building */
-        let ownDev= await getBddevBy_userId_bdId(user_id, bd_id);
+        let ownDev= await getBddevBy_userId_bdId(_user_id, bd_id);
         if(!ownDev || !Array.isArray(ownDev)) return res.status(203).send({errMsg: "Database(Own) Exc Error"});
         // console.log(ownDev);
 
-        /** get shared device under this building, normally is either 1 */
-        let shareDev = await getSharedevBy_userId_bdId(user_id, bd_id);
-        if(!shareDev || !Array.isArray(shareDev)) return res.status(203).send({errMsg: "Database(Share) Exc Error"});
-        // console.log(shareDev);
-        let dev_idList=[];
-        for (const dev of shareDev) {
-            /** filter multiple shared device  */
-            let found = dev_idList.find(c=>c===dev.bdDev_id) > 0 ;
-            if(!found) dev_idList.push(dev.bdDev_id);
-        }
+        /************* Temporary remove this *************** */
+            // /** get shared device under this building, normally is either 1 */
+            // let shareDev = await getSharedevBy_userId_bdId(user_id, bd_id);
+            // if(!shareDev || !Array.isArray(shareDev)) return res.status(203).send({errMsg: "Database(Share) Exc Error"});
+            // // console.log(shareDev);
+            // let dev_idList=[];
+            // for (const dev of shareDev) {
+            //     /** filter multiple shared device  */
+            //     let found = dev_idList.find(c=>c===dev.bdDev_id) > 0 ;
+            //     if(!found) dev_idList.push(dev.bdDev_id);
+            // }
+        /**************************** */
+
         // console.log(dev_idList);
         let allDev = [...ownDev];
-        let groupSize = 20;
-        if(dev_idList.length>0){
-            /** loop to query DB part by part */
-            for (let i = 0; i < dev_idList.length; i+=groupSize) {
-                // console.log("i", i);                
-                let sliceArr = dev_idList.slice(i, i+groupSize);
-                // console.log(sliceArr);
-                let sharedList = await getBddevBy_idList(sliceArr);
-                if(!sharedList || !Array.isArray(sharedList)) return res.status(203).send({errMsg: "Database(S.Dev) Exc Error"});
-                // console.log(sharedList);
-                allDev=[...allDev, ...sharedList];
-                // console.log(allDev);
-            }
-        }        
+        // let groupSize = 20;
+        // if(dev_idList.length>0){
+        //     /** loop to query DB part by part */
+        //     for (let i = 0; i < dev_idList.length; i+=groupSize) {
+        //         // console.log("i", i);                
+        //         let sliceArr = dev_idList.slice(i, i+groupSize);
+        //         // console.log(sliceArr);
+        //         let sharedList = await getBddevBy_idList(sliceArr);
+        //         if(!sharedList || !Array.isArray(sharedList)) return res.status(203).send({errMsg: "Database(S.Dev) Exc Error"});
+        //         // console.log(sharedList);
+        //         allDev=[...allDev, ...sharedList];
+        //         // console.log(allDev);
+        //     }
+        // }        
         
         return res.status(200).send(allDev);
         
@@ -390,6 +410,78 @@ router.post("/building/getcountbddev", auth, async (req, res) => {
         
     } catch (error) {
         console.log("/building/getcountbddev Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
+
+/** Add Share User */
+router.post("/building/sharetoemaillist", auth, async (req, res) => {    
+    try {
+        let info = req.body
+        let user = req.user;
+        let emailList = [...info.emailList];
+        
+        /** get building owner */
+        let bdInfo = await getBdInfoBy_id(info.bd_id);
+        if(notArrOrEmptyArr(bdInfo)) return res.status(203).send({ errMsg: "Invalid Building Info (DB)" });
+
+        let toShareBdInfo={
+            buidling_id:info.bd_id, 
+            // user_id,        // get by email
+            owner_id:bdInfo[0].owner_id,       // 
+            grantBy:user.user_id,
+            accessLevel:info.accessLevel,
+        }
+
+        let bShareDbErr = false;
+
+        for (const eachEmail of emailList) {
+            /** get user_id of each email */ 
+            let shareUserInfo = await getUserByEmail(eachEmail);
+            if(!shareUserInfo) continue            
+            // console.log("shareUserInfo",shareUserInfo);
+
+            /** skip if share user is owner*/
+            if(shareUserInfo._id === toShareBdInfo.owner_id){
+                // console.log("Skip shared to owner");
+                continue
+            }
+
+            /** check whether user is grant by own before */
+            toShareBdInfo.user_id = shareUserInfo._id;            
+            let shareRecord = await getSharedBdBy_user_id_bd_id(shareUserInfo._id, toShareBdInfo.buidling_id, false);
+            
+            /** didnt share before, insert new */            
+            let bInsert=true;
+            let grantBy_id = 0;
+            // let prevHisRecord={};
+            if(!notArrOrEmptyArr(shareRecord)){     
+                let grantBySamePerson = shareRecord.find((c)=>c.grantBy === user.user_id);
+                if(grantBySamePerson){
+                        grantBy_id = grantBySamePerson._id;
+                        bInsert=false;
+                }                
+            }
+
+            if(bInsert){        // insert logic
+                let inserRel = await addSharedBd(toShareBdInfo);
+                // console.log("inserRel", inserRel);
+                if(!inserRel.success) bShareDbErr = true;
+            }else{      // update logic
+                let updateRel = await updateSharedBd(toShareBdInfo, grantBy_id)
+                // console.log("updateRel", updateRel);
+                if(!updateRel) bShareDbErr = true;
+            }     
+            /** get user_id and store into database */
+        }
+        
+        if(bShareDbErr) return res.status(203).send({ errMsg: "Share User Error (DB)"});
+
+        return res.status(200).send({success:true});
+        
+    } catch (error) {
+        console.log("/building/sharetoemaillist Error");
         console.log(error.message);
         return res.status(203).send({errMsg: "Server Exc Error"});   
     }
@@ -472,6 +564,34 @@ router.post("/building/getbdlistbyuid", auth, async (req, res) => {
         
     } catch (error) {
         console.log("/building/getcountbddev Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
+
+router.post("/building/getshareduserbybdiduserid", auth, async (req, res) => {    
+    try {
+        let info = req.body;
+        let user = req.user;
+        // console.log("info", info);
+        // console.log("user", user);
+        /** get shared user grant by current user */
+        let grantByList = await getShareBdInfoGrantByUser_id(user.user_id, info.bd_id);
+        // console.log("grantByList", grantByList);
+        if(!grantByList) return res.status(203).send({errMsg: "Database Error"});
+
+        for (const eachGrant of grantByList) {
+            /** fill up user email address */
+            let userInfo = await getUserBy_idList([eachGrant.user_id]);
+            // console.log("userInfo", userInfo);
+            if(notArrOrEmptyArr(userInfo)) continue;
+            eachGrant.email = userInfo[0].email;
+        }
+
+        return res.status(200).send(grantByList);
+        
+    } catch (error) {
+        console.log("/building/getshareduserbybdiduserid Error");
         console.log(error.message);
         return res.status(203).send({errMsg: "Server Exc Error"});   
     }

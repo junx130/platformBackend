@@ -1,0 +1,5 @@
+0 - Not granted
+1-10 - Owner, 1
+11-20 - Co-Owner, 11
+21-30 - Guest Admin, 21
+31-40 - Guest Viewer, 31
