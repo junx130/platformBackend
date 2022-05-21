@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
 const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
 
@@ -292,6 +292,19 @@ router.post("/sensorshared/getsharedbddevbyuseridbdid", auth, async (req, res) =
     }
 });
 
+router.post("/sensorshared/getsharedbdbyuseridbdid", auth, async (req, res) => {    
+    /** get device */
+    try {
+        let {user_id, bd_id} = req.body;
+        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
+        if(!sharedBd) return res.status(203).send({errMsg: "Database Error"});
+        return res.status(200).send(sharedBd);        
+    } catch (error) {
+        console.log("getsharedbdbyuseridbdid err : ",error.message);
+        return res.status(203).send({errMsg: "Database Error"});
+    }
+});
+
 router.post("/building/checkvaliduser", auth, async (req, res) => {    
     try {
         // console.log("/building/checkvaliduser");
@@ -536,6 +549,7 @@ router.post("/building/getuniqueuserlistbybdlist", auth, async (req, res) => {
 });
 
 router.post("/building/getbdlistbyuid", auth, async (req, res) => {    
+    /** get shared bd list */
     try {
         let info = req.body
         let result = await getUniqueBdId_byUserId(info.user_id);
@@ -569,6 +583,24 @@ router.post("/building/getbdlistbyuid", auth, async (req, res) => {
     }
 });
 
+router.post("/building/getownbdbyuserid_bdid", auth, async (req, res) => {    
+    /** get shared bd list */
+    try {
+        let info = req.body
+        let result = await getBuildingByOwner_id_bd_id(info.user_id, info.bd_id);
+        console.log(result);
+        // console.log(count);
+        if(result === null) return res.status(203).send({errMsg: "Database Error"});
+
+        return res.status(200).send(result);
+        
+    } catch (error) {
+        console.log("/building/getownbdbyuserid_bdid Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
+
 router.post("/building/getshareduserbybdiduserid", auth, async (req, res) => {    
     try {
         let info = req.body;
@@ -597,4 +629,32 @@ router.post("/building/getshareduserbybdiduserid", auth, async (req, res) => {
     }
 });
 
+router.post("/building/editshareduser", auth, async (req, res) => {    
+    try {
+        let {userList} = req.body;
+        // let user = req.user;
+        // console.log("userList", userList);
+        let bUpdateError=false;
+        for (const eachSharedUser of userList) {
+            let newUserLvl = eachSharedUser.newAccessLvl?eachSharedUser.newAccessLvl:eachSharedUser.accessLevel;
+            if(eachSharedUser.bToDelete){
+                let updateRel = await updateSharedBd_UserEdit(eachSharedUser._id, newUserLvl ,0);
+                if(!updateRel) bUpdateError= true;
+                // console.log("updateRel(del): ", updateRel);
+                continue
+            }
+            let updateRel = await updateSharedBd_UserEdit(eachSharedUser._id, newUserLvl ,1);
+            if(!updateRel) bUpdateError= true;
+            // console.log("updateRel(del): ", updateRel);
+        }
+
+        if(bUpdateError) return res.status(203).send({errMsg: "User Edit Interrupted"});
+        return res.status(200).send({success:true});
+        
+    } catch (error) {
+        console.log("/building/getshareduserbybdiduserid Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
 module.exports = router;

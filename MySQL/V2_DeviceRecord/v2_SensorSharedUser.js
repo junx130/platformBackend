@@ -88,7 +88,7 @@ async function getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
 async function getSharedevBy_userId_bdId (user_id, bd_id){
     try {
         const quertCmd = `SELECT * from ${devTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
-        // console.log(quertCmd);
+        console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getSharedevBy_userId_bdId Finally");
         // console.log(result);
         // if(!result[0]) return [];     
@@ -164,7 +164,30 @@ async function updateSharedBd(info, _id) {
             user_id = "${info.user_id}",
             owner_id = ${info.owner_id},
             grantBy =${info.grantBy},
-            accessLevel  = ${info.accessLevel}
+            accessLevel  = ${info.accessLevel},
+            active = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function updateSharedBd_UserEdit(_id, newAccessLevel, active) {
+    let sMsg = "updateSharedBd_UserEdit";
+    try {
+        const quertCmd = `UPDATE ${shareBdTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            accessLevel  = ${newAccessLevel},
+            active = ${active}
             where _id = ${_id}`;
         // console.log("quertCmd", quertCmd);
 
@@ -262,6 +285,7 @@ exports.getShareBdInfoGrantByUser_id=getShareBdInfoGrantByUser_id;
 exports.setSharedBdActive = setSharedBdActive;
 exports.addSharedBd = addSharedBd;
 exports.updateSharedBd=updateSharedBd;
+exports.updateSharedBd_UserEdit=updateSharedBd_UserEdit;
 
 exports.setSharedBdDevActiveStatus = setSharedBdDevActiveStatus;
 exports.addSharedBdDev = addSharedBdDev;
