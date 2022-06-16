@@ -163,7 +163,7 @@ router.post("/changepassreq", async (req, res) => {
         }
 
         /** trigger send email here */
-        let recoveryLink = `http://localhost:3000/passwordrecovery/rstpassword/${recoveryCode}`;
+        let recoveryLink = `${process.env.APLOUDSV2_PUBLIC_URL}/passwordrecovery/rstpassword/${recoveryCode}`;
         // let recoveryLink = `http://aplouds.com/passwordrecovery/rstpassword/${recoveryCode}`;
         // console.log(recoveryLink);
         let email_rel = await sendPassResetEmail(userInfo.email, recoveryLink);

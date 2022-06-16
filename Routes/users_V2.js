@@ -37,7 +37,7 @@ router.post("/register/validation", async (req, res) => {
         // insert user into user database 
         // await regUser(userInfo);
 
-        let validationLink = `http://localhost:3000/register/validation/${activationToken}`;
+        let validationLink = `${process.env.APLOUDSV2_PUBLIC_URL}/register/validation/${activationToken}`;
         let email_rel = await sendValidationEmail(userInfo.email, validationLink);
         console.log(email_rel);
         return res.status(200).send("OK");
@@ -91,7 +91,7 @@ router.post("/resendactlink", async (req, res) => {
             // console.log(info);
             let result = await updateActToken(info);
             // console.log(result);
-            let validationLink = `http://localhost:3000/register/validation/${info.actToken}`;
+            let validationLink = `${process.env.APLOUDSV2_PUBLIC_URL}/register/validation/${info.actToken}`;
             let email_rel = await sendValidationEmail(info.email, validationLink);
             // console.log(email_rel);
             return res.status(200).send("Email sent");
@@ -164,7 +164,7 @@ router.post("/forgetpassword", async (req, res) => {
         info.resettoken = randomBytes(20).toString('hex');
         info.sendUnix = moment().unix();
         await insertResetPassword(info);
-        let resetLink = `http://localhost:3000/user/resetpw/${info.resettoken}`;
+        let resetLink = `${process.env.APLOUDSV2_PUBLIC_URL}/user/resetpw/${info.resettoken}`;
         let email_rel = await sendPassResetEmail(info.email, resetLink);
         // console.log(email_rel);
         return res.status(200).send("Email sent");
