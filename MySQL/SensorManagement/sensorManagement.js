@@ -155,7 +155,7 @@ async function getSensorParaBy_TypeList(typeList){
         for (const iterator of typeList) {
             if(sList!=='') sList+=', '
             sList+=iterator;
-        }        
+        }      
         const quertCmd = `SELECT * from ${tableName} WHERE 
         sensorType in (${sList});
         `;

@@ -1,5 +1,5 @@
 const express = require("express");
-const { v2GetBdDevData_lastN, v2GetBdDevData_durationB4Unix } = require("../../MySQL/V2_QueryData/v2_QueryBdDevData");
+const { v2GetBdDevData_lastN, v2GetBdDevData_durationB4Unix, v2GetBdDevData_T1_T2 } = require("../../MySQL/V2_QueryData/v2_QueryBdDevData");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 // const Joi = require("joi");
@@ -32,6 +32,17 @@ router.post("/bddev/getnMinb4nUnix", auth, async (req, res) => {
     }
 });
 
+router.post("/bddev/gett1t2data", auth, async (req, res) => {
+    try {
+        let {type, _id, t1, t2} = req.body;
+        let rel = await v2GetBdDevData_T1_T2(type, _id, t1, t2);
+        if(!rel) return res.status(204).send({errMsg:'Database Query Err'}); 
+        return res.status(200).send(rel); 
+    } catch {
+        console.log("/bddev/gett1t2data Error");
+        return res.status(204).send({errMsg:'Database Server Err'});    
+    }
+})
 
 
 
