@@ -14,7 +14,8 @@ function prgTelegram(){
             // console.log(msg);
             // console.log("Chat ID",chatId);
             if(msg.text.toUpperCase() ==="CHAT ID"){
-                bot.sendMessage(chatId, chatId);
+                bot.sendMessage(chatId, `Chat ID: ${chatId}`);
+                // bot.sendMessage(chatId, "Hello");
                 return
             }
             // send a message to the chat acknowledging receipt of their message

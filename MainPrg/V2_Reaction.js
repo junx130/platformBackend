@@ -414,6 +414,7 @@ async function act_tele_handling(algo_id, bd_id, eventMessage){
         
         /** get telegram subscriber list subscribe to this event */
         let teleSubList = await getTeleEventSubBy_Algo_id(algo_id);
+        // console.log("teleSubList", teleSubList);
         if(notArrOrEmptyArr(teleSubList)) return;   /** if telegram action is not active, return */
 
         /** get contact_id list */ 
@@ -423,6 +424,7 @@ async function act_tele_handling(algo_id, bd_id, eventMessage){
             if(eachSub.subType === 3){      /** default subscriber group */
                 /** get default subscribers for this building  */
                 let defSubList = await getBdDefSubBy_bd_id(bd_id);
+                // console.log("defSubList", defSubList);
                 if(notArrOrEmptyArr(defSubList)) continue;  /** skip if not an array */
                 for (const eachDefSub of defSubList) {
                     if(eachDefSub.subType === 2){   /** default group subscriber  */
@@ -431,10 +433,11 @@ async function act_tele_handling(algo_id, bd_id, eventMessage){
                         if(notArrOrEmptyArr(groupContact)) continue;  /** skip if not an array */
                         for (const eachContact_underGroup of groupContact) {
                             /** insert contact_id */
-                            pushUnique(tele_contact_idList, eachContact_underGroup.teleContact_id);                            
+                            tele_contact_idList = pushUnique(tele_contact_idList, eachContact_underGroup.teleContact_id);                            
                         }
                     }else if(eachDefSub.subType === 1){     /** default contact subscriber  */
-                        pushUnique(tele_contact_idList, eachDefSub.sub_id);
+                        // console.log("subType is 1");
+                        tele_contact_idList = pushUnique(tele_contact_idList, eachDefSub.sub_id);
                     }
                 }
             }else if(eachSub.subType === 2){     /** additional group */
@@ -443,18 +446,21 @@ async function act_tele_handling(algo_id, bd_id, eventMessage){
                 if(notArrOrEmptyArr(groupContact_additional)) continue;  /** skip if not an array */
                 for (const eachAddiContact_underGroup of groupContact_additional) {
                     /** insert contact_id */
-                    pushUnique(tele_contact_idList, eachAddiContact_underGroup.teleContact_id);                            
+                    tele_contact_idList = pushUnique(tele_contact_idList, eachAddiContact_underGroup.teleContact_id);                            
                 }
             }else if(eachSub.subType === 1){     /** additional contact */
-                pushUnique(tele_contact_idList, eachSub.sub_id);
+                tele_contact_idList = pushUnique(tele_contact_idList, eachSub.sub_id);
             }
         }
+
+        // console.log("tele_contact_idList", tele_contact_idList);
 
         /** query telegram list by tele_contact_idList */
         let teleContactList = await getTeleContactListBy_IdList(tele_contact_idList);
         for (const eachTeleContact of teleContactList) {
+            // console.log("chatId", eachTeleContact.chatId);
             await v2_sendNotifyMsg(eachTeleContact.chatId, eventMessage);
-            if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleChatId.name}`);
+            if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleContact.name}`);
         }
 
 
