@@ -588,7 +588,7 @@ router.post("/building/getownbdbyuserid_bdid", auth, async (req, res) => {
     try {
         let info = req.body
         let result = await getBuildingByOwner_id_bd_id(info.user_id, info.bd_id);
-        console.log(result);
+        // console.log(result);
         // console.log(count);
         if(result === null) return res.status(203).send({errMsg: "Database Error"});
 
