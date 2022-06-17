@@ -69,6 +69,20 @@ async function getBuildingByOwner_id (owner_id){
         return null;       
     }
 }
+async function getBuildingByOwner_id_bd_id (owner_id, bd_id){
+    try {
+        const quertCmd = `SELECT * from ${buildingTableName} WHERE _id = ${bd_id} and owner_id = ${owner_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBuildingByOwner_id_bd_id Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
 /**======================================== */
 
 async function getSensorOwnerBy_TydevID (Info){

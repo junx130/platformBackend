@@ -175,7 +175,7 @@ async function getUserById_email(user) {
 async function getUserBy_idList(user_idList) {
     try {
         let sList = user_idList.toString();
-        const queryCmd = `SELECT email, username, _id, active FROM ${dbTable} WHERE _id in (${sList});`;
+        const queryCmd = `SELECT email, _id, active FROM ${dbTable} WHERE _id in (${sList});`;
         let result = await queryTemplate(userDatabase, queryCmd, "getUserBy_idList Finish");
         
         const rtnResult = result.map(b => b);
