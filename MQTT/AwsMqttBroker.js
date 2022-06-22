@@ -5,7 +5,7 @@ let currentNo=0;
 
 const options = {
   port: 1883,
-  host: process.env.mqttHost,
+  host: process.env.awsMqttHost,
   clientId: "mqttjs_" + Math.random().toString(16).substr(2, 8),
   username: process.env.mqttUsername,
   password: process.env.mqttPassword,
@@ -17,7 +17,7 @@ const options = {
   encoding: "utf8",
 };
 
-let expClient = mqtt.connect(process.env.mqttHost, options);
+let expClient = mqtt.connect(process.env.awsMqttHost, options);
 
 function prgMqtt() {
 
@@ -30,11 +30,11 @@ function prgMqtt() {
         prgMqtt.client.subscribe("Gateway/Connection");        
         prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
         prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
-        console.log("connected MQTT");
+        console.log("connected AWS MQTT");
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
-          // console.log("message is " + message);
+          // console.log("message is " + message);d
           // console.log("topic is " + topic);    
           // topicHandling(topic, message);
           //   await mqttGetProfiles(topic, message);
@@ -74,8 +74,8 @@ function unsubscribeTopic(topic){
 
 
 // exports.clientOn=clientOn;
-exports.unsubscribeTopic=unsubscribeTopic;
-exports.expClient=expClient;
-exports.subscribeTopic=subscribeTopic;
-exports.publishMqtt=publishMqtt;
-exports.prgMqtt = prgMqtt;
+exports.aws_unsubscribeTopic=unsubscribeTopic;
+exports.aws_expClient=expClient;
+exports.aws_subscribeTopic=subscribeTopic;
+exports.aws_publishMqtt=publishMqtt;
+exports.aws_prgMqtt = prgMqtt;

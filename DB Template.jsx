@@ -41,3 +41,33 @@ async function getBdGrantByUser_id (user_id){
         return null;       
     }
 }
+
+
+async function addSharedBd(info) {
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${shareBdTableName}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            buidling_id int not null,
+            user_id int not null,
+            owner_id int not null,
+            grantBy int,
+            accessLevel tinyint default 3,
+            sortIdx int not null default 65535,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${shareBdTableName} (unix, buidling_id, user_id, owner_id, grantBy, accessLevel)
+        VALUES (UNIX_TIMESTAMP(), ${info.buidling_id}, ${info.user_id}, ${info.owner_id}, ${info.grantBy}, ${info.accessLevel});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, "addSharedBd Finally");
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+
+    } catch (error){
+        console.log(error.message);
+        return null;
+    }
+}

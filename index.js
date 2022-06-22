@@ -10,6 +10,7 @@ const { devCheckTimer } = require("./devActiveCheck/devCheckTimer");
 const {sendEmail} = require('./EmailServer/email');
 const { socketIoPrg, ioEmit } = require("./MainPrg/Prg_SocketIo");
 const { v2_prgTelegram } = require("./notification/v2_telegram");
+const { aws_prgMqtt } = require("./MQTT/AwsMqttBroker");
 
 
 require("./Routes/routes")(app);
@@ -52,6 +53,7 @@ socketIoPrg(server);
 
 // if(process.env.debugOnLaptop!="true") prgMqtt();
 prgMqtt();
+aws_prgMqtt();
 prgTelegram();   
 v2_prgTelegram();
 // sendEmail();
