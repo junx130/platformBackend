@@ -10,10 +10,22 @@ const { devStrFormat } = require("../utilities/devStringFormat");
 const { getSensorParaBy_sensorType } = require("../MySQL/SensorManagement/sensorManagement");
 const { splitSensorKey } = require("../Features/SensorManagement/SensorManagementFn");
 
-function genAlarmMessage(buildingName, alarmType,keyName='', bdDev, value, notifyItem, _unix, unit){
+function genAlarmMessage(buildingName, alarmType, keyName='', bdDev, value, notifyItem, _unix, unit){
     
     let devName = devStrFormat(bdDev);
     return `${buildingName}:\n${keyName.toUpperCase()} of ${devName} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${unit}\nCurrent : ${value} ${unit}`;    
+    // return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
+}
+
+function genAlarmMessage_xcpu(buildingName, alarmMsg, bdDev, _unix){    
+    let devName = devStrFormat(bdDev);
+    return `${buildingName}:\n${devName} ${alarmMsg}\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}`;    
+    // return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
+}
+
+function genAlarmMessage_wcpuErr(buildingName, alarmMsg, bdDev, _unix){    
+    let devName = devStrFormat(bdDev);
+    return `${buildingName}:\n${alarmMsg} ${devName}!\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}`;    
     // return `${buildingName}:\n${keyName.toUpperCase()} of ${bdDev.name} ${alarmType}.\nDate: ${getDate(_unix)}\nTime: ${getTimeTz(_unix)}\nSetpoint: ${notifyItem.AlarmSetpoint} ${notifyItem.DataUnit}\nCurrent : ${value} ${notifyItem.DataUnit}`;    
 }
 
@@ -251,11 +263,46 @@ async function checkNotification(bdDev){
             // console.log(teleDB);
             if(!teleDB[0]) {console.log("Telegram ID record empty"); continue}             
             
-            // console.log("building");
-            // console.log(notifyItem.DataKey);
-            // console.log(notifyItem.type);
+            //      WCPU-32, ACPU-31
+            //  *      WCPU Error
+            //  *      WCPU on/Off
+            //  *      ACPU trip
+            //  *      ACPU on/off
+            
             let para = await getNodeKey(notifyItem.DataKey, notifyItem.type);
             let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, para.name, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix, para.unit);
+            /** ------------customization for PDC 220701------------ */
+            if(bdDev.type===32){        // WCPU
+                // On/Off pb[0] 
+                console.log("notifyItem", notifyItem);
+                if(notifyItem.DataKey==="pb_0"){    // on/off
+                    if(triggerAlarm.value===0){     // switch off
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched OFF!", bdDev, triggerAlarm.unix);
+                    }else if(triggerAlarm.value===1){   // switch on
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
+                    }
+                }else if(notifyItem.DataKey==="pb_10"){     // Error
+                    if(triggerAlarm.value>0){
+                        notifyMsg = genAlarmMessage_wcpuErr(building.building, "Alert! An Error Has Occurred On", bdDev, triggerAlarm.unix);
+                    }
+                }
+                
+            }else if(bdDev.type===32){      // ACPU
+                console.log("notifyItem", notifyItem);
+                if(notifyItem.DataKey==="pb_0"){    // on/off
+                    if(triggerAlarm.value===0){     // switch off
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched OFF!", bdDev, triggerAlarm.unix);
+                    }else if(triggerAlarm.value===1){   // switch on
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
+                    }
+                }else if(notifyItem.DataKey==="pb_1"){     // Error
+                    if(triggerAlarm.value>0){
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggerAlarm.unix);
+                    }
+                }
+            }
+
+            
             for (const singleTeleID of teleDB) {
                 let teleID = singleTeleID.telegramID;
                 try {
