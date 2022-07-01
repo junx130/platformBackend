@@ -286,7 +286,7 @@ async function checkNotification(bdDev){
                     PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_10");
                 }
                 
-            }else if(bdDev.type===32){      // ACPU
+            }else if(bdDev.type===31){      // ACPU
                 // console.log("notifyItem", notifyItem);
                 if(notifyItem.DataKey==="pb_0"){    // on/off
                     if(triggerAlarm.value===0){     // switch off
@@ -294,12 +294,12 @@ async function checkNotification(bdDev){
                     }else if(triggerAlarm.value===1){   // switch on
                         notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_0");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(31, bdDev._id, "pb_0");
                 }else if(notifyItem.DataKey==="pb_1"){     // Error
                     if(triggerAlarm.value>0){
-                        notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggerAlarm.unix);
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggersAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_1");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(31, bdDev._id, "pb_1");
                 }
             }
             
