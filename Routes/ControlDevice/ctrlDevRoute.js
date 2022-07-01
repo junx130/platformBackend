@@ -2,7 +2,10 @@ const express = require("express");
 const { setFeedbackDevice, getFeedbackDeviceMap,getNFeedbackDevFromX,getTotalItemCountFn } = require("../../ControlDevice/updateFeebackMap");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
+const { aws_publishMqtt, aws_subscribeTopic, aws_expClient, aws_unsubscribeTopic } = require("../../MQTT/AwsMqttBroker");
 const { publishMqtt, subscribeTopic, expClient, unsubscribeTopic} = require("../../MQTT/koalaMqtt");
+const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog } = require("../../MySQL/V2_Control/V2_Control");
+const { ioEmit } = require("../../MainPrg/Prg_SocketIo");
 
 
 let httpResponse;
@@ -18,6 +21,50 @@ function clearCommonVar(){
     nodeFunction = undefined;
 }
 
+// version 2 control, use AWS Mosquitto MQTT 
+aws_expClient.on("message", async (topic, message) => {
+    try {
+        // console.log("Message Lai Liao");
+        const a_topic = topic.split("/");
+        // console.log(a_topic);
+        let mqttMsg = JSON.parse(message);
+        if(a_topic[0]===`Gw`){
+            let subTopic = `${a_topic[0]}/+/${a_topic[2]}`;
+            let gwid = parseInt(a_topic[2]);
+            if(a_topic[1]==='GwAck'){     /** ack by Gw once get command */ 
+                // update GwAck => true in DB
+                let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "GwAck", 1, false, false);
+                // console.log("Gw Update: ",updateRel);                
+    
+            }else if(a_topic[1]==='NodeAck'){    /** Gw ack after get LoRaReply from Node */
+                // update NodeAck => true in DB
+                let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "NodeAck", 1, false, true);
+                // console.log("Node Update: ",updateRel);   
+                // un subscribe base on topic stored in DB     
+                let unprocessCmdLog = await V2_getUnprocessCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
+                // console.log("unprocessCmd Cnt", unprocessCmdLog.length);
+
+                if(unprocessCmdLog.length === 0) {  // this is only active command log
+                    // let setProcessed = await V2_updateCrlCmdLogBy_id(recentCmdLog[0]._id, "Processed", 1, false);
+                    // console.log("Unsubsribe To: ",subTopic);   
+                    aws_unsubscribeTopic(subTopic);
+                }
+                
+                ioEmit("v2_CtrlCmd", mqttMsg);      // update to frontend
+
+                
+                // httpResponse.status(200).send(deviceInfo);   // response to frontend
+                
+            } 
+        }
+               
+    } catch (error) {
+        console.log("MQTT cmd Subscribe Err: ",error.message);
+    }
+    
+});
+
+// version 1 control, use CloudMQTT 
 expClient.on("message", async (topic, message) => {
     // console.log("Message Lai Liao");
     const a_topic = topic.split("/");
@@ -26,11 +73,6 @@ expClient.on("message", async (topic, message) => {
         a_topic[1]===`NodeReply` ){
             // console.log("Topic match");
             let deviceInfo = JSON.parse(message);
-            // console.log(deviceInfo);
-            // console.log(nodeType);
-            // console.log(deviceInfo.DevId);
-            // console.log(deviceInfo.NodeType);
-            // console.log(_nodeID);
             if(nodeType && _nodeID && nodeFunction && 
                 deviceInfo.ht == nodeType && deviceInfo.hi == _nodeID && 
                 deviceInfo.hd == 3 && deviceInfo.hf == nodeFunction ){
@@ -43,8 +85,8 @@ expClient.on("message", async (topic, message) => {
                     clearCommonVar();
                 }
             }
-        }
-  });
+    }
+});
 
 
 router.post("/setctrldev", auth, async (req, res) => {  
@@ -61,7 +103,6 @@ router.post("/setctrldev", auth, async (req, res) => {
         return res.status(404).send(error.message);    
     }
 });
-  
 
 router.post("/getnfromx", auth, async (req, res) => {  
     // console.log('````````````Come in Get`````````````````');  
@@ -119,16 +160,53 @@ router.post("/send", auth, async (req, res) => {
             if(subTopic) unsubscribeTopic(subTopic);     /** unsubscribe topic here*/
             clearCommonVar();
             
-            return res.status(204).send("Timeout");  
+            return res.status(203).send("Timeout");  
         }, 15000);
 
            
     } catch (ex) {
         console.log("send Device Control Error");
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
 
+router.post("/v2sendcmd", auth, async (req, res) => {    
+    try {
+        // console.log(req.body);            
+        let {topic, loRaPackage, urlSel} = req.body;
+        if(urlSel===1) aws_publishMqtt(`${topic}`, loRaPackage);   // aws server
+        else publishMqtt(`${topic}`, loRaPackage);
+
+        let _subTopic = `Gw/+/${loRaPackage.gwid}`;  // "Gw/+/<GwID>"
+        aws_subscribeTopic(_subTopic);       /**subscribe topic here*/
+
+        //<----- insert info into database
+        let insertRel = await V2_InsertCrlCmdLog(loRaPackage, _subTopic);
+        if(!insertRel.success) return res.status(203).send({errMsg:"Insert Cmd Log Error"}); 
+
+        return res.status(200).send({success:true});    
+
+           
+    } catch (ex) {
+        console.log("send Device Control Error");
+        return res.status(203).send(ex.message);        
+    }
+});
+
+
+router.post("/v2getcmdlog", auth, async (req, res) => {
+    try {
+        let{cmdLog} = req.body;
+        let rel = await V2_getCmdLog(cmdLog)
+
+        return res.status(200).send(rel);    
+
+           
+    } catch (ex) {
+        console.log("send Device Control Error");
+        return res.status(203).send(ex.message);        
+    }
+});
 
 module.exports = router;
