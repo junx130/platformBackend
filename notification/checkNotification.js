@@ -314,7 +314,7 @@ async function checkNotification(bdDev){
             }
             // write into database, update NotifiedUnix to timenow    
             if(process.env.activateTelegram==="true")    {
-                await updateNotifiedUnix(notifyItem._id, _unixNow());
+                if(!PDC_SkipNotification) await updateNotifiedUnix(notifyItem._id, _unixNow());
             }
         }
         return notifyList;
