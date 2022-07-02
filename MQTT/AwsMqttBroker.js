@@ -1,5 +1,6 @@
 const mqtt = require("mqtt");
 const { mqttNodeHandling } = require("./mqttNodeHandling");
+const { handleNodeReq } = require("./NodeRequestCmd/handleNodeReqFn");
 
 let currentNo=0;
 
@@ -34,15 +35,20 @@ function prgMqtt() {
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
-          // console.log("message is " + message);d
-          // console.log("topic is " + topic);    
-          // topicHandling(topic, message);
-          //   await mqttGetProfiles(topic, message);
-          await mqttNodeHandling(topic, message);
-          
-          // currentNo+=1;
-          // console.log("Plus 1");
-          prgMqtt.client.publish("AploudBackend/Reply", "Received");
+          try {
+            let nodeReqRel = handleNodeReq(topic, message);
+            // console.log("nodeReqRel:", nodeReqRel);
+            if(nodeReqRel) {
+              if(nodeReqRel.toPublish) publishMqtt(nodeReqRel.topic, nodeReqRel.loraPackage);
+            }
+
+            await mqttNodeHandling(topic, message);
+            prgMqtt.client.publish("AploudBackend/Reply", "Received");
+          } catch (error) {
+            console.log("aws mqtt error : ", error);
+          }
+
+
           // client.end();
         });
     } catch (error) {
