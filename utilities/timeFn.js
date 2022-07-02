@@ -31,6 +31,10 @@ unixNow=()=>{
     return moment().tz("Asia/Kuala_Lumpur").unix();
 }
 
+getUnixNow=()=>{
+    return moment().unix();
+  }
+
 getUnixNowForCRC=()=>{
     return (moment().unix() - 1600000000);
 }
@@ -198,3 +202,4 @@ exports.getDate=getDate;
 exports.getTime=getTime;
 exports.getUnixTodayBaseOnTime = getUnixTodayBaseOnTime;
 exports._unixNow = unixNow;
+exports.getUnixNow=getUnixNow;

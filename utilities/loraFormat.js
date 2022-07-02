@@ -1,4 +1,4 @@
-const{getUnixNowForCRC} = require("./timeFn");
+const{getUnixNowForCRC, getUnixNow} = require("./timeFn");
 
 
 function getArrayCount(payload, arrType){   
@@ -24,7 +24,12 @@ function getPackageCount (header){
     return headerSize + header.hbs + (header.hfs + header.his)*4 + header.hns * 8 + footerSize;
 }
 
-function genLoRaPackage(devDetails, payload){
+function genHct (){
+    let nRandom = Math.floor(Math.random() * 10000);
+    return nRandom;
+}
+
+function genLoRaPackage(devDetails, payload, nVersion){
     let header ={             
         ht:devDetails.devType,   // type
         hi:devDetails.id, // ID
@@ -35,16 +40,25 @@ function genLoRaPackage(devDetails, payload){
         hfs:getArrayCount(payload, 'pf'),      // Qty of float
         his:getArrayCount(payload, 'pi'),      // qty of long
         hns:getArrayCount(payload, 'pn'),      // qty of int64_t
+        hct:genHct(),
         hr1:0,      // reserved 1
         hr2:0,      // reserved 2   
     }
+    
     header.hs = getPackageCount(header);   
+    
+
     let RH_RF95_MAX_MESSAGE_LEN = 251; 
     if(header.hs > RH_RF95_MAX_MESSAGE_LEN) return {error:true, message:`package size greater than ${RH_RF95_MAX_MESSAGE_LEN}`};
 
     // console.log(header);
+    let ft;
+    if(!nVersion) ft = getUnixNowForCRC();
+    else ft = getUnixNow();
+    // if(!nVersion) ft = timeFn.getUnixNowForCRC();
+    // else ft = timeFn.getUnixNow();
     let footer = {
-        ft:getUnixNowForCRC(),
+        ft,
         fc:header.hs +header.hd+ header.hf+header.hbs+ header.hfs+ header.his+ header.hns,
     }
 

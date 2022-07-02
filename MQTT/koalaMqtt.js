@@ -1,5 +1,7 @@
 const mqtt = require("mqtt");
+const { verifyCRC, genLoRaPackage } = require("../utilities/loraFormat");
 const { mqttNodeHandling } = require("./mqttNodeHandling");
+const { handleNodeReq } = require("./NodeRequestCmd/handleNodeReqFn");
 
 let currentNo=0;
 
@@ -26,24 +28,27 @@ function prgMqtt() {
         prgMqtt.client=expClient;
 
         prgMqtt.client.on("connect", () => {
-        prgMqtt.client.subscribe("Mahsing/Gateway/#");
-        prgMqtt.client.subscribe("Gateway/Connection");        
-        prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
-        prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
-        console.log("connected MQTT");
+          prgMqtt.client.subscribe("Mahsing/Gateway/#");
+          prgMqtt.client.subscribe("Gateway/Connection");        
+          prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
+          prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
+          console.log("connected MQTT");
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
-          // console.log("message is " + message);
-          // console.log("topic is " + topic);    
-          // topicHandling(topic, message);
-          //   await mqttGetProfiles(topic, message);
-          await mqttNodeHandling(topic, message);
-          
-          // currentNo+=1;
-          // console.log("Plus 1");
-          prgMqtt.client.publish("AploudBackend/Reply", "Received");
-          // client.end();
+          try {
+            let nodeReqRel = handleNodeReq(topic, message);
+            // console.log("nodeReqRel:", nodeReqRel);
+            if(nodeReqRel) {
+              if(nodeReqRel.toPublish) publishMqtt(nodeReqRel.topic, nodeReqRel.loraPackage);
+            }
+
+            await mqttNodeHandling(topic, message);
+            prgMqtt.client.publish("AploudBackend/Reply", "Received");
+
+          } catch (error) {
+            console.log("kaola mqtt error : ", error);
+          }
         });
     } catch (error) {
         console.log("KoalaMqttErr: ", error.message);
