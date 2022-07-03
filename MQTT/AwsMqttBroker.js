@@ -40,10 +40,11 @@ function prgMqtt() {
             // console.log("nodeReqRel:", nodeReqRel);
             if(nodeReqRel) {
               if(nodeReqRel.toPublish) publishMqtt(nodeReqRel.topic, nodeReqRel.loraPackage);
+            }else{
+              await mqttNodeHandling(topic, message);
+              prgMqtt.client.publish("AploudBackend/Reply", "Received");
             }
 
-            await mqttNodeHandling(topic, message);
-            prgMqtt.client.publish("AploudBackend/Reply", "Received");
           } catch (error) {
             console.log("aws mqtt error : ", error);
           }
