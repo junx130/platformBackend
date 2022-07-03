@@ -11,7 +11,7 @@ async function infoHandlings(deviceInfo, cusFunction){
         // console.log(deviceInfo);
         // if(cusFunction) await cusFunction();   // handling case like adjust status node threshold
         let sensorPara = await genSensorPara(deviceInfo.ht, deviceInfo)
-          // console.log(sensorPara);
+        if(deviceInfo.ht ===36 || deviceInfo.ht ===31|| deviceInfo.ht ===32) console.log(`Log type ${deviceInfo.ht}`, sensorPara);
         await newNodeHandlingFn(deviceInfo, insertToDb, sensorPara);
     } catch (error) {
         console.log("standardSensorHandling Error");

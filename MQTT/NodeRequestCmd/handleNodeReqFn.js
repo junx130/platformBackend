@@ -8,7 +8,7 @@ function handleNodeReq(topic, message){
             if(verifyCRC(deviceInfo)) {
                 if(deviceInfo.hd===1){
                     if(deviceInfo.hf===20003){  // node request sync time
-                        console.log("deviceInfo.GwID", deviceInfo.GwID);
+                        // console.log("deviceInfo.GwID", deviceInfo.GwID);
                         let gwId = parseInt(deviceInfo.GwID);
                         /** publish fn 3 to node */
                         let devDetails={
@@ -19,11 +19,11 @@ function handleNodeReq(topic, message){
                         }
                         let payload ={pi:[gwId]};
                         let loraPackage = genLoRaPackage(devDetails, payload, 2);
-                        console.log("loraPackage [22] : ", loraPackage);
+                        // console.log("loraPackage [22] : ", loraPackage);
                         if(!loraPackage.error){
                             loraPackage.gwid = gwId;
                             let _topic=`Gw/ServerCmd/${gwId}`;
-                            console.log("loraPackage : ", loraPackage);
+                            // console.log("loraPackage : ", loraPackage);
                             return {
                                 toPublish:true,
                                 topic:_topic,
