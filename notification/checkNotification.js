@@ -286,7 +286,7 @@ async function checkNotification(bdDev){
                     PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_10");
                 }
                 
-            }else if(bdDev.type===31){      // ACPU
+            }else if(bdDev.type===31 || bdDev.type===36){      // ACPU
                 // console.log("notifyItem", notifyItem);
                 if(notifyItem.DataKey==="pb_0"){    // on/off
                     if(triggerAlarm.value===0){     // switch off
