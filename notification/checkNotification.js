@@ -297,7 +297,7 @@ async function checkNotification(bdDev){
                     PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_0");
                 }else if(notifyItem.DataKey==="pb_1"){     // Error
                     if(triggerAlarm.value>0){
-                        notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggersAlarm.unix);
+                        notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggerAlarm.unix);
                     }
                     PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_1");
                 }
