@@ -278,29 +278,30 @@ async function checkNotification(bdDev){
                     }else if(triggerAlarm.value===1){   // switch on
                         notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_0");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_0");
                 }else if(notifyItem.DataKey==="pb_10"){     // Error
                     if(triggerAlarm.value>0){
                         notifyMsg = genAlarmMessage_wcpuErr(building.building, "Alert! An Error Has Occurred On", bdDev, triggerAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(32, bdDev._id, "pb_10");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_10");
                 }
                 
             }else if(bdDev.type===31 || bdDev.type===36){      // ACPU
-                // console.log("notifyItem", notifyItem);
+                // console.log("```````````````APUC type notifyItem", notifyItem);
                 if(notifyItem.DataKey==="pb_0"){    // on/off
                     if(triggerAlarm.value===0){     // switch off
                         notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched OFF!", bdDev, triggerAlarm.unix);
                     }else if(triggerAlarm.value===1){   // switch on
                         notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(31, bdDev._id, "pb_0");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_0");
                 }else if(notifyItem.DataKey==="pb_1"){     // Error
                     if(triggerAlarm.value>0){
                         notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggersAlarm.unix);
                     }
-                    PDC_SkipNotification = await prev2DataSame_SkipNotify(31, bdDev._id, "pb_1");
+                    PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_1");
                 }
+                // console.log("Message-----------------", notifyMsg);
             }
             
             for (const singleTeleID of teleDB) {
