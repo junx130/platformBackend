@@ -1,7 +1,7 @@
 // const { valid } = require("joi");
 const {getNotifyListById, updateNotifiedUnix, getNotifyListByIdnType} = require("../MySQL/notification/notification");
 const { getTelegramListById } = require("../MySQL/notification/telegramID");
-const {getBuildingsByID} = require("../MySQL/aploudSetting/building");
+const {getBuildingsByID, insertNewBuilding} = require("../MySQL/aploudSetting/building");
 const { sendNotifyMsg } = require("./telegram");
 // const {nodeKey} =require('./getNodeKeyName');
 const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
@@ -334,6 +334,7 @@ prev2DataSame_SkipNotify=async (devType, bdDevId, dataKey)=>{
         // console.log("dataKey", dataKey);
         // console.log("Last data", last2Data[0][dataKey]);
         // console.log("Last 2nd data", last2Data[1][dataKey]);
+        if(!last2Data[0][dataKey] || last2Data[1][dataKey]) return true;    // handle data === null condition
         if(last2Data[0][dataKey] === last2Data[1][dataKey]) {
             // console.log("Data Equal");
             return true;
