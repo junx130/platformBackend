@@ -18,7 +18,8 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
         if (CheckListResult) {
             for (const c of CheckListResult) {
                 await insertToDb(deviceInfo, buildingDb, c._id, sensorPara);  
-                // console.log("Logged to building");
+                let topic_v1=`v1_${c.type}_${c._id}`
+                ioEmit(topic_v1, c.unix);
                 /**  check notification list here*/
                 await checkNotification(c);
                 /**Check Device Active here */
