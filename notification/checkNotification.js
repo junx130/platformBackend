@@ -327,31 +327,28 @@ async function checkNotification(bdDev){
 }
 
 /** Skip on, off, and error start time notification triggering */
-prev2DataSame_SkipNotify=async (devType, bdDevId, dataKey)=>{
-    try {
-        let last2Data = await getLastNData("Buildings", devType, bdDevId, 2);
-        // console.log("######################last2Data:", last2Data);
-        if(notArrOrEmptyArr(last2Data)) return true;    // empty arr, skip notify
-        if(last2Data.length < 2) return true;   // only got 1 data, skip 
-        // console.log("dataKey", dataKey);
-        // console.log("Last data", last2Data[0][dataKey]);
-        // console.log("Last 2nd data", last2Data[1][dataKey]);
-        if(!last2Data[0][dataKey] || last2Data[1][dataKey]) return true;    // handle data === null condition
-        if(last2Data[0][dataKey] === last2Data[1][dataKey]) {
-            // console.log("Data Equal");
-            return true;
-        }
-        // console.log("Skip Notification");
-        return false;
+// prev2DataSame_SkipNotify=async (devType, bdDevId, dataKey)=>{
+//     try {
+//         let last2Data = await getLastNData("Buildings", devType, bdDevId, 2);
+//         // console.log("######################last2Data:", last2Data);
+//         if(notArrOrEmptyArr(last2Data)) return true;    // empty arr, skip notify
+//         if(last2Data.length < 2) return true;   // only got 1 data, skip 
+//         // console.log("dataKey", dataKey);
+//         // console.log("Last data", last2Data[0][dataKey]);
+//         // console.log("Last 2nd data", last2Data[1][dataKey]);
+//         if(!last2Data[0][dataKey] || last2Data[1][dataKey]) return true;    // handle data === null condition
+//         if(last2Data[0][dataKey] === last2Data[1][dataKey]) {
+//             // console.log("Data Equal");
+//             return true;
+//         }
+//         // console.log("Skip Notification");
+//         return false;
         
-    } catch (error) {
-        console.log("prev2DataSame_SkipNotify error : ",error.message);
-        return true; // error occur, skip notification
-    }
-
-    
-    
-}
+//     } catch (error) {
+//         console.log("prev2DataSame_SkipNotify error : ",error.message);
+//         return true; // error occur, skip notification
+//     } 
+// }
 
 
 exports.checkNotification = checkNotification;
