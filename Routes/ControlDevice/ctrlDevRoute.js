@@ -4,7 +4,7 @@ const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { aws_publishMqtt, aws_subscribeTopic, aws_expClient, aws_unsubscribeTopic } = require("../../MQTT/AwsMqttBroker");
 const { publishMqtt, subscribeTopic, expClient, unsubscribeTopic} = require("../../MQTT/koalaMqtt");
-const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog } = require("../../MySQL/V2_Control/V2_Control");
+const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog, V2_getSchedule } = require("../../MySQL/V2_Control/V2_Control");
 const { ioEmit } = require("../../MainPrg/Prg_SocketIo");
 
 
@@ -166,7 +166,7 @@ router.post("/send", auth, async (req, res) => {
            
     } catch (ex) {
         console.log("send Device Control Error");
-        return res.status(203).send(ex.message);        
+        return res.status(203).send({errMsg:"Exp Error"});        
     }
 });
 
@@ -189,8 +189,8 @@ router.post("/v2sendcmd", auth, async (req, res) => {
 
            
     } catch (ex) {
-        console.log("send Device Control Error");
-        return res.status(203).send(ex.message);        
+        console.log("send Device Control Error :", ex.message);
+        return res.status(203).send({errMsg:"Insert Cmd Log Error(Exp)"});        
     }
 });
 
@@ -204,8 +204,26 @@ router.post("/v2getcmdlog", auth, async (req, res) => {
 
            
     } catch (ex) {
-        console.log("send Device Control Error");
-        return res.status(203).send(ex.message);        
+        console.log("send Device Control Error", ex.message);
+        return res.status(203).send({errMsg:"Send Device Control Error(Exp)"});     
+     
+    }
+});
+
+
+router.post("/v2getschedule", auth, async (req, res) => {
+    try {
+        let devInfo = req.body;
+        console.log("devInfo");
+        let rel = await V2_getSchedule(devInfo)
+        if(!rel) return res.status(203).send({errMsg:"Get Schedule Error(DB)"});   
+
+        return res.status(200).send(rel);    
+
+           
+    } catch (ex) {
+        console.log("Get Schedule Error", ex.message);
+        return res.status(203).send({errMsg:"Get Schedule Error(Exp)"});   
     }
 });
 

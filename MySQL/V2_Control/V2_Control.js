@@ -2,6 +2,7 @@ const { insertTemplate, queryTemplate } = require("../queryData");
 
 const db = "V2_Control";
 const CmdLogTable = "V2_CtrlCmdLog";
+const scheduleTable = "V2_DeviceSchedule";
 
 async function V2_InsertCrlCmdLog(info, subTopic) {
     try {
@@ -129,8 +130,29 @@ async function V2_getCmdLog (info){
     }
 }
 
+
+async function V2_getSchedule (info){
+    let sErrTitle = "V2_getSchedule";
+    try {
+        let quertCmd = `SELECT * from ${scheduleTable} WHERE ht = ${info.ht} and 
+        hi = ${info.hi}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
 exports.V2_InsertCrlCmdLog=V2_InsertCrlCmdLog;
 exports.V2_updateCrlCmdLog=V2_updateCrlCmdLog;
 exports.V2_getUnprocessCrlCmdLog_bySubTopic=V2_getUnprocessCrlCmdLog_bySubTopic;
 exports.V2_updateCrlCmdLogBy_id=V2_updateCrlCmdLogBy_id;
 exports.V2_getCmdLog=V2_getCmdLog;
+
+// schedule 
+exports.V2_getSchedule=V2_getSchedule;
