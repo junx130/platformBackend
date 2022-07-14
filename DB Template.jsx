@@ -44,6 +44,7 @@ async function getBdGrantByUser_id (user_id){
 
 
 async function addSharedBd(info) {
+    let fnName = "addSharedBd";
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${shareBdTableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -62,12 +63,12 @@ async function addSharedBd(info) {
         const insertData = `INSERT INTO ${shareBdTableName} (unix, buidling_id, user_id, owner_id, grantBy, accessLevel)
         VALUES (UNIX_TIMESTAMP(), ${info.buidling_id}, ${info.user_id}, ${info.owner_id}, ${info.grantBy}, ${info.accessLevel});`;        
 
-        let result = await insertTemplate(db, createTable, insertData, "addSharedBd Finally");
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
         if (!result) return null    // insert error
         if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
 
     } catch (error){
-        console.log(error.message);
+        console.log(`${fnName} err : `, error.message);
         return null;
     }
 }

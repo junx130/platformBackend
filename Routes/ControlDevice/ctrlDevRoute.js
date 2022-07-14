@@ -4,7 +4,7 @@ const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { aws_publishMqtt, aws_subscribeTopic, aws_expClient, aws_unsubscribeTopic } = require("../../MQTT/AwsMqttBroker");
 const { publishMqtt, subscribeTopic, expClient, unsubscribeTopic} = require("../../MQTT/koalaMqtt");
-const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog, V2_getSchedule } = require("../../MySQL/V2_Control/V2_Control");
+const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog, V2_getSchedule, V2_updateDevSchedule, V2_getSchedule_includeUnUse, V2_addDevSchedule, V2_devSche_SetUnUse } = require("../../MySQL/V2_Control/V2_Control");
 const { ioEmit } = require("../../MainPrg/Prg_SocketIo");
 
 
@@ -226,5 +226,94 @@ router.post("/v2getschedule", auth, async (req, res) => {
         return res.status(203).send({errMsg:"Get Schedule Error(Exp)"});   
     }
 });
+
+
+router.post("/v2setschedule", auth, async (req, res) => {
+    let routeName = "v2setschedule";
+    try {
+        let getListFailed = false;
+        let updateErrCnt = 0;
+        let insertErrCnt = 0;
+        let setUnUseErrCnt = 0;
+
+        let {scheList, devInfo} = req.body;
+        // let {ht, hi} = devInfo;
+        // console.log("scheList", scheList);
+        // console.log("devInfo", devInfo);
+        /** get existing schedule list */
+        let existScheList = await V2_getSchedule_includeUnUse(devInfo);
+        if(!existScheList) {    // get list exception error
+            getListFailed=true;
+            existScheList=[];
+        }
+        
+        if(scheList.length > existScheList.length) {
+            // console.log("`````````````````````````````Case 1");
+            /** update base on existScheList.length */
+            /** remaining insert */
+            for (let i = 0; i < existScheList.length; i++) {
+                let updateRel = await V2_updateDevSchedule(scheList[i], devInfo, existScheList[i]._id, i);
+                if(!updateRel)  updateErrCnt++;
+            }
+            for (let i = existScheList.length; i < scheList.length; i++) {
+                let insertRel = await V2_addDevSchedule(scheList[i], devInfo, i)
+                if(!insertRel) insertErrCnt++;
+            }
+
+        }else if(scheList.length < existScheList.length){
+            console.log("`````````````````````````````Case 2");
+            /** update base on scheList.length */
+            /** remain exist set UnUse */
+            for (let i = 0; i < scheList.length; i++) {
+                let updateRel = await V2_updateDevSchedule(scheList[i], devInfo, existScheList[i]._id, i);
+                if(!updateRel)  updateErrCnt++;
+            }
+            for (let i = scheList.length; i < existScheList.length; i++) {
+                let setUnUseRel = await V2_devSche_SetUnUse(existScheList[i]._id);
+                if(!setUnUseRel)    setUnUseErrCnt++;
+            }
+
+        }else{      // same length
+            // console.log("`````````````````````````````Case 3");
+            /** update base on existScheList.length */
+            for (let i = 0; i < scheList.length; i++) {
+                let updateRel = await V2_updateDevSchedule(scheList[i], devInfo, existScheList[i]._id, i);
+                if(!updateRel)  updateErrCnt++;
+            }
+        }
+
+        let success=true;
+        if(getListFailed || updateErrCnt>0 || insertErrCnt>0 || setUnUseErrCnt>0 ) success=false;
+        return res.status(200).send({success, updateErrCnt, insertErrCnt, setUnUseErrCnt, getListFailed});
+
+        // let updateErrCnt = 0;
+
+        // for (const eachSche of existScheList) {
+        //     let updateRel = await updateDevSchedule(devInfo, eachSche._id);
+        //     if(!updateRel) updateErrCnt++;
+        //     console.log("updateRel", updateRel);
+        // }
+
+
+
+        /** update existing schedule list */
+
+        /** insert new schedule if not enough exsiting schedule*/
+
+
+
+        // let rel = await V2_getSchedule(devInfo)
+        // if(!rel) return res.status(203).send({errMsg:"Get Schedule Error(DB)"});   
+        // return res.status(200).send(rel);
+
+        
+
+           
+    } catch (error) {
+        console.log(`${routeName} Error : `, error.message);
+        return res.status(203).send({errMsg:`Set Schedule Error(Exp)`});   
+    }
+});
+
 
 module.exports = router;
