@@ -59,6 +59,7 @@ function genPxPara(sensorKey, px, loraData){
                 unit : dataKey.dataUnit,
             }
             Pxs.push(pfPara);
+            // console.log("pfPara", pfPara);
         }
         return Pxs;        
     } catch (error) {
@@ -76,6 +77,32 @@ async function genSensorPara(sensorType, loraData){
         pn:genPxPara(sensorKey, 'pn', loraData),
     }
     // console.log(sensorPara);
+    for (const eachPx of sensorPara.pb) {
+        // console.log(`Each Pb : ${eachPx.value}`);
+        if(eachPx.value===null) return {err:true}
+    }
+    for (const eachPx of sensorPara.pf) {
+        // console.log(`Each Pb : ${eachPx.value}`);
+        if(eachPx.value===null) return {err:true}
+    }
+    for (const eachPx of sensorPara.pi) {
+        // console.log(`Each Pb : ${eachPx.value}`);
+        if(eachPx.value===null) return {err:true}
+    }
+    for (const eachPx of sensorPara.pn) {
+        // console.log(`Each Pb : ${eachPx.value}`);
+        if(eachPx.value===null) return {err:true}
+    }
+    // for (const key in sensorPara) {
+    //     if (Object.hasOwnProperty.call(sensorPara, key)) {
+    //         for (const eachPara of sensorPara[key]) {
+    //             console.log(`${sensorPara[key]} : ${eachPara}`);
+    //             if(eachPara===null) return ({err:true})
+    //         }
+    //         // const element = sensorPara[key];            
+    //     }
+    // }
+
     return sensorPara;
 }
 
