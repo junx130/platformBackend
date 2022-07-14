@@ -83,15 +83,15 @@ async function genSensorPara(sensorType, loraData){
     }
     for (const eachPx of sensorPara.pf) {
         // console.log(`Each Pb : ${eachPx.value}`);
-        if(eachPx.value===null) return {err:true}
+        if(parseFloat(eachPx.value)===null) return {err:true}
     }
     for (const eachPx of sensorPara.pi) {
         // console.log(`Each Pb : ${eachPx.value}`);
-        if(eachPx.value===null) return {err:true}
+        if(parseInt(eachPx.value)===null) return {err:true}
     }
     for (const eachPx of sensorPara.pn) {
         // console.log(`Each Pb : ${eachPx.value}`);
-        if(eachPx.value===null) return {err:true}
+        if(parseInt(eachPx.value)===null) return {err:true}
     }
     // for (const key in sensorPara) {
     //     if (Object.hasOwnProperty.call(sensorPara, key)) {
