@@ -47,7 +47,7 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
                 // console.log(logDbRel);           
                 
                 /** v2 reaction */
-                console.log("~~~~~~~~~~~~c new~~~~~~~~~~~~~~~~", c);
+                // console.log("~~~~~~~~~~~~c new~~~~~~~~~~~~~~~~", c);
                 await V2_Reaction(c, deviceInfo);       
                 
                 /** omit to update frontend */

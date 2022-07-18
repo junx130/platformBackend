@@ -110,7 +110,7 @@ router.post("/delmonlist", auth, async (req, res) => {
 router.post("/getelementbyt1_id", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
-        console.log(req.body);
+        // console.log(req.body);
         let result = await getElementByMonitoT1_id(req.body.T1_id);
         return res.status(200).send(result);        
     } catch (ex) {
