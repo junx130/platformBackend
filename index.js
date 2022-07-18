@@ -28,25 +28,16 @@ socketIoPrg(server);
 //   // io.emit("FromAPI", response);
 // }, 1000);
 
-/** -------------Testing field-------------- *
-  // const { getSensorParaBy_sensorType } = require("./MySQL/SensorManagement/sensorManagement");
-    const { genSensorPara } = require("./utilities/loraFormatToDatabase");
+/** -------------Testing field-------------- */
+//   let a_obj=[
+//     {val:12.3, batt:3.5},
+//     {val:null, batt:null},
+//     {val:12.3, batt:3.7},
+// ]
+// let filterarr = a_obj.filter(c=>c.batt < 3.6 && c.batt!== null);
+// console.log(filterarr);
 
-    async function testPrg(){
-      
-      let _loraData = {
-        pf:[1.123,2.223],
-        pb:[1],
-        pi:[1024],
-        pn:[987654321]
-      }
 
-        let rel = await genSensorPara(8,_loraData);
-        console.log(rel);
-      }
-    
-    
-    testPrg();
 /**========================================= */
 
 

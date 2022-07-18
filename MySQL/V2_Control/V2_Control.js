@@ -162,8 +162,8 @@ async function V2_updateDevSchedule(info, devInfo, _id, sortIdx) {
     try {
         const quertCmd = `UPDATE ${scheduleTable} SET 
             unix=UNIX_TIMESTAMP(),
-            startUnix = "${info.startUnix}",
-            endUnix = "${info.endUnix}",
+            startUnix = ${info.startUnix},
+            endUnix = ${info.endUnix},
             hi = ${devInfo.hi},
             ht =${devInfo.ht},
             schType  = ${info.schType},
