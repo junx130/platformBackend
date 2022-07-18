@@ -157,7 +157,7 @@ risingTrigger=async (notifyItem)=>{
     switch (notifyItem.AlarmType) {
         case "upperLimit":            
             /** check value did fall back, below upper limit */
-            a_found = result.filter(c=>c[notifyItem.DataKey] < notifyItem.AlarmSetpoint);
+            a_found = result.filter(c=>c[notifyItem.DataKey] < notifyItem.AlarmSetpoint && c[notifyItem.DataKey]!== null);
             // console.log("a_found");
             // console.log(a_found);
             if(!a_found[0]) {
@@ -179,7 +179,7 @@ risingTrigger=async (notifyItem)=>{
             // }
             /** check value did fall back, above lower limit */
             /**Get all fallback value */
-            a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint);            
+            a_found = result.filter(c=>c[notifyItem.DataKey] > notifyItem.AlarmSetpoint && c[notifyItem.DataKey]!== null);            
             if(!a_found[0]) {
                 if(todayHappenedBefore) return
                 return result;      /**enter new day monitoring range, and no value under monitoring value before, trigger notification if > sensitivity  */

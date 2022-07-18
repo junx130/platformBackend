@@ -28,8 +28,16 @@ socketIoPrg(server);
 //   // io.emit("FromAPI", response);
 // }, 1000);
 
-/** -------------Testing field-------------- *
-  
+/** -------------Testing field-------------- */
+//   let a_obj=[
+//     {val:12.3, batt:3.5},
+//     {val:null, batt:null},
+//     {val:12.3, batt:3.7},
+// ]
+// let filterarr = a_obj.filter(c=>c.batt < 3.6 && c.batt!== null);
+// console.log(filterarr);
+
+
 /**========================================= */
 
 
