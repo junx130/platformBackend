@@ -15,7 +15,7 @@ const { cvrtDbKeyToRawKey } = require("./sensorKeyDBKeyMapping");
 
 const dataExpiredTime_s = 600;
 
-const logActive=true;
+const logActive=false;
 
 function Dow_ActiveNow(tStart, tEnd, dowSche){
     let dow = getDow_0_6();

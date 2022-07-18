@@ -50,7 +50,7 @@ async function nodeHandlingFn(message, devType, f_InsertDb, validateMessage){
                             // console.log(logDbRel);                    
                             
                             /** v2 reaction */
-                            console.log("~~~~~~~~~~~~c~~~~~~~~~~~~~~~~", c);
+                            // console.log("~~~~~~~~~~~~c~~~~~~~~~~~~~~~~", c);
                             await V2_Reaction(c, deviceInfo);     
                             
                             /** omit to update frontend */
