@@ -32,6 +32,7 @@ function prgMqtt() {
           prgMqtt.client.subscribe("Gateway/Connection");        
           prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
           prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
+          prgMqtt.client.subscribe("Aplouds/NodeToServer/#"); 
           console.log("connected MQTT");
         });
     
