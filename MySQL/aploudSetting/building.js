@@ -81,12 +81,13 @@ async function getBuildingsByID(_id){
 async function updateBuilding(building){
      
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
-    unix = UNIX_TIMESTAMP(), country = "${building.country}",
+    unix = UNIX_TIMESTAMP(), building = "${building.building}",
+    country = "${building.country}",
     state = "${building.state}",area = "${building.area}", 
     postcode = "${building.postcode}", accessLevel = "${building.accessLevel}",
     userAmmend = "${building.userAmmend}"
     where _id = ${building._id}`;
-
+    // console.log("quertCmd", quertCmd);
     try {
         let result = await queryTemplate(settingDatabase, quertCmd, "Update Building Finally");
         // console.log("Update: ", result.affectedRows);        
