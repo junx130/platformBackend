@@ -27,11 +27,12 @@ function prgMqtt() {
         prgMqtt.client=expClient;
 
         prgMqtt.client.on("connect", () => {
-        prgMqtt.client.subscribe("Mahsing/Gateway/#");
-        prgMqtt.client.subscribe("Gateway/Connection");        
-        prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
-        prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
-        console.log("connected AWS MQTT");
+          prgMqtt.client.subscribe("Mahsing/Gateway/#");
+          prgMqtt.client.subscribe("Gateway/Connection");        
+          prgMqtt.client.subscribe("Aploud/Gateway/#");       // Aploud gateway standardize
+          prgMqtt.client.subscribe("Aplouds/NodeToServer"); 
+          prgMqtt.client.subscribe("Aplouds/NodeToServer/#"); 
+          console.log("connected AWS MQTT");
         });
     
         prgMqtt.client.on("message", async (topic, message) => {
