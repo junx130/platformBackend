@@ -109,6 +109,7 @@ function validateUpdate(data){
         remarks: Joi.string().max(80).allow(null, ''),
         active: Joi.number(),
         userAmmend: Joi.string().max(80),
+        active: Joi.boolean(),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
@@ -118,7 +119,6 @@ function validateUpdate(data){
 
 router.post("/update", auth, async (req, res) => {
     try {
-        // console.log(req.body);
         //validate user access level
         if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // validate building info

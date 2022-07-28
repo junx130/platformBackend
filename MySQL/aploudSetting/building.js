@@ -49,6 +49,20 @@ async function getBuildings(userAccessLevel){
     }
 }
 
+async function getActiveBuildings(userAccessLevel){
+    const quertCmd = `SELECT * from ${tableName} WHERE active = true`;
+    // const quertCmd = `SELECT * from ${tableName} WHERE accessLevel > ${userAccessLevel}`;
+    
+    try {
+        let result = await queryTemplate(settingDatabase, quertCmd, "Get Building Done");
+        if(!result[0]) return null;     // no building in list
+        const buildings = result.map(b=>b);
+        return buildings;        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
 
 async function getBuildingsByBuildingName(building){
     const quertCmd = `SELECT * from ${tableName} WHERE building = "${building.building}" AND owner = "${building.owner}"`;
@@ -81,10 +95,10 @@ async function getBuildingsByID(_id){
 async function updateBuilding(building){
      
     const quertCmd = `UPDATE ${tableName} SET timestamp = CURRENT_TIMESTAMP(),
-    unix = UNIX_TIMESTAMP(), country = "${building.country}",
+    unix = UNIX_TIMESTAMP(), building = "${building.building}", country = "${building.country}",
     state = "${building.state}",area = "${building.area}", 
     postcode = "${building.postcode}", accessLevel = "${building.accessLevel}",
-    userAmmend = "${building.userAmmend}"
+    userAmmend = "${building.userAmmend}", active = ${building.active}
     where _id = ${building._id}`;
 
     try {
@@ -115,5 +129,6 @@ exports.getBuildingsByID=getBuildingsByID;
 exports.deleteBuilding=deleteBuilding;
 exports.updateBuilding=updateBuilding;
 exports.getBuildings=getBuildings;
+exports.getActiveBuildings = getActiveBuildings;
 exports.getBuildingsByBuildingName=getBuildingsByBuildingName;
 exports.insertNewBuilding = insertNewBuilding;

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding, deleteBuilding,getBuildingsByID } = require("../MySQL/aploudSetting/building");
+const { getBuildings, getActiveBuildings, getBuildingsByBuildingName, insertNewBuilding, updateBuilding, deleteBuilding,getBuildingsByID } = require("../MySQL/aploudSetting/building");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 
@@ -20,6 +20,23 @@ router.get("/get", auth, async (req, res) => {
         // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
         // get building list from database
         let buildingList = await getBuildings(req.user.accessLevel);
+        //  send building list
+        return res.status(200).send(buildingList);
+        
+    } catch (ex) {        
+        console.log("Get Building Error");
+        return res.status(404).send(ex.message);
+    }
+});
+
+// get active building list
+router.get("/getactive", auth, async (req, res) => {
+    try {
+
+        //validate user access level
+        // if(req.user.accessLevel > 10 ) return res.status(401).send("Access Level Too Low");
+        // get building list from database
+        let buildingList = await getActiveBuildings(req.user.accessLevel);
         //  send building list
         return res.status(200).send(buildingList);
         
@@ -67,6 +84,7 @@ function validateInsertNew(building){
         postcode: Joi.number().required(),
         userAmmend: Joi.string().min(3).max(80),
         accessLevel: Joi.number(),
+        active: Joi.boolean(),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
@@ -85,6 +103,7 @@ function validateUpdate(building){
         postcode: Joi.number(),
         userAmmend: Joi.string().min(3).max(80),
         accessLevel: Joi.number(),
+        active: Joi.boolean(),
         // accessLevel: Joi.number(),
         // active: Joi.number(),
         // teleID: Joi.number(),
@@ -105,6 +124,7 @@ router.post("/update", auth, async (req, res) => {
         // building database
         let data = req.body;
         data.userAmmend = req.user.username;
+        console.log(data);
         let result = await updateBuilding(data);
         // no changes on database
         if(!result) return res.status(400).send("Update Failed");     // no raw affected, update failed
