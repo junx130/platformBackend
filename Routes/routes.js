@@ -33,6 +33,7 @@ const V2_act_tele = require("./V2_Action/TeleRoute/V2_Act_TeleRoute");
 const userRoute_V2 = require("./users_V2");
 const V2_actionRoute = require("./V2_Action/V2_Action");
 const V1_ctrlRoute = require("./V1/V1_CtrlOvv/V1_CtrlOvv");
+const V2_ctrlRoute = require("./V2_Control/V2_ControlRoute");
 
 
 const error= require("../Middleware/error")
@@ -74,6 +75,7 @@ module.exports = function (app) {
     app.use("/v2bddevsetting/", V2_bdDevSetting);  
     app.use("/v2reaction/", V2_reactionRoute);  
     app.use("/v2action/", V2_actionRoute);
+    app.use("/v2ctrl/", V2_ctrlRoute);
 
     app.use("/v1ctrl/", V1_ctrlRoute);
     
