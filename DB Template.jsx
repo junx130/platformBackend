@@ -66,6 +66,7 @@ async function addSharedBd(info) {
         let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
         if (!result) return null    // insert error
         if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
 
     } catch (error){
         console.log(`${fnName} err : `, error.message);
