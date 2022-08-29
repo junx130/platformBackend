@@ -4,7 +4,7 @@ const db = "V2_Control";
 const CmdLogTable = "V2_CtrlCmdLog";
 const scheduleTable = "V2_DeviceSchedule";
 
-async function V2_InsertCrlCmdLog(info, subTopic) {
+async function V2_InsertCrlCmdLog(info, subTopic, ctrlType) {
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${CmdLogTable}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -13,6 +13,7 @@ async function V2_InsertCrlCmdLog(info, subTopic) {
             subTopic varchar(80),
             ft int,
             gwid int,
+            ctrlType int,	
             hi int,
             ht int, 
             hd int,
@@ -20,11 +21,13 @@ async function V2_InsertCrlCmdLog(info, subTopic) {
             hct int,
             GwAck tinyint default 0,
             NodeAck tinyint default 0,
+            SlaveAck tinyint default 0,
             PRIMARY KEY (_id)
        );`;
             
-        const insertData = `INSERT INTO ${CmdLogTable} (unix, subTopic, ft, gwid, hi, ht, hd, hf, hct)
-        VALUES (UNIX_TIMESTAMP(), "${subTopic}", ${info.ft}, ${info.gwid}, ${info.hi}, ${info.ht}, ${info.hd}, ${info.hf}, ${info.hct});`;        
+       let _ctrlType = ctrlType?ctrlType:"NULL";
+        const insertData = `INSERT INTO ${CmdLogTable} (unix, subTopic, ft, gwid, ctrlType, hi, ht, hd, hf, hct)
+        VALUES (UNIX_TIMESTAMP(), "${subTopic}", ${info.ft}, ${info.gwid}, ${_ctrlType}, ${info.hi}, ${info.ht}, ${info.hd}, ${info.hf}, ${info.hct});`;        
 
         let result = await insertTemplate(db, createTable, insertData, "V2_InsertCrlCmdLog Finally");
         if (!result) return null    // insert error
@@ -55,7 +58,7 @@ async function V2_updateCrlCmdLog(info, gwid, subTopic, sCol, sValue, isString, 
             ${_hd}
             hf = ${info.hf} ;
             `;
-
+        // console.log("quertCmd: ", quertCmd);
         let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
         if (!result || !result.affectedRows) return null;
         if (result.affectedRows > 0) return true;
@@ -67,11 +70,52 @@ async function V2_updateCrlCmdLog(info, gwid, subTopic, sCol, sValue, isString, 
     }
 }
 
+async function V2_updateSlaveCtrlCmdLog(info, gwid, subTopic, sCol, sValue, isString, skipHd) {
+    let sMsg = "updateSharedBd";
+    let _sValue = sValue;
+    if(isString) _sValue = `"${_sValue}"`;
+    try {
+        let _hd="";
+        if(!skipHd) _hd = `hd = ${info.hd} AND `;
+        const quertCmd = `UPDATE ${CmdLogTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            ${sCol} = ${_sValue}
+            where ft = ${info.ft} AND 
+            subTopic = "${subTopic}" AND 
+            gwid = ${gwid} AND 
+            ${_hd}
+            hct = ${info.hct};
+            `;
+        // console.log("quertCmd: ", quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 async function V2_getUnprocessCrlCmdLog_bySubTopic (subTopic){
-    let sErrTitle = "V2_getCrlCmdLog";
+    let sErrTitle = "V2_getUnprocessCrlCmdLog_bySubTopic";
     try {
-        let quertCmd = `SELECT * from ${CmdLogTable} WHERE subTopic = "${subTopic}" and NodeAck = 0 and unix > UNIX_TIMESTAMP()-60`;
+        let quertCmd = `SELECT * from ${CmdLogTable} WHERE ctrlType is null and subTopic = "${subTopic}" and NodeAck = 0 and unix > UNIX_TIMESTAMP()-60`;
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+async function V2_getUnprocessSlaveCrlCmdLog_bySubTopic (subTopic){
+    let sErrTitle = "V2_getUnprocessSlaveCrlCmdLog_bySubTopic";
+    try {
+        let quertCmd = `SELECT * from ${CmdLogTable} WHERE ctrlType =1 and subTopic = "${subTopic}" and SlaveAck = 0 and unix > UNIX_TIMESTAMP()-60`;
         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
         if(!result[0]) return [];     // return empty array
         const rtnResult = result.map(b=>b);
@@ -121,6 +165,7 @@ async function V2_getCmdLog (info){
         return null;       
     }
 }
+
 
 /*************************  dev schedule ***********************/
 async function V2_addDevSchedule(info, devinfo, sortIdx) {
@@ -241,6 +286,8 @@ exports.V2_updateCrlCmdLog=V2_updateCrlCmdLog;
 exports.V2_getUnprocessCrlCmdLog_bySubTopic=V2_getUnprocessCrlCmdLog_bySubTopic;
 exports.V2_updateCrlCmdLogBy_id=V2_updateCrlCmdLogBy_id;
 exports.V2_getCmdLog=V2_getCmdLog;
+exports.V2_getUnprocessSlaveCrlCmdLog_bySubTopic=V2_getUnprocessSlaveCrlCmdLog_bySubTopic;
+exports.V2_updateSlaveCtrlCmdLog=V2_updateSlaveCtrlCmdLog;
 
 // schedule 
 exports.V2_getSchedule=V2_getSchedule;

@@ -4,8 +4,9 @@ const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { aws_publishMqtt, aws_subscribeTopic, aws_expClient, aws_unsubscribeTopic } = require("../../MQTT/AwsMqttBroker");
 const { publishMqtt, subscribeTopic, expClient, unsubscribeTopic} = require("../../MQTT/koalaMqtt");
-const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog, V2_getSchedule, V2_updateDevSchedule, V2_getSchedule_includeUnUse, V2_addDevSchedule, V2_devSche_SetUnUse } = require("../../MySQL/V2_Control/V2_Control");
+const { V2_InsertCrlCmdLog, V2_updateCrlCmdLog, V2_getUnprocessCrlCmdLog_bySubTopic, V2_updateCrlCmdLogBy_id, V2_getCmdLog, V2_getSchedule, V2_updateDevSchedule, V2_getSchedule_includeUnUse, V2_addDevSchedule, V2_devSche_SetUnUse, V2_getUnprocessSlaveCrlCmdLog_bySubTopic, V2_updateSlaveCtrlCmdLog } = require("../../MySQL/V2_Control/V2_Control");
 const { ioEmit } = require("../../MainPrg/Prg_SocketIo");
+const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
 
 let httpResponse;
@@ -41,21 +42,51 @@ aws_expClient.on("message", async (topic, message) => {
                 let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "NodeAck", 1, false, true);
                 // console.log("Node Update: ",updateRel);   
                 // un subscribe base on topic stored in DB     
+                /** node control */
                 let unprocessCmdLog = await V2_getUnprocessCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
                 // console.log("unprocessCmd Cnt", unprocessCmdLog.length);
 
-                if(unprocessCmdLog.length === 0) {  // this is only active command log
+                /** slave control */
+                let unprocessSlaveCmLog = await V2_getUnprocessSlaveCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
+                // console.log("unprocessSlaveCmLog", unprocessSlaveCmLog);
+                if(unprocessCmdLog.length === 0 && unprocessSlaveCmLog.length === 0) {  // this is only active command log
                     // let setProcessed = await V2_updateCrlCmdLogBy_id(recentCmdLog[0]._id, "Processed", 1, false);
-                    // console.log("Unsubsribe To: ",subTopic);   
+                    // console.log("Unsubsribe To (Node): ",subTopic);   
                     aws_unsubscribeTopic(subTopic);
                 }
                 
+                /** do not emit if ctrlType is slave control */
+                // console.log("mqttMsg", mqttMsg);
+                let logInfo = {...mqttMsg};
+                logInfo.gwid = gwid;
+                let cmdLog = await V2_getCmdLog(logInfo);
+                // console.log("cmdLog", cmdLog);                
+                if(notArrOrEmptyArr(cmdLog)) return console.log("aws_expClient NodeAck Err: No log found");
+                if(cmdLog[0].ctrlType===1) return;
+                // console.log("ioEmit : ", mqttMsg)
                 ioEmit("v2_CtrlCmd", mqttMsg);      // update to frontend
 
                 
                 // httpResponse.status(200).send(deviceInfo);   // response to frontend
                 
-            } 
+            } else if(a_topic[1]==='SlaveAck'){  /** slave reply to server */
+                /** node control */
+                let updateRel = await V2_updateSlaveCtrlCmdLog(mqttMsg, gwid, subTopic, "SlaveAck", 1, false, true);
+                let unprocessCmdLog = await V2_getUnprocessCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
+
+                /** slave control */
+                let unprocessSlaveCmLog = await V2_getUnprocessSlaveCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
+
+                if(unprocessCmdLog.length === 0 && unprocessSlaveCmLog.length === 0) {  // this is only active command log
+                    // let setProcessed = await V2_updateCrlCmdLogBy_id(recentCmdLog[0]._id, "Processed", 1, false);
+                    // console.log("Unsubsribe To (Slave): ",subTopic);   
+                    aws_unsubscribeTopic(subTopic);
+                }
+                let newMqttInfo = {ctrlType : 1, ...mqttMsg}
+                // console.log("ioEmit : ", newMqttInfo)
+                ioEmit("v2_CtrlCmd", newMqttInfo);      // update to frontend
+
+            }
         }
                
     } catch (error) {
@@ -174,7 +205,8 @@ router.post("/send", auth, async (req, res) => {
 router.post("/v2sendcmd", auth, async (req, res) => {    
     try {
         // console.log(req.body);            
-        let {topic, loRaPackage, urlSel} = req.body;
+        let {topic, loRaPackage, urlSel, ctrlType} = req.body;
+        // console.log("ctrlType", ctrlType);
         if(urlSel===1) aws_publishMqtt(`${topic}`, loRaPackage);   // aws server
         else publishMqtt(`${topic}`, loRaPackage);
 
@@ -182,7 +214,7 @@ router.post("/v2sendcmd", auth, async (req, res) => {
         aws_subscribeTopic(_subTopic);       /**subscribe topic here*/
 
         //<----- insert info into database
-        let insertRel = await V2_InsertCrlCmdLog(loRaPackage, _subTopic);
+        let insertRel = await V2_InsertCrlCmdLog(loRaPackage, _subTopic, ctrlType);
         if(!insertRel.success) return res.status(203).send({errMsg:"Insert Cmd Log Error"}); 
 
         return res.status(200).send({success:true});    
