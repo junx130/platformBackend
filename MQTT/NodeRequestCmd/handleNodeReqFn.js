@@ -2,6 +2,7 @@ const { v2GetBdDevData_lastNMin } = require("../../MySQL/V2_QueryData/v2_QueryBd
 const { verifyCRC, genLoRaPackage } = require("../../utilities/loraFormat");
 const { _unixNow } = require("../../utilities/timeFn");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
+const { F_CondensorLoopLogic } = require("./CondensorLoop/CondensorLoopLogic");
 
 async function handleNodeReq(topic, message){
     try {        
@@ -34,7 +35,7 @@ async function handleNodeReq(topic, message){
                             }
                             // prgMqtt.client.publish(`${_topic}`, loraPackage);
                         }
-                    }else if(deviceInfo.ht===2000 && deviceInfo.hf===101){  // condensor loop request DPM reading
+                    }else if(deviceInfo.ht===39 && deviceInfo.hf===101){  // condensor loop request DPM reading
                         console.log("deviceInfo", deviceInfo);
                         let gwId = parseInt(deviceInfo.GwID);
                         /** publish fn 3 to node */
@@ -83,6 +84,11 @@ async function handleNodeReq(topic, message){
                             }
                             // prgMqtt.client.publish(`${_topic}`, loraPackage);
                         }
+                    }else if(deviceInfo.ht===39 && deviceInfo.hf===102){    // CL logic
+                        let CL_rel = await F_CondensorLoopLogic(deviceInfo);
+                        return CL_rel;
+                        if(!CL_rel) return
+                        if(CL_rel.toPublish) return CL_rel;
                     }
                 }
             }  
