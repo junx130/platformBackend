@@ -7,7 +7,7 @@ const C_trendPattern=[
     {_id: 6, name:"SearchUpStart"},
     {_id: 7, name:"SearchDnStart"},
     {_id: 8, name:"SearchUpAction"},
-    {_id: 9, name:"SearchUpAction"},
+    {_id: 9, name:"SearchDnAction"},
     {_id: 10, name:"Stable"},
 ]
 
