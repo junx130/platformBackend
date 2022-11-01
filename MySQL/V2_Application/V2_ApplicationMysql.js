@@ -45,6 +45,7 @@ async function get_V2AppListByBd_id (bd_id){
 
 
 /*************** V2_AppInputFactorPair **************/
+// to be removed
 async function get_V2InputFactorPaired (masterBdDev_id){
     let sErrTitle = "get_V2InputFactorPaired";
     try {
@@ -62,6 +63,7 @@ async function get_V2InputFactorPaired (masterBdDev_id){
 }
 
 /****************Error log**************** */
+// to be removed
 async function v2_insertAppErrLog(masterBdDev_id, errMsg) {
     let fnName = "v2_insertAppErrLog";
     try {
@@ -91,6 +93,7 @@ async function v2_insertAppErrLog(masterBdDev_id, errMsg) {
 
 
 /**  Re-Tune var table */
+// to be removed
 async function getRetuneVar_masterbdDevId (masterBdDev_id){
     let sErrTitle = "getRetuneVar_opCode";
     try {
@@ -109,6 +112,26 @@ async function getRetuneVar_masterbdDevId (masterBdDev_id){
 
 
 
+/************Code Within - Start************ */
+/** insert V2_AppVarPair 
+ * 
+ *  requirement
+ * 1. insert function follow DB Template.jsx
+ * 1.1 change the fnName follow "function name"
+ * 2. make sure able to create V2_AppVarPair table if table not exist 
+ * 
+ * 
+*/
+
+
+
+
+/************Code Within - End************ */
+
+
+
+
+
 
 
 exports.get_V2AppMember=get_V2AppMember;
@@ -119,3 +142,10 @@ exports.get_V2InputFactorPaired=get_V2InputFactorPaired;
 exports.v2_insertAppErrLog=v2_insertAppErrLog;
 /************** return var **********************/
 exports.getRetuneVar_masterbdDevId=getRetuneVar_masterbdDevId;
+
+/************Code Within - ExpStart************ */
+
+
+
+
+/************Code Within - ExpEnd************ */
