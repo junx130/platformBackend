@@ -37,7 +37,7 @@ function prgMqtt() {
     
         prgMqtt.client.on("message", async (topic, message) => {
           try {
-            let nodeReqRel = handleNodeReq(topic, message);
+            let nodeReqRel = await handleNodeReq(topic, message);
             // console.log("nodeReqRel:", nodeReqRel);
             if(nodeReqRel) {
               if(nodeReqRel.toPublish) publishMqtt(nodeReqRel.topic, nodeReqRel.loraPackage);

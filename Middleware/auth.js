@@ -29,6 +29,11 @@ module.exports = function(req, res, next) {
     }
   } catch (ex) {    
     console.log("Auth Err: ",ex.message);
-    res.status(400).send("Invalid token.");
+    if(ex.message==="jwt expired"){
+      console.log("Got it");
+      res.status(403).send(ex.message); 
+    } else{
+      res.status(400).send(ex.message); 
+    }
   }
 };

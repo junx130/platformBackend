@@ -61,6 +61,26 @@ async function v2GetBdDevData_T1_T2 (type, bdDev_id, T1, T2){
     }
 }
 
+
+async function v2GetBdDevData_lastNMin (type, bdDev_id, nMin){
+    try {
+        // Device_1_10
+        const quertCmd = `SELECT * FROM (SELECT * FROM Device_${type}_${bdDev_id} WHERE timestamp >= now() - INTERVAL ${nMin} MINUTE)Var1 ORDER BY unix DESC ;`
+        // const quertCmd = `SELECT * from Device_${type}_${bdDev_id} where unix < ${nMin*60}`;
+        // select * from Device_1_1 order by unix desc limit 3
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "v2GetBdDevData_lastN Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
 exports.v2GetBdDevData_durationB4Unix=v2GetBdDevData_durationB4Unix;
 exports.v2GetBdDevData_lastN =v2GetBdDevData_lastN;
 exports.v2GetBdDevData_T1_T2=v2GetBdDevData_T1_T2;
+exports.v2GetBdDevData_lastNMin=v2GetBdDevData_lastNMin;
