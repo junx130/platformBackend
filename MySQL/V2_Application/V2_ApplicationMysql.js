@@ -7,7 +7,7 @@ const appMemberTable = "V2_AppMemberList";
 const appInputFactorPairTable = "V2_AppInputFactorPair";
 const appErrLogTable = "V2_AppErrLog";
 const appRetuneVarTable = "V2_AppReTuneVarPair";
-
+const appPairVarTable = "V2_AppVarPair";
 
 
 async function get_V2AppMember (app_id){
@@ -113,6 +113,22 @@ async function getRetuneVar_masterbdDevId (masterBdDev_id){
 
 
 /************Code Within - Start************ */
+async function getVarPair (masterBdDev_id, fnType){
+    let sErrTitle = "getVarPair";
+    try {
+        let quertCmd = `SELECT * from ${appPairVarTable} WHERE masterBdDev_id = ${masterBdDev_id} and fnType = ${fnType} and inUse = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
 /** insert V2_AppVarPair 
  * 
  *  requirement
@@ -143,9 +159,5 @@ exports.v2_insertAppErrLog=v2_insertAppErrLog;
 /************** return var **********************/
 exports.getRetuneVar_masterbdDevId=getRetuneVar_masterbdDevId;
 
-/************Code Within - ExpStart************ */
-
-
-
-
-/************Code Within - ExpEnd************ */
+/********var pair ***********/
+exports.getVarPair=getVarPair;
