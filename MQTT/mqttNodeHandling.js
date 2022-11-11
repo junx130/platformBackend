@@ -12,9 +12,7 @@ async function mqttNodeHandling(topic, message) {
     
     const arr_topic = topic.split("/");
     
-    if(arr_topic[1]==="Gateway"&&
-        !arr_topic[3]
-    ){            
+    if(arr_topic[1]==="Gateway"&& !arr_topic[3]){            
         /**1st version of node handling method */
         await rtrhDbHandling(message);
         await probeTDbHandlings(message);
@@ -24,24 +22,12 @@ async function mqttNodeHandling(topic, message) {
         await airFlowDbHandling(message);
 
         // await airFlowDbHandling(message);        // comment out this line before air flow type is confirm
-    }
-
-    // handling Gateway
-    if(arr_topic[0]==="Gateway"&&
-        arr_topic[1]==="Connection"
-    ){        
+    }else if(arr_topic[0]==="Gateway"&& arr_topic[1]==="Connection"){         // handling Gateway
         await gatewayHandling(message);
-        
-    }    
-
-    if(arr_topic[0]==="Aplouds"&&
-        arr_topic[1]==="NodeToServer"
-    ){        
+    } else if(arr_topic[0]==="Aplouds"&& arr_topic[1]==="NodeToServer"){        // handling new node   
         // console.log("Get New LoRa Type");
         await decodeDevType(message);
-        
-    }    
-
+    } 
 }
 
 exports.mqttNodeHandling = mqttNodeHandling;

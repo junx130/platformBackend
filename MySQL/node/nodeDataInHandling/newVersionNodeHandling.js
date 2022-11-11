@@ -2,7 +2,7 @@ const { updateDevActChecklist } = require("../../../devActiveCheck/updateDevActC
 const { ioEmit } = require("../../../MainPrg/Prg_SocketIo");
 const { V2_Reaction } = require("../../../MainPrg/V2_Reaction");
 const { checkNotification } = require("../../../notification/checkNotification");
-const { listedInbuildingDevices } = require("../../queryData");
+const { listedInbuildingDevices, listedInbuildingDevicesLite } = require("../../queryData");
 const { getSensorOwnerBy_TydevID } = require("../../V2_DeviceRecord/v2_SensorOwner");
 
 
@@ -14,16 +14,18 @@ async function newNodeHandlingFn(deviceInfo, insertToDb, sensorPara){
     try {
         // await insertToDb(deviceInfo, database, deviceInfo.hi, sensorPara);      // skip store data into raw Data log
         /** V1, check device in bd List */
-        let CheckListResult = await listedInbuildingDevices(deviceInfo.ht, deviceInfo.hi);
+        let CheckListResult = await listedInbuildingDevicesLite(deviceInfo.ht, deviceInfo.hi);
+        // console.log("CheckListResult");
+        // console.log(CheckListResult);
         if (CheckListResult) {
-            for (const c of CheckListResult) {
-                await insertToDb(deviceInfo, buildingDb, c._id, sensorPara);  
-                let topic_v1=`v1_${c.type}_${c._id}`
-                ioEmit(topic_v1, c.unix);
+            for (const eachList of CheckListResult) {
+                await insertToDb(deviceInfo, buildingDb, eachList._id, sensorPara);  
+                let topic_v1=`v1_${eachList.type}_${eachList._id}`
+                ioEmit(topic_v1, eachList.unix);
                 /**  check notification list here*/
-                await checkNotification(c);
+                await checkNotification(eachList);
                 /**Check Device Active here */
-                await updateDevActChecklist(c._id);
+                await updateDevActChecklist(eachList._id);
 
             }   
         }
