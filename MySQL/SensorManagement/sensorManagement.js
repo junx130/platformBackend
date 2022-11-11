@@ -132,6 +132,20 @@ async function getSensorParaBy_sensorType(sensorType){
     }
 }
 
+async function getSensorParaBy_sensorTypeLite(sensorType){
+    try {
+        const quertCmd = `SELECT dataType, dataName, dataIndex, dataUnit from ${tableName} WHERE 
+        sensorType =${sensorType};
+        `;
+        let result = await queryTemplate(db, quertCmd, "Get getSensorParaBy_sensorType Done");
+        if(!result[0]) return ;     // no item found in list
+        const rows = result.map(b=>b);
+        return rows;        
+    } catch (ex) {
+        console.log(ex.message)
+        return ;
+    }
+}
 async function getSensorList_ByVendorId(vendor_id){
     try {
         const quertCmd = `SELECT * from ${sensorTable} WHERE 
@@ -247,3 +261,5 @@ exports.getLeastNoInTable=getLeastNoInTable;
 exports.getSensorParaBy_TypeList=getSensorParaBy_TypeList;
 exports.getSensorList_ByVendorId=getSensorList_ByVendorId;
 exports.getSensorParaBy_sensorType = getSensorParaBy_sensorType;
+
+exports.getSensorParaBy_sensorTypeLite=getSensorParaBy_sensorTypeLite;

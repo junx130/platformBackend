@@ -1,4 +1,4 @@
-const { getSensorParaBy_sensorType } = require("../MySQL/SensorManagement/sensorManagement");
+const { getSensorParaBy_sensorType, getSensorParaBy_sensorTypeLite } = require("../MySQL/SensorManagement/sensorManagement");
 
 function PxToDbC8Table(pxName, pxData){
     if(!Array.isArray(pxData)) return console.log(`${pxName} is not array`);
@@ -68,8 +68,31 @@ function genPxPara(sensorKey, px, loraData){
     }
 }
 
+
+/** store a local storage to store sensor para list???*/
+/** refresh para list every 5 mins */
+setInterval(async() => await F_cyclicReloadParaList(), 300000);
+function F_cyclicReloadParaList(){
+    console.log("Refresh Para List");
+    G_ParaList=[];
+}
+
+let G_ParaList=[];
+
+// [sensorType, paraList:[{ dataType: 'pf', dataName: 'Batt.', dataIndex: 6, dataUnit: 'V' }, ]]
+
 async function genSensorPara(sensorType, loraData){
-    let sensorKey = await getSensorParaBy_sensorType(sensorType);
+    let foundInList = G_ParaList.find(c=>c.sensorType === sensorType);
+    // console.log(foundInList);
+    let sensorKey;
+    if(!foundInList) {
+        sensorKey = await getSensorParaBy_sensorTypeLite(sensorType);
+        if(sensorKey) G_ParaList.push({sensorType, sensorKey});
+        console.log("sensorType : ", sensorType);
+    }else{
+        sensorKey=foundInList.sensorKey;
+    }
+    // console.log(sensorKey);
     let sensorPara = {
         pb:genPxPara(sensorKey, 'pb', loraData),
         pf:genPxPara(sensorKey, 'pf', loraData),

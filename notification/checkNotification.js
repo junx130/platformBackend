@@ -248,7 +248,7 @@ async function checkNotification(bdDev){
     // let type = [bdDev.type]
     try {
         let notifyList = await getNotifyListByIdnType(bdDev.type, bdDev._id);
-        // console.log("Enter");
+        // console.log(notifyList);
         // if(bdDev._id==3) console.log(notifyList);
         if(!notifyList) return //console.log("Not in monitoring list");
     
@@ -267,42 +267,7 @@ async function checkNotification(bdDev){
             
             let para = await getNodeKey(notifyItem.DataKey, notifyItem.type);
             let notifyMsg = genAlarmMessage(building.building, triggerAlarm.msg, para.name, bdDev, triggerAlarm.value, notifyItem, triggerAlarm.unix, para.unit);
-            /** ------------customization for PDC 220701------------ */            
-            // let PDC_SkipNotification = false;
-            // if(bdDev.type===32){        // WCPU
-            //     // On/Off pb[0] 
-            //     // console.log("notifyItem", notifyItem);
-            //     if(notifyItem.DataKey==="pb_0"){    // on/off
-            //         if(triggerAlarm.value===0){     // switch off
-            //             notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched OFF!", bdDev, triggerAlarm.unix);
-            //         }else if(triggerAlarm.value===1){   // switch on
-            //             notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
-            //         }
-            //         PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_0");
-            //     }else if(notifyItem.DataKey==="pb_10"){     // Error
-            //         if(triggerAlarm.value>0){
-            //             notifyMsg = genAlarmMessage_wcpuErr(building.building, "Alert! An Error Has Occurred On", bdDev, triggerAlarm.unix);
-            //         }
-            //         PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_10");
-            //     }
-                
-            // }else if(bdDev.type===31 || bdDev.type===36){      // ACPU
-            //     // console.log("```````````````APUC type notifyItem", notifyItem);
-            //     if(notifyItem.DataKey==="pb_0"){    // on/off
-            //         if(triggerAlarm.value===0){     // switch off
-            //             notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched OFF!", bdDev, triggerAlarm.unix);
-            //         }else if(triggerAlarm.value===1){   // switch on
-            //             notifyMsg = genAlarmMessage_xcpu(building.building, "Is Switched ON!", bdDev, triggerAlarm.unix);
-            //         }
-            //         PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_0");
-            //     }else if(notifyItem.DataKey==="pb_1"){     // Error
-            //         if(triggerAlarm.value>0){
-            //             notifyMsg = genAlarmMessage_xcpu(building.building, "Tripped!", bdDev, triggerAlarm.unix);
-            //         }
-            //         PDC_SkipNotification = await prev2DataSame_SkipNotify(bdDev.type, bdDev._id, "pb_1");
-            //     }
-            //     // console.log("Message-----------------", notifyMsg);
-            // }
+            
             
             for (const singleTeleID of teleDB) {
                 let teleID = singleTeleID.telegramID;
@@ -326,29 +291,6 @@ async function checkNotification(bdDev){
     }
 }
 
-/** Skip on, off, and error start time notification triggering */
-// prev2DataSame_SkipNotify=async (devType, bdDevId, dataKey)=>{
-//     try {
-//         let last2Data = await getLastNData("Buildings", devType, bdDevId, 2);
-//         // console.log("######################last2Data:", last2Data);
-//         if(notArrOrEmptyArr(last2Data)) return true;    // empty arr, skip notify
-//         if(last2Data.length < 2) return true;   // only got 1 data, skip 
-//         // console.log("dataKey", dataKey);
-//         // console.log("Last data", last2Data[0][dataKey]);
-//         // console.log("Last 2nd data", last2Data[1][dataKey]);
-//         if(!last2Data[0][dataKey] || last2Data[1][dataKey]) return true;    // handle data === null condition
-//         if(last2Data[0][dataKey] === last2Data[1][dataKey]) {
-//             // console.log("Data Equal");
-//             return true;
-//         }
-//         // console.log("Skip Notification");
-//         return false;
-        
-//     } catch (error) {
-//         console.log("prev2DataSame_SkipNotify error : ",error.message);
-//         return true; // error occur, skip notification
-//     } 
-// }
 
 
 exports.checkNotification = checkNotification;

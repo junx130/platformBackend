@@ -4,7 +4,7 @@ const { listedInbuildingDevices } = require("../../queryData");
 const { checkNotification } = require("../../../notification/checkNotification");
 const { devActiveList } = require("../../notification/devActive");
 const { newNodeHandlingFn } = require("../nodeDataInHandling/newVersionNodeHandling");
-const { getLatestThreshold_byDevId } = require("../../statusNodeThreshold/statusNodeThreshold");
+const { getLatestThreshold_byDevId, getLatestThreshold_byDevId_Lite } = require("../../statusNodeThreshold/statusNodeThreshold");
 
 
 const database = "RawDataLog";
@@ -14,7 +14,9 @@ async function infoHandlings(deviceInfo) {
     // console.log(deviceInfo);
     try {
         /** Modify status value here if threshold set on server */
-        let thresholdSet = await getLatestThreshold_byDevId(deviceInfo.hi);
+        // console.log("deviceInfo.hi", deviceInfo.hi);
+        // console.log("deviceInfo.ht", deviceInfo.ht);
+        let thresholdSet = await getLatestThreshold_byDevId_Lite(deviceInfo.hi);
         // console.log(thresholdSet);
         if(thresholdSet && thresholdSet[0]){
             let thres = thresholdSet[0];

@@ -159,6 +159,23 @@ async function listedInbuildingDevices(devType, devID){
   }
 }
 
+async function listedInbuildingDevicesLite(devType, devID){
+  const sqlQuery = `SELECT _id, unix, type, devID, buildingID, location, name FROM BuildingDevices WHERE type = '${devType}' AND devID = '${devID}'`;
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    result = await connection.query(`use Buildings`);
+    result = await connection.query(sqlQuery);
+    return result;
+  } catch (ex) {
+    console.log("DB Error", ex.message);
+  } finally {
+    if (connection) connection.end();
+    // console.log("listed In Building Devices Finally");
+  }
+}
+
+
 exports.getDataT1ToT2_asc=getDataT1ToT2_asc;
 exports.queryTemplate=queryTemplate;
 exports.insertTemplate = insertTemplate;
@@ -168,3 +185,5 @@ exports.getNDataAfterT = getNDataAfterT;
 exports.getDataT1ToT2 = getDataT1ToT2;
 exports.getNMinData =getNMinData;
 exports.getLastNData =getLastNData;
+
+exports.listedInbuildingDevicesLite=listedInbuildingDevicesLite;
