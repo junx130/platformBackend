@@ -3,7 +3,7 @@ const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -657,4 +657,47 @@ router.post("/building/editshareduser", auth, async (req, res) => {
         return res.status(203).send({errMsg: "Server Exc Error"});   
     }
 });
+
+
+
+/**-------Version 2a---------- */
+router.post("/floor/getrelated", auth, async (req, res) => {    
+    try {
+        let info = req.body;
+        // console.log("info", info);
+        /** get owned building area */
+        let floorInBd = await v2a_getFloorinBd(info.bd_id);        
+        if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        // console.log("relatedBuilding", relatedBuilding);
+        return res.status(200).send(floorInBd);      
+        
+    } catch (error) {
+        console.log("Error : /area/getrelated");
+        console.log(error.message);
+        return res.status(404).send(error.message);     
+    }
+});
+
+router.post("/bd/getdevicesinbd", auth, async (req, res) => {    
+    try {
+        let info = req.body;
+        console.log("info", info);
+        /** get owned building area */
+        let floorInBd = await v2a_getDeviceInBd(info.bd_id);        
+        if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        // console.log("relatedBuilding", relatedBuilding);
+        return res.status(200).send(floorInBd);      
+        
+    } catch (error) {
+        console.log("Error : /area/getrelated");
+        console.log(error.message);
+        return res.status(404).send(error.message);     
+    }
+    
+});
+
+
+
 module.exports = router;

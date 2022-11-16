@@ -5,6 +5,7 @@ const db = "V2_DeviceRecord";
 const tableName = "V2_OwnerList_bdDev";
 const buildingTableName = 'V2_OwnerList_bd';
 const areaTableName = 'V2_OwnerList_area';
+const floorTableName = 'V2_OwnerList_floor';
 
 
 /**----------- Get Building related area ---------- */
@@ -100,7 +101,7 @@ async function getSensorOwnerBy_TydevID (Info){
     }
 }
 
-async function insertV2_OwnerList_bdDev(body, bd_id, area_id){
+async function insertV2_OwnerList_bdDev(body, bd_id, floor_id, area_id){
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -111,19 +112,21 @@ async function insertV2_OwnerList_bdDev(body, bd_id, area_id){
             name varchar(80),
             owner_id int not null,
             buidling_id int not null,
+            floor_id int not null,
             area_id int not null,
             sortIdx int not null default 65535,
             active tinyint default 1,
             PRIMARY KEY (_id)
         )`;
   
-        const queryCmd = `INSERT INTO ${tableName}(unix, type, devID, name, owner_id, buidling_id, area_id)
+        const queryCmd = `INSERT INTO ${tableName}(unix, type, devID, name, owner_id, buidling_id, floor_id, area_id)
             VALUES (UNIX_TIMESTAMP(), 
             ${body.type}, 
             ${body.devID}, 
             "${body.devName}", 
             ${body.bdOwner_id}, 
             ${bd_id}, 
+            ${floor_id}, 
             ${area_id}
             )`;
 
@@ -169,7 +172,7 @@ async function insertV2_OwnerList_bd(body){
     }
 }
 
-async function insertV2_OwnerList_area(body, bd_id){
+async function insertV2_OwnerList_area(body, bd_id, floor_id){
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${areaTableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -178,16 +181,18 @@ async function insertV2_OwnerList_area(body, bd_id){
             name varchar(80),
             owner_id int not null,
             buidling_id int not null,
+            floor_id int not null,
             sortIdx int not null default 65535,
             active tinyint default 1,
             PRIMARY KEY (_id)
         )`;
   
-        const queryCmd = `INSERT INTO ${areaTableName}(unix, name, owner_id, buidling_id)
+        const queryCmd = `INSERT INTO ${areaTableName}(unix, name, owner_id, buidling_id, floor_id)
             VALUES (UNIX_TIMESTAMP(), 
             "${body.bAreaName}", 
             ${body.bdOwner_id},
-            ${bd_id}
+            ${bd_id},
+            ${floor_id}
             )`;
 
         let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_area Finally");
@@ -266,6 +271,43 @@ async function getBdList_byid (bd_idList){
     }
 }
 
+
+
+
+/*********** V2a get floor in bd *********** */
+async function v2a_getFloorinBd (bd_id){
+    let sErrTitle = "v2a_getFloorinBd";
+    try {
+        let quertCmd = `SELECT * from ${floorTableName} WHERE buidling_id = ${bd_id} and active = 1`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2a_getDeviceInBd (bd_id){
+    let sErrTitle = "v2a_getDeviceInBd";
+    try {
+        let quertCmd = `SELECT * from ${tableName} WHERE buidling_id = ${bd_id} and active = 1`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
@@ -281,3 +323,7 @@ exports.insertV2_OwnerList_bdDev=insertV2_OwnerList_bdDev;
 exports.getSensorOwnerBy_TydevID = getSensorOwnerBy_TydevID;
 
 exports.getBdList_byid = getBdList_byid;
+
+/** -----------V2a------------- */
+exports.v2a_getFloorinBd=v2a_getFloorinBd;
+exports.v2a_getDeviceInBd=v2a_getDeviceInBd;
