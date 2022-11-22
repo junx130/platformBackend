@@ -745,7 +745,7 @@ router.post("/sensorowner/v2aregnewsensor", auth, async (req, res) => {
         let area_id=0;
         if(!sensorInfo.bNewArea)    area_id = sensorInfo.areaId;
         else{
-            let addArearel = await insertV2_OwnerList_area({name:sensorInfo.bAreaName, owner_id:sensorInfo.bdOwner_id, buidling_id:sensorInfo.buildingId, floor_id});
+            let addArearel = await insertV2_OwnerList_area({name:sensorInfo.bAreaName, owner_id:sensorInfo.bdOwner_id, buidling_id, floor_id});
             if(!addArearel) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(1)"});
             if(addArearel.affectedRows<1) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(2)"});
             area_id = addArearel.insertId;
