@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
 const auth = require("../../Middleware/auth");
+const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -31,7 +32,6 @@ function valRegSenInfo(body){
 /** register new sensor */
 router.post("/sensorowner/regnewsensor", auth, async (req, res) => {    
     try {
-        // console.log(req.body);
         let body = req.body;
         /** validate Data */
         let {error: valErr} = valRegSenInfo(body);
@@ -73,7 +73,7 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
     } catch (error) {
         console.log("Error : /sensorowner/regnewsensor");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
 });
 
@@ -122,7 +122,7 @@ router.post("/area/getrelated", auth, async (req, res) => {
     } catch (error) {
         console.log("Error : /area/getrelated");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
     
 });
@@ -173,7 +173,7 @@ const getRelBdFn=async (req, res, _accessLevel) =>{
         return res.status(200).send(relatedBuilding);  
     } catch (error) {        
         console.log("Error : /building/getrelated");
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
 }
 
@@ -198,7 +198,7 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
         return res.status(200).send(result);        
     } catch (ex) {
         console.log("Get Status Threshold Error");
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -211,7 +211,7 @@ router.post("/sensorshared/getbyuserbdaccesslvl", auth, async (req, res) => {
         return res.status(200).send(result);        
     } catch (ex) {
         console.log("Get Status Threshold Error");
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -275,7 +275,7 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
     } catch (ex) {
         console.log("sensorshared/sharesensor Error");
         console.log(ex.message);
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -664,7 +664,6 @@ router.post("/building/editshareduser", auth, async (req, res) => {
 router.post("/floor/getrelated", auth, async (req, res) => {    
     try {
         let info = req.body;
-        // console.log("info", info);
         /** get owned building area */
         let floorInBd = await v2a_getFloorinBd(info.bd_id);        
         if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
@@ -673,31 +672,104 @@ router.post("/floor/getrelated", auth, async (req, res) => {
         return res.status(200).send(floorInBd);      
         
     } catch (error) {
-        console.log("Error : /area/getrelated");
+        console.log("Error : /floor/getrelated");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
 });
 
 router.post("/bd/getdevicesinbd", auth, async (req, res) => {    
     try {
         let info = req.body;
-        console.log("info", info);
         /** get owned building area */
         let floorInBd = await v2a_getDeviceInBd(info.bd_id);        
         if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
 
-        // console.log("relatedBuilding", relatedBuilding);
         return res.status(200).send(floorInBd);      
         
     } catch (error) {
-        console.log("Error : /area/getrelated");
+        console.log("Error : /bd/getdevicesinbd");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
+    }
+});
+
+router.post("/area/v2agetarea", auth, async (req, res) => {    
+    try {
+        let {bd_id, floor_id} = req.body;
+        /** get owned building area */
+        let floorInBd = await v2a_getAreaRelated(bd_id, floor_id);
+        if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        return res.status(200).send(floorInBd);      
+        
+    } catch (error) {
+        console.log("Error : /bd/getdevicesinbd");
+        console.log(error.message);
+        return res.status(203).send(error.message);     
     }
     
 });
 
+
+router.post("/sensorowner/v2aregnewsensor", auth, async (req, res) => {    
+    try {
+        let {sensorInfo} = req.body;
+        /** verify Serial No. and Reg Code */
+        let deviceInfo = await getDevBy_SnRegcode({SerialNo:sensorInfo.SerialNo, RegCode:sensorInfo.RegCode});
+        if(!deviceInfo) return res.status(203).send({errMsg: "DB Error (Dev)"});
+        if(notArrOrEmptyArr(deviceInfo)) return res.status(203).send({errMsg: "Invalid Serial No. or Register Code"});
+        /** check device whether been registered */
+        let bdDevInfo = await getSensorOwnerBy_TydevID_inUse(deviceInfo[0]);
+        if(!bdDevInfo) return res.status(203).send({errMsg: "DB Error (bdDev)"});
+        if(!notArrOrEmptyArr(bdDevInfo)) return res.status(203).send({errMsg: "Device been registered"});
+        /** insert new Building */
+        let buidling_id = 0;
+        if(!sensorInfo.bNewBuilding)  buidling_id=sensorInfo.buildingId;
+        else{
+            let addBdRel = await insertV2_OwnerList_bd(sensorInfo);
+            if(!addBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
+            if(addBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
+            buidling_id = addBdRel.insertId;
+        }
+        /** insert new floor */
+        let floor_id = 0;
+        if(!sensorInfo.bNewFloor) floor_id =sensorInfo.floorId;
+        else{
+            let addFloorRel = await v2aInsertFloor({name:sensorInfo.bFloorName, owner_id:sensorInfo.bdOwner_id, buidling_id});
+            if(!addFloorRel) return res.status(203).send({errMsg:"Add New Monitoring List Not Success(1)"});
+            if(addFloorRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Monitoring List Not Success(2)"});
+            floor_id = addFloorRel.insertId;
+        }
+        /** insert new area */
+        let area_id=0;
+        if(!sensorInfo.bNewArea)    area_id = sensorInfo.areaId;
+        else{
+            let addArearel = await insertV2_OwnerList_area({name:sensorInfo.bAreaName, owner_id:sensorInfo.bdOwner_id, buidling_id:sensorInfo.buildingId, floor_id});
+            if(!addArearel) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(1)"});
+            if(addArearel.affectedRows<1) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(2)"});
+            area_id = addArearel.insertId;
+        }
+        /** insert bdDev */
+        /** find if bd_id, dev, and type same but active is not, update active to 1 */
+        let unUsedSlot = await v2aGetBdDevRegBefore({type:deviceInfo[0].type, devID:deviceInfo[0].devID, owner_id:sensorInfo.bdOwner_id, buidling_id});
+        if(!notArrOrEmptyArr(unUsedSlot)){  /** found un-used slot, update */
+            let updateRel = await v2aUpdateOwnerList_bdDev(sensorInfo, deviceInfo[0].type, deviceInfo[0].devID, unUsedSlot[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Insert Device Err(Update)"});
+        }else{  /** insert new bdDev slot */
+            let insertBdDevRel = await insertV2_OwnerList_bdDev(sensorInfo, deviceInfo[0].type, deviceInfo[0].devID, buidling_id, floor_id, area_id);
+            if(!insertBdDevRel) return res.status(203).send({errMsg:"Insert Device Err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /sensorowner/regnewsensor");
+        console.log(error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
 
 
 module.exports = router;

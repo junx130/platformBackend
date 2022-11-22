@@ -191,7 +191,7 @@ async function getDevBy_SnRegcode(body) {
         return devices;
     } catch (ex) {
         console.log(ex.message);
-        return [];
+        return;
     }
 }
 

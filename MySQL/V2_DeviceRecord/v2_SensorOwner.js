@@ -100,8 +100,26 @@ async function getSensorOwnerBy_TydevID (Info){
         return null;       
     }
 }
+async function getSensorOwnerBy_TydevID_inUse (Info){
+    try {
+        const quertCmd = `SELECT * from ${tableName} WHERE type = ${Info.type} and devID = ${Info.devID} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getSensorOwnerBy_TydevID Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
 
-async function insertV2_OwnerList_bdDev(body, bd_id, floor_id, area_id){
+
+
+
+async function insertV2_OwnerList_bdDev(info, type, devID, bd_id ,floorId, areaId) {
+    let fnName = "insertV2_OwnerList_bdDev";
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -117,29 +135,22 @@ async function insertV2_OwnerList_bdDev(body, bd_id, floor_id, area_id){
             sortIdx int not null default 65535,
             active tinyint default 1,
             PRIMARY KEY (_id)
-        )`;
-  
-        const queryCmd = `INSERT INTO ${tableName}(unix, type, devID, name, owner_id, buidling_id, floor_id, area_id)
-            VALUES (UNIX_TIMESTAMP(), 
-            ${body.type}, 
-            ${body.devID}, 
-            "${body.devName}", 
-            ${body.bdOwner_id}, 
-            ${bd_id}, 
-            ${floor_id}, 
-            ${area_id}
-            )`;
+        );`;
 
-        let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_bdDev Finally");
-        if(!result) return false;
-        if(result.affectedRows > 0) return true;
-        return false;      
-    } catch (ex) {
-        console.log("setSensorOwner Err")
-        console.log(ex.message)
-        return false;
+        const insertData = `INSERT INTO ${tableName} (unix, type, devID, name, owner_id, buidling_id, floor_id, area_id)
+        VALUES (UNIX_TIMESTAMP(), ${type}, ${devID}, "${info.devName}", ${info.bdOwner_id}, ${bd_id}, ${floorId}, ${areaId});`;
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
     }
 }
+
 
 
 async function insertV2_OwnerList_bd(body){
@@ -172,7 +183,7 @@ async function insertV2_OwnerList_bd(body){
     }
 }
 
-async function insertV2_OwnerList_area(body, bd_id, floor_id){
+async function insertV2_OwnerList_area(info){
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${areaTableName}(	
             _id int NOT NULL AUTO_INCREMENT,
@@ -189,10 +200,10 @@ async function insertV2_OwnerList_area(body, bd_id, floor_id){
   
         const queryCmd = `INSERT INTO ${areaTableName}(unix, name, owner_id, buidling_id, floor_id)
             VALUES (UNIX_TIMESTAMP(), 
-            "${body.bAreaName}", 
-            ${body.bdOwner_id},
-            ${bd_id},
-            ${floor_id}
+            "${info.name}", 
+            ${info.owner_id},
+            ${info.buidling_id},
+            ${info.floor_id}
             )`;
 
         let result = await insertTemplate(db, createTable, queryCmd, "insertV2_OwnerList_area Finally");
@@ -307,6 +318,99 @@ async function v2a_getDeviceInBd (bd_id){
     }
 }
 
+async function v2a_getAreaRelated (bd_id, floor_id){
+    let sErrTitle = "v2a_getAreaRelated";
+    try {
+        let quertCmd = `SELECT * from ${areaTableName} WHERE buidling_id = ${bd_id} and floor_id = ${floor_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+
+async function v2aInsertFloor(info) {
+    let fnName = "v2aInsertFloor";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${floorTableName}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            name varchar(80),
+            owner_id int not null,
+            buidling_id int not null,
+            sortIdx int not null default 65535,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${floorTableName} (unix, name, owner_id, buidling_id)
+        VALUES (UNIX_TIMESTAMP(), "${info.name}", ${info.owner_id}, ${info.buidling_id});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
+async function v2aGetBdDevRegBefore (Info){
+    let sErrTitle = "v2aGetBdDevRegBefore";
+    try {
+        let quertCmd = `SELECT * from ${tableName} WHERE 
+        type = ${Info.type} and devID = ${Info.devID} and 
+        owner_id = ${Info.owner_id} and buidling_id = ${Info.buidling_id} and
+        active = 0`;        
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+async function v2aUpdateOwnerList_bdDev(info, type, devID, _id) {
+    let sMsg = "v2aUpdateOwnerList_bdDev";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            type = ${type},
+            devID = ${devID},
+            name = "${info.devName}",
+            owner_id = ${info.bdOwner_id},
+            buidling_id  = ${info.buildingId},
+            floor_id  = ${info.floorId},
+            area_id  = ${info.areaId},
+            sortIdx  = 65535,
+            active  = 1
+            where _id = ${_id}`;
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -327,3 +431,8 @@ exports.getBdList_byid = getBdList_byid;
 /** -----------V2a------------- */
 exports.v2a_getFloorinBd=v2a_getFloorinBd;
 exports.v2a_getDeviceInBd=v2a_getDeviceInBd;
+exports.v2a_getAreaRelated=v2a_getAreaRelated;
+exports.getSensorOwnerBy_TydevID_inUse=getSensorOwnerBy_TydevID_inUse;
+exports.v2aInsertFloor=v2aInsertFloor;
+exports.v2aGetBdDevRegBefore=v2aGetBdDevRegBefore;
+exports.v2aUpdateOwnerList_bdDev=v2aUpdateOwnerList_bdDev;

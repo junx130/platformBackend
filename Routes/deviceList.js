@@ -5,6 +5,8 @@ const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
 const { getWeekNo, getYY } = require("../utilities/timeFn");
+const { notArrOrEmptyArr } = require("../utilities/validateFn");
+const { getSensorOwnerBy_TydevID_inUse } = require("../MySQL/V2_DeviceRecord/v2_SensorOwner");
 
 
 router.get("/bytype/:ty", auth, async (req, res) => {
@@ -281,6 +283,27 @@ router.post("/getdevbysndevreg", auth, async (req, res) => {
     }
 });
 
+router.post("/verifysnrc", auth, async (req, res) => {
+    // const { error } = validateUpdate(req.body);
+    // stop seq if error\
+    try {
+        let {SerialNo, RegCode} = req.body;        
+        /** get device info */
+        let deviceInfo = await getDevBy_SnRegcode({SerialNo, RegCode});
+        if(!deviceInfo) return res.status(203).send({errMsg: "DB Error (Dev)"});
+        if(notArrOrEmptyArr(deviceInfo)) return res.status(203).send({errMsg: "Invalid Serial No. or Register Code"});
+        
+        /** check device whether been occupy */
+        let bdDevInfo = await getSensorOwnerBy_TydevID_inUse(deviceInfo[0]);
+        if(!bdDevInfo) return res.status(203).send({errMsg: "DB Error (bdDev)"});
+        // console.log("bdDevInfo", bdDevInfo);
+        if(!notArrOrEmptyArr(bdDevInfo)) return res.status(203).send({errMsg: "Device been registered"});
+        return res.status(200).send({success:true});
+    } catch (error) {
+        console.log('getdevbysndevreg error');
+        return res.status(200).send([]);
+    }
+});
 
 
 module.exports = router;
