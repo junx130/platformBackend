@@ -410,6 +410,29 @@ async function v2aUpdateOwnerList_bdDev(info, type, devID, _id) {
 }
 
 
+async function v2aUpdateSortIdx_bd(sortIdx, _id) {
+    let sMsg = "v2aUpdateSortIdx_bd";
+    try {
+        const quertCmd = `UPDATE ${buildingTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            sortIdx = ${sortIdx}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -436,3 +459,4 @@ exports.getSensorOwnerBy_TydevID_inUse=getSensorOwnerBy_TydevID_inUse;
 exports.v2aInsertFloor=v2aInsertFloor;
 exports.v2aGetBdDevRegBefore=v2aGetBdDevRegBefore;
 exports.v2aUpdateOwnerList_bdDev=v2aUpdateOwnerList_bdDev;
+exports.v2aUpdateSortIdx_bd=v2aUpdateSortIdx_bd;
