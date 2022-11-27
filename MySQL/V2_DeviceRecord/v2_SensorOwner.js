@@ -433,6 +433,72 @@ async function v2aUpdateSortIdx_bd(sortIdx, _id) {
 
 
 
+// const tableName = "V2_OwnerList_bdDev";
+
+// buildingTableName
+async function v2aRenameBd(name, _id) {
+    let sMsg = "v2aRenameBd";
+    try {
+        const quertCmd = `UPDATE ${buildingTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${name}"
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+async function v2aUpdateSortIdx_floor(sortIdx, _id) {
+    let sMsg = "v2aUpdateSortIdx_floor";
+    try {
+        const quertCmd = `UPDATE ${floorTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            sortIdx = ${sortIdx}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2aRenameFloor(name, _id) {
+    let sMsg = "v2aRenameFloor";
+    try {
+        const quertCmd = `UPDATE ${floorTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${name}"
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -460,3 +526,6 @@ exports.v2aInsertFloor=v2aInsertFloor;
 exports.v2aGetBdDevRegBefore=v2aGetBdDevRegBefore;
 exports.v2aUpdateOwnerList_bdDev=v2aUpdateOwnerList_bdDev;
 exports.v2aUpdateSortIdx_bd=v2aUpdateSortIdx_bd;
+exports.v2aRenameBd=v2aRenameBd;
+exports.v2aUpdateSortIdx_floor=v2aUpdateSortIdx_floor;
+exports.v2aRenameFloor=v2aRenameFloor;
