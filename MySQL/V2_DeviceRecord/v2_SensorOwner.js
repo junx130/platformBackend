@@ -500,6 +500,70 @@ async function v2aRenameFloor(name, _id) {
     }
 }
 
+async function v2aUpdateSortIdx_area(sortIdx, _id) {
+    let sMsg = "v2aUpdateSortIdx_area";
+    try {
+        const quertCmd = `UPDATE ${areaTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            sortIdx = ${sortIdx}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2aRenameArea(name, _id) {
+    let sMsg = "v2aRenameArea";
+    try {
+        const quertCmd = `UPDATE ${areaTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${name}"
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+async function v2aDeleteArea(_id) {
+    let sMsg = "v2aDeleteArea";
+    try {
+        const quertCmd = `UPDATE ${areaTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            active = 0
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -529,3 +593,6 @@ exports.v2aUpdateSortIdx_bd=v2aUpdateSortIdx_bd;
 exports.v2aRenameBd=v2aRenameBd;
 exports.v2aUpdateSortIdx_floor=v2aUpdateSortIdx_floor;
 exports.v2aRenameFloor=v2aRenameFloor;
+exports.v2aUpdateSortIdx_area=v2aUpdateSortIdx_area;
+exports.v2aRenameArea=v2aRenameArea;
+exports.v2aDeleteArea=v2aDeleteArea;
