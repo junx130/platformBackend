@@ -564,6 +564,69 @@ async function v2aDeleteArea(_id) {
     }
 }
 
+async function v2aDeleteFloor(_id) {
+    let sMsg = "v2aDeleteFloor";
+    try {
+        const quertCmd = `UPDATE ${floorTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            active = 0
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2aClearFloorArea_id(_id) {
+    let sMsg = "v2aClearFloorArea_id";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            floor_id = 0,
+            area_id = 0
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2aClearArea_id(_id) {
+    let sMsg = "v2aClearArea_id";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            area_id = 0
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -596,3 +659,6 @@ exports.v2aRenameFloor=v2aRenameFloor;
 exports.v2aUpdateSortIdx_area=v2aUpdateSortIdx_area;
 exports.v2aRenameArea=v2aRenameArea;
 exports.v2aDeleteArea=v2aDeleteArea;
+exports.v2aDeleteFloor=v2aDeleteFloor;
+exports.v2aClearFloorArea_id=v2aClearFloorArea_id;
+exports.v2aClearArea_id=v2aClearArea_id;
