@@ -628,6 +628,93 @@ async function v2aClearArea_id(_id) {
     }
 }
 
+
+async function v2a_getInactiveFloor (){
+    let sErrTitle = "v2a_getInactiveFloor";
+    try {
+        let quertCmd = `SELECT * from ${floorTableName} WHERE active =  0 limit 1`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2aInsertUpdatefloor(info, _id) {
+    let sMsg = "v2aUpdateSortIdx_floor";
+    try {
+        const quertCmd = `UPDATE ${floorTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${info.name}",
+            owner_id = ${info.owner_id},
+            buidling_id = ${info.buidling_id},
+            sortIdx = 65535,
+            active = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+async function v2a_getInactiveArea (){
+    let sErrTitle = "v2a_getInactiveArea";
+    try {
+        let quertCmd = `SELECT * from ${areaTableName} WHERE active =  0 limit 1`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+
+async function v2aInsertUpdateArea(info, _id) {
+    let sMsg = "v2aInsertUpdateArea";
+    try {
+        const quertCmd = `UPDATE ${areaTableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${info.name}",
+            owner_id = ${info.owner_id},
+            buidling_id = ${info.buidling_id},
+            floor_id = ${info.floor_id},
+            sortIdx = 65535,
+            active = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
@@ -662,3 +749,7 @@ exports.v2aDeleteArea=v2aDeleteArea;
 exports.v2aDeleteFloor=v2aDeleteFloor;
 exports.v2aClearFloorArea_id=v2aClearFloorArea_id;
 exports.v2aClearArea_id=v2aClearArea_id;
+exports.v2a_getInactiveFloor=v2a_getInactiveFloor;
+exports.v2aInsertUpdatefloor=v2aInsertUpdatefloor;
+exports.v2a_getInactiveArea=v2a_getInactiveArea;
+exports.v2aInsertUpdateArea=v2aInsertUpdateArea;

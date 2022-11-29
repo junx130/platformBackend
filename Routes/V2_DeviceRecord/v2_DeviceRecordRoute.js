@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -934,4 +934,50 @@ router.post("/bd/v2aclear_area_id", auth, async (req, res) => {
         return res.status(203).send({errMsg:error.message});     
     }
 });
+
+
+router.post("/floor/insert", auth, async (req, res) => {    
+    try {
+        let {name, owner_id, buidling_id} = req.body;
+        /** find any inactive floor */
+        let inactiveRow = await v2a_getInactiveFloor();
+        if(inactiveRow.length >= 1){   /** yes, update */   
+            let updateRel = await v2aInsertUpdatefloor({name, owner_id, buidling_id}, inactiveRow[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Add group error (Update)"});
+        }else{     /** no, insert */
+            let insertRel = await v2aInsertFloor({name, owner_id, buidling_id});
+            if(!insertRel) return res.status(203).send({errMsg:"Add group error (Insert)"});
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/area/insert", auth, async (req, res) => {    
+    try {
+        let {name, owner_id, buidling_id, floor_id} = req.body;
+        /** find any inactive floor */
+        let inactive = await v2a_getInactiveArea();
+        if(inactive.length > 0){    /** if got inactive, update */
+            let updateRel = await v2aInsertUpdateArea({name, owner_id, buidling_id, floor_id}, inactive[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Add subgroup error (Update)"});
+        }else{      /** if no inactive, insert */
+            let insertRel = await insertV2_OwnerList_area({name, owner_id, buidling_id, floor_id});
+            if(!insertRel) return res.status(203).send({errMsg:"Add subugroup error (Insert)"});
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
 module.exports = router;
