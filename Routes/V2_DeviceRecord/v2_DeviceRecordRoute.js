@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -776,7 +776,7 @@ router.post("/bd/v2aupdatesortidx_bd", auth, async (req, res) => {
     try {
         let {sortIdx, bd_id} = req.body;
         let updateRel = await v2aUpdateSortIdx_bd(sortIdx, bd_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -793,7 +793,7 @@ router.post("/bd/v2arenamebd", auth, async (req, res) => {
     try {
         let {name, bd_id} = req.body;
         let updateRel = await v2aRenameBd(name, bd_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -810,7 +810,7 @@ router.post("/bd/v2aupdatesortidx_floor", auth, async (req, res) => {
         let {floorList} = req.body;
         for (const eachFloor of floorList) {
             let updateRel = await v2aUpdateSortIdx_floor(eachFloor.sortIdx, eachFloor._id);
-            if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
         }
 
         return res.status(200).send({Success:true});
@@ -827,7 +827,7 @@ router.post("/bd/v2arenamefloor", auth, async (req, res) => {
     try {
         let {name, floor_id} = req.body;
         let updateRel = await v2aRenameFloor(name,floor_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -843,7 +843,7 @@ router.post("/bd/v2aupdatesortidx_area", auth, async (req, res) => {
         let {areaList} = req.body;
         for (const eachArea of areaList) {
             let updateRel = await v2aUpdateSortIdx_area(eachArea.sortIdx, eachArea._id);
-            if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
         }
 
         return res.status(200).send({Success:true});
@@ -860,7 +860,7 @@ router.post("/bd/v2arenamearea", auth, async (req, res) => {
     try {
         let {name, area_id} = req.body;
         let updateRel = await v2aRenameArea(name,area_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -875,7 +875,7 @@ router.post("/bd/v2adeletearea", auth, async (req, res) => {
     try {
         let {area_id} = req.body;
         let updateRel = await v2aDeleteArea(area_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -890,7 +890,7 @@ router.post("/bd/v2adeletefloor", auth, async (req, res) => {
     try {
         let {floor_id} = req.body;
         let updateRel = await v2aDeleteFloor(floor_id);
-        if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 
         return res.status(200).send({Success:true});
 
@@ -906,7 +906,7 @@ router.post("/bd/v2aclear_floor_area_id", auth, async (req, res) => {
         let {devList} = req.body;
         for (const eachDev of devList) {
             let updateRel = await v2aClearFloorArea_id(eachDev._id);
-            if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
         }
 
         return res.status(200).send({Success:true});
@@ -923,7 +923,7 @@ router.post("/bd/v2aclear_area_id", auth, async (req, res) => {
         let {devList} = req.body;
         for (const eachDev of devList) {
             let updateRel = await v2aClearArea_id(eachDev._id);
-            if(!updateRel) return res.status(202).send({errMsg:"Update DB err"});
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
         }
 
         return res.status(200).send({Success:true});
@@ -975,6 +975,41 @@ router.post("/area/insert", auth, async (req, res) => {
 
     } catch (error) {
         console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/area/getall", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+        /** find any inactive floor */
+        let allArea =  await v2a_getAllAreaUnderBd(bd_id);
+        if(!allArea) return res.status(203).send({errMsg:'DB Error'});
+
+        return res.status(200).send(allArea);
+
+    } catch (error) {
+        console.log("Error : /area/getall", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+
+
+router.post("/bdDev/updatefloorarea_id", auth, async (req, res) => {    
+    try {
+        let {devList} = req.body;
+        for (const eachDev of devList) {
+            let updateRel = await v2aUpdatebdDevFloor_Area(eachDev);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bdDev/updatefloorarea_id", error.message);
         return res.status(203).send({errMsg:error.message});     
     }
 });

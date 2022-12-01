@@ -334,6 +334,21 @@ async function v2a_getAreaRelated (bd_id, floor_id){
     }
 }
 
+async function v2a_getAllAreaUnderBd (bd_id){
+    let sErrTitle = "v2a_getAllAreaUnderBd";
+    try {
+        let quertCmd = `SELECT * from ${areaTableName} WHERE buidling_id = ${bd_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
 
 async function v2aInsertFloor(info) {
     let fnName = "v2aInsertFloor";
@@ -714,6 +729,28 @@ async function v2aInsertUpdateArea(info, _id) {
     }
 }
 
+async function v2aUpdatebdDevFloor_Area(info) {
+    let sMsg = "v2aUpdatebdDevFloor_Area";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            floor_id = ${info.floor_id}, 
+            area_id = ${info.area_id}
+            where _id = ${info._id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -753,3 +790,5 @@ exports.v2a_getInactiveFloor=v2a_getInactiveFloor;
 exports.v2aInsertUpdatefloor=v2aInsertUpdatefloor;
 exports.v2a_getInactiveArea=v2a_getInactiveArea;
 exports.v2aInsertUpdateArea=v2aInsertUpdateArea;
+exports.v2a_getAllAreaUnderBd=v2a_getAllAreaUnderBd;
+exports.v2aUpdatebdDevFloor_Area=v2aUpdatebdDevFloor_Area;
