@@ -735,7 +735,8 @@ async function v2aUpdatebdDevFloor_Area(info) {
         const quertCmd = `UPDATE ${tableName} SET 
             unix=UNIX_TIMESTAMP(),
             floor_id = ${info.floor_id}, 
-            area_id = ${info.area_id}
+            area_id = ${info.area_id},
+            sortIdx = 65535
             where _id = ${info._id}`;
         // console.log("quertCmd", quertCmd);
 
@@ -750,6 +751,29 @@ async function v2aUpdatebdDevFloor_Area(info) {
         return null;
     }
 }
+
+
+async function v2aUpdateSortIdx_device(sortIdx, _id) {
+    let sMsg = "v2aUpdateSortIdx_device";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            sortIdx = ${sortIdx}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -792,3 +816,4 @@ exports.v2a_getInactiveArea=v2a_getInactiveArea;
 exports.v2aInsertUpdateArea=v2aInsertUpdateArea;
 exports.v2a_getAllAreaUnderBd=v2a_getAllAreaUnderBd;
 exports.v2aUpdatebdDevFloor_Area=v2aUpdatebdDevFloor_Area;
+exports.v2aUpdateSortIdx_device=v2aUpdateSortIdx_device;
