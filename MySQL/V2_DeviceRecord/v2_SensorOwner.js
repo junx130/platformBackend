@@ -774,6 +774,27 @@ async function v2aUpdateSortIdx_device(sortIdx, _id) {
     }
 }
 
+async function v2aRenameDev(sNewName, _id) {
+    let sMsg = "v2aUpdateSortIdx_device";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            name = "${sNewName}"
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -817,3 +838,4 @@ exports.v2aInsertUpdateArea=v2aInsertUpdateArea;
 exports.v2a_getAllAreaUnderBd=v2a_getAllAreaUnderBd;
 exports.v2aUpdatebdDevFloor_Area=v2aUpdatebdDevFloor_Area;
 exports.v2aUpdateSortIdx_device=v2aUpdateSortIdx_device;
+exports.v2aRenameDev=v2aRenameDev;
