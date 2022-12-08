@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -1066,10 +1066,8 @@ router.post("/bdDev/swap", auth, async (req, res) => {
         let {owner_id, _id, SerialNo, RegCode} = req.body;
         /** get bdDev by _id, make sure type are compatible */
         let curDev = await getBddevBy_id(_id);
-        console.log("curDev", curDev);
 
         let newDev = await getDevBy_SnRegcode({SerialNo, RegCode});
-        console.log("newDev", newDev);
 
         /** check type are compatible */
         if(curDev[0].type !== newDev[0].type) return res.status(203).send({errMsg:"Device type not match"});
@@ -1085,7 +1083,22 @@ router.post("/bdDev/swap", auth, async (req, res) => {
     }
 });
 
+router.post("/bdDev/deteach", auth, async (req, res) => {    
+    try {
+        let {_id} = req.body;
 
+        let newDev = await v2aDeteachDev(_id);
+        if(!newDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/swap", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+v2aDeteachDev
 
 
 module.exports = router;

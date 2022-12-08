@@ -852,6 +852,25 @@ async function v2aSwapDev(owner_id, devID, _id) {
     }
 }
 
+async function v2aDeteachDev(_id) {
+    let sMsg = "v2aDeteachDev";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            devID = 0
+            where _id = ${_id}`;
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
@@ -897,3 +916,4 @@ exports.v2aRenameDev=v2aRenameDev;
 exports.v2aDeleteDev=v2aDeleteDev;
 exports.v2aSwapDev=v2aSwapDev;
 exports.getBddevBy_id=getBddevBy_id;
+exports.v2aDeteachDev=v2aDeteachDev;
