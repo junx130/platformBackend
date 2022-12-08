@@ -50,7 +50,6 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
             if(!insBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
             if(insBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
             bd_id = insBdRel.insertId;
-            // console.log(bd_id);
         }
 
         let area_id = body.areaId;
