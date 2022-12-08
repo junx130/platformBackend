@@ -266,6 +266,23 @@ async function getBddevBy_idList (a_list){
     }
 }
 
+async function getBddevBy_id (_id){
+    try {
+        const quertCmd = `SELECT * from ${tableName} WHERE _id = ${_id}`;
+    
+        // const quertCmd = `SELECT * from ${tableName} WHERE owner_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBddevBy_idList Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
 async function getBdList_byid (bd_idList){
     try {
         let bd_id = bd_idList.toString();
@@ -816,7 +833,24 @@ async function v2aDeleteDev(_id) {
     }
 }
 
+async function v2aSwapDev(owner_id, devID, _id) {
+    let sMsg = "v2aSwapDev";
+    try {
+        const quertCmd = `UPDATE ${tableName} SET 
+            unix=UNIX_TIMESTAMP(),
+            owner_id=${owner_id},
+            devID = ${devID}
+            where _id = ${_id}`;
 
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -860,4 +894,6 @@ exports.v2a_getAllAreaUnderBd=v2a_getAllAreaUnderBd;
 exports.v2aUpdatebdDevFloor_Area=v2aUpdatebdDevFloor_Area;
 exports.v2aUpdateSortIdx_device=v2aUpdateSortIdx_device;
 exports.v2aRenameDev=v2aRenameDev;
-exports.v2aDeleteDev=v2aDeleteDev
+exports.v2aDeleteDev=v2aDeleteDev;
+exports.v2aSwapDev=v2aSwapDev;
+exports.getBddevBy_id=getBddevBy_id;
