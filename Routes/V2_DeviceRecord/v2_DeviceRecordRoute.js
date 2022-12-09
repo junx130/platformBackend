@@ -4,7 +4,7 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
@@ -130,16 +130,31 @@ router.post("/area/getrelated", auth, async (req, res) => {
 const getRelBdFn=async (req, res, _accessLevel) =>{
     try {
         let info = req.body;
-        // console.log("info", info);
         /** get owned building */
         let ownedBd = await getBuildingByOwner_id(info.user_id);
         if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
 
         /** get shared building (access level = 1 , co-owned),  */
-        // let sharedBd = await getBuildingByActiveUser_id(info.user_id, _accessLevel);
-        // if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
-        
-        
+        let shareBdList = await v2a_getShareBuilding_byUser_id(info.user_id)
+        let bd_idList = [];
+        let share_bdList = [];
+        if(!notArrOrEmptyArr(shareBdList)){     /** got some share building */
+            /** load share building info  */
+            for (const eachBd of shareBdList) {
+                let foundIdx = ownedBd.findIndex(c=>c._id === eachBd.buidling_id);
+                if(foundIdx < 0) bd_idList.push(eachBd.buidling_id);
+            }
+            if(!notArrOrEmptyArr(bd_idList)){
+                share_bdList = await getBdList_byid(bd_idList);
+    
+                /** insert shareLevel of each building */
+                for (const eachShareBd of share_bdList) {
+                    let foundIdx = shareBdList.findIndex(c=>c.buidling_id === eachShareBd._id);
+                    if(foundIdx >= 0) eachShareBd.shareLevel = shareBdList[foundIdx].shareLevel;
+                }
+                console.log("share_bdList", share_bdList);
+            }
+        }
         /** Filter duplicated data */
         // let uniqueSharedBd = Array.from(
         //     new Set(sharedBd.map((a) => a.buidling_id))
@@ -147,31 +162,11 @@ const getRelBdFn=async (req, res, _accessLevel) =>{
         //     return sharedBd.find((a) => a.buidling_id === buidling_id);
         // });
         
-        // console.log("uniqueSharedBd", uniqueSharedBd);
-
-        let relatedBuilding=[...ownedBd];
-
-        /** convert shared building into own building Form */
-        // for (const bd of uniqueSharedBd) {
-        //     let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
-        //     if(ownBuilding){
-        //         if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
-        //             for (const owbBd of ownBuilding) {
-        //                 owbBd.isSharedBd = true;
-        //                 owbBd.accessLevel = bd.accessLevel;
-        //                 let duplicated = ownedBd.find(c=>c._id === owbBd._id);
-        //                 if(!duplicated) relatedBuilding.push(owbBd);
-        //             }
-        //         // relatedBuilding=[...relatedBuilding, ...ownBuilding];
-        //     }else{
-        //         return res.status(203).send({msg:'Database Server Invalid'});
-        //     }
-        // }
+        let relatedBuilding=[...ownedBd, ...share_bdList];
         
-        // console.log("relatedBuilding", relatedBuilding);
         return res.status(200).send(relatedBuilding);  
     } catch (error) {        
-        console.log("Error : /building/getrelated");
+        console.log("Error : /building/getrelated", error.message);
         return res.status(203).send(error.message);     
     }
 }
@@ -1097,7 +1092,22 @@ router.post("/bdDev/deteach", auth, async (req, res) => {
     }
 });
 
-v2aDeteachDev
+router.post("/sharebd/getbyuserid_bdid", auth, async (req, res) => {    
+    try {
+        let {bd_id, user_id} = req.body;
+
+        let sharedDev = await v2a_getShareBd_byBdID_UserId(bd_id, user_id);
+        if(!sharedDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(sharedDev);
+
+    } catch (error) {
+        console.log("Error : /sharebd/getbyuserid_bdid", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
 
 
 module.exports = router;

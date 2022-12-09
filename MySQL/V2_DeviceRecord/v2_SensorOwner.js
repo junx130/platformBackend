@@ -7,6 +7,8 @@ const buildingTableName = 'V2_OwnerList_bd';
 const areaTableName = 'V2_OwnerList_area';
 const floorTableName = 'V2_OwnerList_floor';
 
+const shareBuildingTable = 'V2a_ShareBuildingTable';
+
 
 /**----------- Get Building related area ---------- */
 async function getAreaInfoBy_id (area_id){
@@ -871,6 +873,42 @@ async function v2aDeteachDev(_id) {
 }
 
 
+async function v2a_getShareBuilding_byUser_id (user_id){
+    let sErrTitle = "v2a_getShareBuilding_byUser_id";
+    try {
+        let quertCmd = `SELECT * from ${shareBuildingTable} WHERE shareUser_id = ${user_id} and active =  1 `;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2a_getShareBd_byBdID_UserId (bd_id, user_id){
+    let sErrTitle = "v2a_getShareBuilding_byUser_id";
+    try {
+        let quertCmd = `SELECT * from ${shareBuildingTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id} and active =  1 `;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+
+
+
+
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;
@@ -917,3 +955,7 @@ exports.v2aDeleteDev=v2aDeleteDev;
 exports.v2aSwapDev=v2aSwapDev;
 exports.getBddevBy_id=getBddevBy_id;
 exports.v2aDeteachDev=v2aDeteachDev;
+
+/** v2a share building */
+exports.v2a_getShareBuilding_byUser_id=v2a_getShareBuilding_byUser_id;
+exports.v2a_getShareBd_byBdID_UserId=v2a_getShareBd_byBdID_UserId;

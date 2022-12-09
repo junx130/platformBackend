@@ -274,6 +274,9 @@ async function getUniqueBdId_byUserId(user_id) {
     }
 }
 
+
+
+
 exports.getUniqueUserIdList_ByBdList=getUniqueUserIdList_ByBdList;
 exports.getSharedBdBy_user_id_bd_id=getSharedBdBy_user_id_bd_id;
 exports.getAreaByActiveUser_id=getAreaByActiveUser_id;
