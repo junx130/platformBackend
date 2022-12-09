@@ -152,7 +152,6 @@ const getRelBdFn=async (req, res, _accessLevel) =>{
                     let foundIdx = shareBdList.findIndex(c=>c.buidling_id === eachShareBd._id);
                     if(foundIdx >= 0) eachShareBd.shareLevel = shareBdList[foundIdx].shareLevel;
                 }
-                console.log("share_bdList", share_bdList);
             }
         }
         /** Filter duplicated data */
