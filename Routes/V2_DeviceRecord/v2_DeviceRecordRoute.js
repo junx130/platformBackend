@@ -136,37 +136,37 @@ const getRelBdFn=async (req, res, _accessLevel) =>{
         if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
 
         /** get shared building (access level = 1 , co-owned),  */
-        let sharedBd = await getBuildingByActiveUser_id(info.user_id, _accessLevel);
-        if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
+        // let sharedBd = await getBuildingByActiveUser_id(info.user_id, _accessLevel);
+        // if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
         
         
         /** Filter duplicated data */
-        let uniqueSharedBd = Array.from(
-            new Set(sharedBd.map((a) => a.buidling_id))
-        ).map((buidling_id) => {
-            return sharedBd.find((a) => a.buidling_id === buidling_id);
-        });
+        // let uniqueSharedBd = Array.from(
+        //     new Set(sharedBd.map((a) => a.buidling_id))
+        // ).map((buidling_id) => {
+        //     return sharedBd.find((a) => a.buidling_id === buidling_id);
+        // });
         
         // console.log("uniqueSharedBd", uniqueSharedBd);
 
         let relatedBuilding=[...ownedBd];
 
         /** convert shared building into own building Form */
-        for (const bd of uniqueSharedBd) {
-            let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
-            if(ownBuilding){
-                if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
-                    for (const owbBd of ownBuilding) {
-                        owbBd.isSharedBd = true;
-                        owbBd.accessLevel = bd.accessLevel;
-                        let duplicated = ownedBd.find(c=>c._id === owbBd._id);
-                        if(!duplicated) relatedBuilding.push(owbBd);
-                    }
-                // relatedBuilding=[...relatedBuilding, ...ownBuilding];
-            }else{
-                return res.status(203).send({msg:'Database Server Invalid'});
-            }
-        }
+        // for (const bd of uniqueSharedBd) {
+        //     let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
+        //     if(ownBuilding){
+        //         if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
+        //             for (const owbBd of ownBuilding) {
+        //                 owbBd.isSharedBd = true;
+        //                 owbBd.accessLevel = bd.accessLevel;
+        //                 let duplicated = ownedBd.find(c=>c._id === owbBd._id);
+        //                 if(!duplicated) relatedBuilding.push(owbBd);
+        //             }
+        //         // relatedBuilding=[...relatedBuilding, ...ownBuilding];
+        //     }else{
+        //         return res.status(203).send({msg:'Database Server Invalid'});
+        //     }
+        // }
         
         // console.log("relatedBuilding", relatedBuilding);
         return res.status(200).send(relatedBuilding);  
