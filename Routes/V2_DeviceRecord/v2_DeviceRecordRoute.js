@@ -4,8 +4,8 @@ const Joi = require("joi");
 const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit, v2a_getSharedBdBy_user_id_bd_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 
 
@@ -180,6 +180,9 @@ router.post("/building/getrelated", auth, async (req, res) => {
     await getRelBdFn(req, res);
 });
 
+
+
+
 router.post("/sensorowner/getbytyid", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
@@ -311,7 +314,7 @@ router.post("/building/checkvaliduser", auth, async (req, res) => {
         if(ownBd.length > 0) return res.status(200).send({bdAccess:true, status:'Owner'});
 
         /** User Not owner, Check shared building */
-        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
+        let sharedBd = await v2a_getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
         if(!sharedBd || !Array.isArray(sharedBd)) return res.status(203).send({errMsg: "Database(Share) Exc Error"});
         if(sharedBd.length > 0) return res.status(200).send({bdAccess:true, status:'Shared'});
 
@@ -1095,10 +1098,10 @@ router.post("/sharebd/getbyuserid_bdid", auth, async (req, res) => {
     try {
         let {bd_id, user_id} = req.body;
 
-        let sharedDev = await v2a_getShareBd_byBdID_UserId(bd_id, user_id);
-        if(!sharedDev) return res.status(203).send({errMsg:"Update DB err"});
+        let sharedBd = await v2a_getShareBd_byBdID_UserId(bd_id, user_id);
+        if(!sharedBd) return res.status(203).send({errMsg:"Update DB err"});
 
-        return res.status(200).send(sharedDev);
+        return res.status(200).send(sharedBd);
 
     } catch (error) {
         console.log("Error : /sharebd/getbyuserid_bdid", error.message);
@@ -1106,6 +1109,76 @@ router.post("/sharebd/getbyuserid_bdid", auth, async (req, res) => {
     }
 });
 
+
+router.post("/sharebddev/getby_userid_bdid", auth, async (req, res) => {    
+    try {
+        let {bd_id, user_id} = req.body;
+
+        let sharedDev = await v2a_getShareBddev_byBdID_UserId(bd_id, user_id);
+        if(!sharedDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(sharedDev);
+
+    } catch (error) {
+        console.log("Error : /sharebddev/getby_userid_bdid", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/building/getcoowned", auth, async (req, res) => {    
+    try {
+        // let {user_id} = req.body;
+        let info = req.body;
+        /** get owned building */
+        let ownedBd = await getBuildingByOwner_id(info.user_id);
+        if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
+
+        /** get shared building (access level = 1 , co-owned),  */
+        let shareBdList = await v2a_getShareBuilding_byUser_id(info.user_id)
+        let bd_idList = [];
+        let share_bdList = [];
+        if(!notArrOrEmptyArr(shareBdList)){     /** got some share building */
+            /** load share building info  */
+            for (const eachBd of shareBdList) {
+                let foundIdx = ownedBd.findIndex(c=>c._id === eachBd.buidling_id);
+                if(foundIdx < 0 && eachBd.shareLevel >=0 && eachBd.shareLevel <=2) bd_idList.push(eachBd.buidling_id);
+            }
+            if(!notArrOrEmptyArr(bd_idList)){
+                share_bdList = await getBdList_byid(bd_idList);
+    
+                /** insert shareLevel of each building */
+                for (const eachShareBd of share_bdList) {
+                    let foundIdx = shareBdList.findIndex(c=>c.buidling_id === eachShareBd._id);
+                    if(foundIdx >= 0) eachShareBd.shareLevel = shareBdList[foundIdx].shareLevel;
+                }
+            }
+        }
+        
+        let relatedBuilding=[...ownedBd, ...share_bdList];
+        
+        return res.status(200).send(relatedBuilding);  
+
+    } catch (error) {
+        console.log("Error : /building/getcoowned", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/building/getbdinfo_byBd_id", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+
+        let bdInfo = await getBdInfoBy_id(bd_id);
+        if(!bdInfo) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(bdInfo);
+
+    } catch (error) {
+        console.log("Error : /building/getbdinfo_byBd_id", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
 
 
 

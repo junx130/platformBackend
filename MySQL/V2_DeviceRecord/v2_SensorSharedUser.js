@@ -4,7 +4,7 @@ const db = "V2_DeviceRecord";
 const tableName = "V2_SensorSharedUser";
 const shareBdTableName = "V2_ShareList_bd";
 const areaTableName = "V2_ShareList_area";
-const devTableName = "V2_ShareList_bdDev";
+const devShareTableName = "V2a_ShareBuildingTable";
 
 async function getAreaByActiveUser_id (user_id, selectedBuilding){
     try {
@@ -58,7 +58,7 @@ async function getShareBdInfoGrantByUser_id (user_id, bd_id){
 
 async function getSensorSharedBy_user_bd_accesslvl (Info){    
     try {
-        const quertCmd = `SELECT * from ${devTableName} WHERE buidling_id = ${Info.buidling_id} and user_id = ${Info.user_id} and accessLevel = ${Info.accessLevel}`;
+        const quertCmd = `SELECT * from ${devShareTableName} WHERE buidling_id = ${Info.buidling_id} and user_id = ${Info.user_id} and accessLevel = ${Info.accessLevel}`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getSensorSharedBy_user_bd_accesslvl Finally");
         // console.log(result);
@@ -87,7 +87,7 @@ async function getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
 }
 async function getSharedevBy_userId_bdId (user_id, bd_id){
     try {
-        const quertCmd = `SELECT * from ${devTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        const quertCmd = `SELECT * from ${devShareTableName} WHERE user_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
         console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getSharedevBy_userId_bdId Finally");
         // console.log(result);
@@ -102,7 +102,7 @@ async function getSharedevBy_userId_bdId (user_id, bd_id){
 
 async function getAllSharedevBy_userId_bdId (user_id, bd_id){
     try {
-        const quertCmd = `SELECT * from ${devTableName} WHERE user_id = ${user_id} and buidling_id=${bd_id}`;
+        const quertCmd = `SELECT * from ${devShareTableName} WHERE user_id = ${user_id} and buidling_id=${bd_id}`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, "getAllSharedevBy_userId_bdId Finally");
         // console.log(result);
@@ -208,7 +208,7 @@ async function updateSharedBd_UserEdit(_id, newAccessLevel, active) {
 // async function setSharedBdDevActiveStatus(bdDev_id, active, accessLevel, user_id) {
 async function setSharedBdDevActiveStatus(_id, active, accessLevel) {
     try {
-        const queryCmd = `UPDATE ${devTableName} SET active = ${active}, accessLevel = ${accessLevel} WHERE _id = ${_id};`;
+        const queryCmd = `UPDATE ${devShareTableName} SET active = ${active}, accessLevel = ${accessLevel} WHERE _id = ${_id};`;
         // console.log(queryCmd);
         let result = await queryTemplate(db, queryCmd, "setSharedBdDevActive Finally");
         return result;
@@ -220,7 +220,7 @@ async function setSharedBdDevActiveStatus(_id, active, accessLevel) {
 
 async function addSharedBdDev(info, email_user) {
     try {
-        const queryCmd = `INSERT INTO ${devTableName} (
+        const queryCmd = `INSERT INTO ${devShareTableName} (
             unix, buidling_id, area_id, bdDev_id, user_id, owner_id, accessLevel)
             VALUES (UNIX_TIMESTAMP(),
             ${info.buidling_id}, 
@@ -235,7 +235,7 @@ async function addSharedBdDev(info, email_user) {
 
 async function getCountSharedBdDev_byBd(bd_id) {
     try {
-        const queryCmd = `SELECT COUNT(*) as count FROM ${devTableName} WHERE buidling_id = ${bd_id} and active = true;`;
+        const queryCmd = `SELECT COUNT(*) as count FROM ${devShareTableName} WHERE buidling_id = ${bd_id} and active = true;`;
         let result = await queryTemplate(db, queryCmd, "getCountSharedBdDev_byBd Finally");
         // console.log(result);
         const rtnResult = result.map(b => b);
@@ -250,7 +250,7 @@ async function getCountSharedBdDev_byBd(bd_id) {
 async function getUniqueUserIdList_ByBdList(bdList) {
     try {
         let sBdList = bdList.toString();
-        const queryCmd = `select DISTINCT user_id from ${devTableName} where active =1 and buidling_id in (${sBdList});`
+        const queryCmd = `select DISTINCT user_id from ${devShareTableName} where active =1 and buidling_id in (${sBdList});`
         let result = await queryTemplate(db, queryCmd, "getUniqueUserIdList_ByBdList Finally");
         // console.log(result);
         const rtnResult = result.map(b => b);
@@ -263,7 +263,7 @@ async function getUniqueUserIdList_ByBdList(bdList) {
 
 async function getUniqueBdId_byUserId(user_id) {
     try {
-        const queryCmd = `SELECT DISTINCT buidling_id FROM ${devTableName} WHERE active = 1 AND user_id = ${user_id};`
+        const queryCmd = `SELECT DISTINCT buidling_id FROM ${devShareTableName} WHERE active = 1 AND user_id = ${user_id};`
         let result = await queryTemplate(db, queryCmd, "getUniqueBdId_byUserId Finally");
         // console.log(result);
         const rtnResult = result.map(b => b);
@@ -271,6 +271,25 @@ async function getUniqueBdId_byUserId(user_id) {
     } catch (error){
         console.log(error.message);
         return null;
+    }
+}
+
+
+
+async function v2a_getSharedBdBy_user_id_bd_id (user_id, bd_id, bCheckActive){
+    let sErrTitle = "v2a_getSharedBdBy_user_id_bd_id";
+    try {
+        let quertCmd = `SELECT * from ${devShareTableName} WHERE shareUser_id = ${user_id} and active = 1 and buidling_id=${bd_id} `;
+        if(!bCheckActive) quertCmd = `SELECT * from ${shareBdTableName} WHERE shareUser_id = ${user_id} and buidling_id=${bd_id} `;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
     }
 }
 
@@ -295,3 +314,4 @@ exports.addSharedBdDev = addSharedBdDev;
 exports.getAllSharedevBy_userId_bdId = getAllSharedevBy_userId_bdId;
 exports.getCountSharedBdDev_byBd = getCountSharedBdDev_byBd;
 exports.getUniqueBdId_byUserId = getUniqueBdId_byUserId;
+exports.v2a_getSharedBdBy_user_id_bd_id=v2a_getSharedBdBy_user_id_bd_id;

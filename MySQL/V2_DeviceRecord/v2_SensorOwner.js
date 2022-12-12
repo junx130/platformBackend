@@ -8,6 +8,7 @@ const areaTableName = 'V2_OwnerList_area';
 const floorTableName = 'V2_OwnerList_floor';
 
 const shareBuildingTable = 'V2a_ShareBuildingTable';
+const sharebdDevTable = 'V2a_ShareDeviceTable';
 
 
 /**----------- Get Building related area ---------- */
@@ -905,7 +906,21 @@ async function v2a_getShareBd_byBdID_UserId (bd_id, user_id){
     }
 }
 
-
+async function v2a_getShareBddev_byBdID_UserId (bd_id, user_id){
+    let sErrTitle = "v2a_getShareBddev_byBdID_UserId";
+    try {
+        let quertCmd = `SELECT * from ${sharebdDevTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
 
 
 
@@ -959,3 +974,4 @@ exports.v2aDeteachDev=v2aDeteachDev;
 /** v2a share building */
 exports.v2a_getShareBuilding_byUser_id=v2a_getShareBuilding_byUser_id;
 exports.v2a_getShareBd_byBdID_UserId=v2a_getShareBd_byBdID_UserId;
+exports.v2a_getShareBddev_byBdID_UserId=v2a_getShareBddev_byBdID_UserId;
