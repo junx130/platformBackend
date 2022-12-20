@@ -53,6 +53,7 @@ async function getUserByUsername(username) {
 
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
+        if(!result[0]) return [];     // return empty array
         return result[0];        
     } catch (ex) {
         console.log(ex.message)
