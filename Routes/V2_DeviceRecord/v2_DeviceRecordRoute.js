@@ -1252,10 +1252,10 @@ router.post("/share/sharedev", auth, async (req, res) => {
                 }
                 
                 if(notArrOrEmptyArr(existRec)){   /** dont have existing record, insert */
-                    let insertRel = await v2a_InsertSharedBdDev(bd_id, validUser._id, eachDev, shareLevel);
+                    let insertRel = await v2a_InsertSharedBdDev(bd_id, validUser._id, eachDev, 2);  // <--- share =2 => view only
                     if(!insertRel) updateErrCnt++;                        
                 }else{         /** got existing record, update */
-                    let updateRel = await v2a_updateSharedBdDevAccessLevel(existRec[0]._id, shareLevel);
+                    let updateRel = await v2a_updateSharedBdDevAccessLevel(existRec[0]._id, 2);   // <--- share =2 => view only
                     if(!updateRel) updateErrCnt++;
                 }
             }
