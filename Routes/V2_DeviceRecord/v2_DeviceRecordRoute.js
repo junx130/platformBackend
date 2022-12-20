@@ -1262,7 +1262,7 @@ router.post("/share/sharedev", auth, async (req, res) => {
 
         }
         if(updateErrCnt > 0 )   return res.status(203).send({errMsg:`Some update progress failed (Qty:${updateErrCnt})`});
-        return res.status(200).send({Sucess:true});
+        return res.status(200).send({Success:true});
 
     } catch (error) {
         console.log("Error : /share/sharedev", error.message);
