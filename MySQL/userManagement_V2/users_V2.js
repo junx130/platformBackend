@@ -95,16 +95,41 @@ async function setUserActive(actToken) {
     }
 }
 
+async function updateUserActiveStatus(info) {
+    const queryCmd = `UPDATE ${dbTable} SET active = ${info.active} WHERE _id = "${info._id}";`;
+
+    try {
+        let result = await queryTemplate(userDatabase, queryCmd, "Update Active Status Done");
+        return result[0];
+    } catch (ex) {
+        console.log(ex.message);
+        return null;
+    }
+}
+
+async function updateUserEmail(info) {
+    const queryCmd = `UPDATE ${dbTable} SET email = ${info.email} WHERE _id = "${info._id}";`;
+
+    try {
+        let result = await queryTemplate(userDatabase, queryCmd, "Update Email Done");
+        return result[0];
+    } catch (ex) {
+        console.log(ex.message);
+        return null;
+    }
+}
+
 async function insertUser(user) {    
     const createTable = `CREATE TABLE IF NOT EXISTS ${dbTable}(	
         _id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        email varchar(255) NOT NULL,
+        username varchar(100) NOT NULL,
+        email varchar(255),
         password varchar(255) NOT NULL,
         active smallint default 1
     );`;
     
-    const insertData = `INSERT INTO ${dbTable} (email, password) 
-    VALUES ("${user.email}", "${user.password}");`;
+    const insertData = `INSERT INTO ${dbTable} (username, password) 
+    VALUES ("${user.username}", "${user.password}");`;
     
     await insertTemplate(userDatabase, createTable, insertData, "InsertNewUserFinally");
 }
@@ -203,3 +228,5 @@ exports.verifyToken = verifyToken;
 exports.genLoginToken = genLoginToken;
 exports.updatePassword = updatePassword;
 exports.getUserById_email = getUserById_email;
+exports.updateUserActiveStatus = updateUserActiveStatus;
+exports.updateUserEmail = updateUserEmail;
