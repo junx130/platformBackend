@@ -906,10 +906,10 @@ async function v2a_getShareBd_byBdID_UserId (bd_id, user_id){
     }
 }
 
-async function v2a_getShareBddev_byBdID_UserId (bd_id, user_id){
-    let sErrTitle = "v2a_getShareBddev_byBdID_UserId";
+async function v2a_getShareBd_byBdID_UserId_IncNonActive (bd_id, user_id){
+    let sErrTitle = "v2a_getShareBd_byBdID_UserId_IncNonActive";
     try {
-        let quertCmd = `SELECT * from ${sharebdDevTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id}`;
+        let quertCmd = `SELECT * from ${shareBuildingTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id}`;        
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
         // console.log(result);
@@ -922,6 +922,234 @@ async function v2a_getShareBddev_byBdID_UserId (bd_id, user_id){
     }
 }
 
+async function v2a_getShareBd_byBdID (bd_id){
+    let sErrTitle = "v2a_getShareBd_byBdID";
+    try {
+        let quertCmd = `SELECT * from ${shareBuildingTable} WHERE buidling_id = ${bd_id} and active =  1 `;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2a_updateSharedBd(bd_id, shareUser_id, shareLevel) {
+    let sMsg = "v2a_updateSharedBd";
+    try {
+        const quertCmd = `UPDATE ${shareBuildingTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            shareLevel = ${shareLevel},
+            active =1
+            where buidling_id = ${bd_id} and shareUser_id = ${shareUser_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2a_deactivateSharedBd(bd_id, shareUser_id) {
+    let sMsg = "v2a_deactivateSharedBd";
+    try {
+        const quertCmd = `UPDATE ${shareBuildingTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            active =0
+            where buidling_id = ${bd_id} and shareUser_id = ${shareUser_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+async function v2a_InsertSharedBd(bd_id, shareUser_id, shareLevel) {
+    let fnName = "v2a_InsertSharedBd";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${shareBuildingTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            buidling_id int not null,
+            shareUser_id int not null,
+            shareLevel smallint not null,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${shareBuildingTable} (unix, buidling_id, shareUser_id, shareLevel)
+        VALUES (UNIX_TIMESTAMP(), ${bd_id}, ${shareUser_id}, ${shareLevel});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
+
+
+async function v2a_getShareBddev_byBdID_UserId (bd_id, user_id){
+    let sErrTitle = "v2a_getShareBddev_byBdID_UserId";
+    try {
+        let quertCmd = `SELECT * from ${sharebdDevTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2a_getShareBddev_byBdID_UserId_bdDevId (bd_id, user_id, bdDev_id){
+    console.log("bd_id", bd_id);
+    console.log("user_id", user_id);
+    console.log("bdDev_id", bdDev_id);
+    let sErrTitle = "v2a_getShareBddev_byBdID_UserId_bdDevId";
+    try {
+        let quertCmd = `SELECT * from ${sharebdDevTable} WHERE buidling_id = ${bd_id} and shareUser_id = ${user_id} and bdDev_id = ${bdDev_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+async function v2a_updateSharedBdDevAccessLevel(_id, accessLevel) {
+    let sMsg = "v2a_updateSharedBdDevAccessLevel";
+    try {
+        const quertCmd = `UPDATE ${sharebdDevTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            accessLevel  = ${accessLevel},
+            active = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2a_DeactivateShareDev(bd_id, user_id) {
+    let sMsg = "v2a_DeactivateShareDev";
+    try {
+        const quertCmd = `UPDATE ${sharebdDevTable} SET 
+            active = 0
+            where buidling_id = ${bd_id} and shareUser_id=${user_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function v2a_InsertSharedBdDev(bd_id, shareUser_id, bdDev_id, accessLevel) {
+    let fnName = "v2a_InsertSharedBdDev";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${sharebdDevTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            buidling_id int not null,
+            shareUser_id int not null,
+            bdDev_id int not null,
+            accessLevel smallint not null,
+            active tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${sharebdDevTable} (unix, buidling_id, shareUser_id, bdDev_id, accessLevel)
+        VALUES (UNIX_TIMESTAMP(), ${bd_id}, ${shareUser_id}, ${bdDev_id}, ${accessLevel});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
+
+async function v2a_getAllFloorInBd (bd_id){
+    let sErrTitle = "v2a_getAllFloorInBd";
+    try {
+        let quertCmd = `SELECT * from ${floorTableName} WHERE buidling_id = ${bd_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
+
+// async function v2a_getAllAreaInBd (bd_id){
+//     let sErrTitle = "v2a_getAllAreaInBd";
+//     try {
+//         let quertCmd = `SELECT * from ${areaTableName} WHERE buidling_id = ${bd_id} and active = 1`;
+//         // console.log(quertCmd);
+//         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+//         // console.log(result);
+//         if(!result[0]) return [];     // return empty array
+//         const rtnResult = result.map(b=>b);
+//         return rtnResult;
+//     } catch (error) {
+//         console.log(`${sErrTitle}`, error.message)
+//         return null;
+//     }
+// }
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -975,3 +1203,14 @@ exports.v2aDeteachDev=v2aDeteachDev;
 exports.v2a_getShareBuilding_byUser_id=v2a_getShareBuilding_byUser_id;
 exports.v2a_getShareBd_byBdID_UserId=v2a_getShareBd_byBdID_UserId;
 exports.v2a_getShareBddev_byBdID_UserId=v2a_getShareBddev_byBdID_UserId;
+exports.v2a_getAllFloorInBd=v2a_getAllFloorInBd;
+// exports.v2a_getAllAreaInBd=v2a_getAllAreaInBd;
+exports.v2a_updateSharedBd=v2a_updateSharedBd;
+exports.v2a_InsertSharedBd=v2a_InsertSharedBd;
+exports.v2a_getShareBddev_byBdID_UserId_bdDevId=v2a_getShareBddev_byBdID_UserId_bdDevId;
+exports.v2a_updateSharedBdDevAccessLevel=v2a_updateSharedBdDevAccessLevel;
+exports.v2a_InsertSharedBdDev=v2a_InsertSharedBdDev;
+exports.v2a_DeactivateShareDev=v2a_DeactivateShareDev;
+exports.v2a_getShareBd_byBdID=v2a_getShareBd_byBdID;
+exports.v2a_deactivateSharedBd=v2a_deactivateSharedBd;
+exports.v2a_getShareBd_byBdID_UserId_IncNonActive=v2a_getShareBd_byBdID_UserId_IncNonActive;

@@ -4,6 +4,24 @@ const jwt = require("jsonwebtoken");
 
 const userDatabase = "V2_User";
 const dbTable = "V2_UserResetPass";
+const userTable = "V2_Users";
+
+
+async function v2a_getUser (user_id){
+    let sErrTitle = "v2a_getUser";
+    try {
+        let quertCmd = `SELECT * from ${userTable} WHERE _id = ${user_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(userDatabase, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;
+    }
+}
 
 async function getByUserId(userid) {    
     const quertCmd = `SELECT * from ${dbTable} WHERE user_id = "${userid}" ORDER BY _id DESC LIMIT 1;`;
@@ -73,3 +91,4 @@ exports.getByEmail = getByEmail;
 exports.insertResetPassword = insertResetPassword;
 exports.getByToken = getByToken;
 exports.updateResetStatus = updateResetStatus;
+exports.v2a_getUser=v2a_getUser;
