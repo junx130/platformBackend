@@ -247,10 +247,10 @@ async function getSensorListBy_typeList(typeList){
     } catch (error) {
         console.log("getSensorListBy_typeList Error")        
         console.log(error.message)
-        return [];
+        return ;
     }
-
 }
+
 
 exports.getSensorListBy_typeList=getSensorListBy_typeList;
 exports.updateSensorParameter=updateSensorParameter;

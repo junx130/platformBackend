@@ -1,11 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require("joi");
+const { parseConnectionUrl } = require("nodemailer/lib/shared");
 const auth = require("../../Middleware/auth");
-const { getUserByEmail, getUserBy_idList } = require("../../MySQL/userManagement_V2/users_V2");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
-const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
-const { notArrOrEmptyArr } = require("../../utilities/validateFn");
+const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
+const { getUserByEmail, getUserBy_idList, getUserByUsername } = require("../../MySQL/userManagement_V2/users_V2");
+const { getByUserId, v2a_getUser } = require("../../MySQL/userManagement_V2/user_ResetPassword");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit, v2a_getSharedBdBy_user_id_bd_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
+const { notArrOrEmptyArr, isEmptyObject } = require("../../utilities/validateFn");
 
 
 
@@ -31,7 +34,6 @@ function valRegSenInfo(body){
 /** register new sensor */
 router.post("/sensorowner/regnewsensor", auth, async (req, res) => {    
     try {
-        // console.log(req.body);
         let body = req.body;
         /** validate Data */
         let {error: valErr} = valRegSenInfo(body);
@@ -50,7 +52,6 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
             if(!insBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
             if(insBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
             bd_id = insBdRel.insertId;
-            // console.log(bd_id);
         }
 
         let area_id = body.areaId;
@@ -73,7 +74,7 @@ router.post("/sensorowner/regnewsensor", auth, async (req, res) => {
     } catch (error) {
         console.log("Error : /sensorowner/regnewsensor");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
 });
 
@@ -122,7 +123,7 @@ router.post("/area/getrelated", auth, async (req, res) => {
     } catch (error) {
         console.log("Error : /area/getrelated");
         console.log(error.message);
-        return res.status(404).send(error.message);     
+        return res.status(203).send(error.message);     
     }
     
 });
@@ -131,49 +132,43 @@ router.post("/area/getrelated", auth, async (req, res) => {
 const getRelBdFn=async (req, res, _accessLevel) =>{
     try {
         let info = req.body;
-        // console.log("info", info);
         /** get owned building */
         let ownedBd = await getBuildingByOwner_id(info.user_id);
         if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
 
         /** get shared building (access level = 1 , co-owned),  */
-        let sharedBd = await getBuildingByActiveUser_id(info.user_id, _accessLevel);
-        if(!sharedBd) return res.status(203).send({msg:'Database Server Invalid'});
-        
-        
-        /** Filter duplicated data */
-        let uniqueSharedBd = Array.from(
-            new Set(sharedBd.map((a) => a.buidling_id))
-        ).map((buidling_id) => {
-            return sharedBd.find((a) => a.buidling_id === buidling_id);
-        });
-        
-        // console.log("uniqueSharedBd", uniqueSharedBd);
-
-        let relatedBuilding=[...ownedBd];
-
-        /** convert shared building into own building Form */
-        for (const bd of uniqueSharedBd) {
-            let ownBuilding = await getBdInfoBy_id(bd.buidling_id);
-            if(ownBuilding){
-                if(Array.isArray(ownBuilding) && ownBuilding.length > 0)
-                    for (const owbBd of ownBuilding) {
-                        owbBd.isSharedBd = true;
-                        owbBd.accessLevel = bd.accessLevel;
-                        let duplicated = ownedBd.find(c=>c._id === owbBd._id);
-                        if(!duplicated) relatedBuilding.push(owbBd);
-                    }
-                // relatedBuilding=[...relatedBuilding, ...ownBuilding];
-            }else{
-                return res.status(203).send({msg:'Database Server Invalid'});
+        let shareBdList = await v2a_getShareBuilding_byUser_id(info.user_id)
+        let bd_idList = [];
+        let share_bdList = [];
+        if(!notArrOrEmptyArr(shareBdList)){     /** got some share building */
+            /** load share building info  */
+            for (const eachBd of shareBdList) {
+                let foundIdx = ownedBd.findIndex(c=>c._id === eachBd.buidling_id);
+                if(foundIdx < 0) bd_idList.push(eachBd.buidling_id);
+            }
+            if(!notArrOrEmptyArr(bd_idList)){
+                share_bdList = await getBdList_byid(bd_idList);
+    
+                /** insert shareLevel of each building */
+                for (const eachShareBd of share_bdList) {
+                    let foundIdx = shareBdList.findIndex(c=>c.buidling_id === eachShareBd._id);
+                    if(foundIdx >= 0) eachShareBd.shareLevel = shareBdList[foundIdx].shareLevel;
+                }
             }
         }
+        /** Filter duplicated data */
+        // let uniqueSharedBd = Array.from(
+        //     new Set(sharedBd.map((a) => a.buidling_id))
+        // ).map((buidling_id) => {
+        //     return sharedBd.find((a) => a.buidling_id === buidling_id);
+        // });
         
-        // console.log("relatedBuilding", relatedBuilding);
+        let relatedBuilding=[...ownedBd, ...share_bdList];
+        
         return res.status(200).send(relatedBuilding);  
     } catch (error) {        
-        console.log("Error : /building/getrelated");
-        return res.status(404).send(error.message);     
+        console.log("Error : /building/getrelated", error.message);
+        return res.status(203).send(error.message);     
     }
 }
 
@@ -187,6 +182,9 @@ router.post("/building/getrelated", auth, async (req, res) => {
     await getRelBdFn(req, res);
 });
 
+
+
+
 router.post("/sensorowner/getbytyid", auth, async (req, res) => {    
     try {
         // console.log(req.params.userid);
@@ -198,7 +196,7 @@ router.post("/sensorowner/getbytyid", auth, async (req, res) => {
         return res.status(200).send(result);        
     } catch (ex) {
         console.log("Get Status Threshold Error");
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -211,7 +209,7 @@ router.post("/sensorshared/getbyuserbdaccesslvl", auth, async (req, res) => {
         return res.status(200).send(result);        
     } catch (ex) {
         console.log("Get Status Threshold Error");
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -275,7 +273,7 @@ router.post("/sensorshared/sharesensor", auth, async (req, res) => {
     } catch (ex) {
         console.log("sensorshared/sharesensor Error");
         console.log(ex.message);
-        return res.status(404).send(ex.message);        
+        return res.status(203).send(ex.message);        
     }
 });
 
@@ -318,7 +316,7 @@ router.post("/building/checkvaliduser", auth, async (req, res) => {
         if(ownBd.length > 0) return res.status(200).send({bdAccess:true, status:'Owner'});
 
         /** User Not owner, Check shared building */
-        let sharedBd = await getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
+        let sharedBd = await v2a_getSharedBdBy_user_id_bd_id(user_id, bd_id, true);
         if(!sharedBd || !Array.isArray(sharedBd)) return res.status(203).send({errMsg: "Database(Share) Exc Error"});
         if(sharedBd.length > 0) return res.status(200).send({bdAccess:true, status:'Shared'});
 
@@ -657,4 +655,648 @@ router.post("/building/editshareduser", auth, async (req, res) => {
         return res.status(203).send({errMsg: "Server Exc Error"});   
     }
 });
+
+
+
+/**-------Version 2a---------- */
+router.post("/floor/getrelated", auth, async (req, res) => {    
+    try {
+        let info = req.body;
+        /** get owned building area */
+        let floorInBd = await v2a_getFloorinBd(info.bd_id);        
+        if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        // console.log("relatedBuilding", relatedBuilding);
+        return res.status(200).send(floorInBd);      
+        
+    } catch (error) {
+        console.log("Error : /floor/getrelated");
+        console.log(error.message);
+        return res.status(203).send(error.message);     
+    }
+});
+
+router.post("/bd/getdevicesinbd", auth, async (req, res) => {    
+    try {
+        let info = req.body;
+        /** get owned building area */
+        let devInBd = await v2a_getDeviceInBd(info.bd_id);        
+        if(!devInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        return res.status(200).send(devInBd);      
+        
+    } catch (error) {
+        console.log("Error : /bd/getdevicesinbd");
+        console.log(error.message);
+        return res.status(203).send(error.message);     
+    }
+});
+
+router.post("/area/v2agetarea", auth, async (req, res) => {    
+    try {
+        let {bd_id, floor_id} = req.body;
+        /** get owned building area */
+        let floorInBd = await v2a_getAreaRelated(bd_id, floor_id);
+        if(!floorInBd) return res.status(203).send({errMsg:'DB Invalid'});
+
+        return res.status(200).send(floorInBd);      
+        
+    } catch (error) {
+        console.log("Error : /bd/getdevicesinbd");
+        console.log(error.message);
+        return res.status(203).send(error.message);     
+    }
+    
+});
+
+
+router.post("/sensorowner/v2aregnewsensor", auth, async (req, res) => {    
+    try {
+        let {sensorInfo} = req.body;
+        /** verify Serial No. and Reg Code */
+        let deviceInfo = await getDevBy_SnRegcode({SerialNo:sensorInfo.SerialNo, RegCode:sensorInfo.RegCode});
+        if(!deviceInfo) return res.status(203).send({errMsg: "DB Error (Dev)"});
+        if(notArrOrEmptyArr(deviceInfo)) return res.status(203).send({errMsg: "Invalid Serial No. or Register Code"});
+        /** check device whether been registered */
+        let bdDevInfo = await getSensorOwnerBy_TydevID_inUse(deviceInfo[0]);
+        if(!bdDevInfo) return res.status(203).send({errMsg: "DB Error (bdDev)"});
+        if(!notArrOrEmptyArr(bdDevInfo)) return res.status(203).send({errMsg: "Device been registered"});
+        /** insert new Building */
+        let buidling_id = 0;
+        if(!sensorInfo.bNewBuilding)  buidling_id=sensorInfo.buildingId;
+        else{
+            let addBdRel = await insertV2_OwnerList_bd(sensorInfo);
+            if(!addBdRel) return res.status(203).send({errMsg:"Add New Building Not Success(1)"});
+            if(addBdRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Building Not Success(2)"});
+            buidling_id = addBdRel.insertId;
+        }
+        /** insert new floor */
+        let floor_id = 0;
+        if(!sensorInfo.bNewFloor) floor_id =sensorInfo.floorId;
+        else{
+            let addFloorRel = await v2aInsertFloor({name:sensorInfo.bFloorName, owner_id:sensorInfo.bdOwner_id, buidling_id});
+            if(!addFloorRel) return res.status(203).send({errMsg:"Add New Monitoring List Not Success(1)"});
+            if(addFloorRel.affectedRows<1) return res.status(203).send({errMsg:"Add New Monitoring List Not Success(2)"});
+            floor_id = addFloorRel.insertId;
+        }
+        /** insert new area */
+        let area_id=0;
+        if(!sensorInfo.bNewArea)    area_id = sensorInfo.areaId;
+        else{
+            let addArearel = await insertV2_OwnerList_area({name:sensorInfo.bAreaName, owner_id:sensorInfo.bdOwner_id, buidling_id, floor_id});
+            if(!addArearel) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(1)"});
+            if(addArearel.affectedRows<1) return res.status(203).send({errMsg:"Add New Sub Monitoring List Not Success(2)"});
+            area_id = addArearel.insertId;
+        }
+        /** insert bdDev */
+        /** find if bd_id, dev, and type same but active is not, update active to 1 */
+        let unUsedSlot = await v2aGetBdDevRegBefore({type:deviceInfo[0].type, devID:deviceInfo[0].devID, owner_id:sensorInfo.bdOwner_id, buidling_id});
+        if(!notArrOrEmptyArr(unUsedSlot)){  /** found un-used slot, update */
+            let updateRel = await v2aUpdateOwnerList_bdDev(sensorInfo, deviceInfo[0].type, deviceInfo[0].devID, unUsedSlot[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Insert Device Err(Update)"});
+        }else{  /** insert new bdDev slot */
+            let insertBdDevRel = await insertV2_OwnerList_bdDev(sensorInfo, deviceInfo[0].type, deviceInfo[0].devID, buidling_id, floor_id, area_id);
+            if(!insertBdDevRel) return res.status(203).send({errMsg:"Insert Device Err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /sensorowner/regnewsensor");
+        console.log(error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bd/v2aupdatesortidx_bd", auth, async (req, res) => {    
+    try {
+        let {sortIdx, bd_id} = req.body;
+        let updateRel = await v2aUpdateSortIdx_bd(sortIdx, bd_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /sensorowner/regnewsensor");
+        console.log(error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bd/v2arenamebd", auth, async (req, res) => {    
+    try {
+        let {name, bd_id} = req.body;
+        let updateRel = await v2aRenameBd(name, bd_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2arenamebd", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bd/v2aupdatesortidx_floor", auth, async (req, res) => {    
+    try {
+        let {floorList} = req.body;
+        for (const eachFloor of floorList) {
+            let updateRel = await v2aUpdateSortIdx_floor(eachFloor.sortIdx, eachFloor._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /sensorowner/regnewsensor");
+        console.log(error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2arenamefloor", auth, async (req, res) => {    
+    try {
+        let {name, floor_id} = req.body;
+        let updateRel = await v2aRenameFloor(name,floor_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2arenamebd", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2aupdatesortidx_area", auth, async (req, res) => {    
+    try {
+        let {areaList} = req.body;
+        for (const eachArea of areaList) {
+            let updateRel = await v2aUpdateSortIdx_area(eachArea.sortIdx, eachArea._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2aupdatesortidx_area");
+        console.log(error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2arenamearea", auth, async (req, res) => {    
+    try {
+        let {name, area_id} = req.body;
+        let updateRel = await v2aRenameArea(name,area_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2arenamearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2adeletearea", auth, async (req, res) => {    
+    try {
+        let {area_id} = req.body;
+        let updateRel = await v2aDeleteArea(area_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2adeletefloor", auth, async (req, res) => {    
+    try {
+        let {floor_id} = req.body;
+        let updateRel = await v2aDeleteFloor(floor_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2aclear_floor_area_id", auth, async (req, res) => {    
+    try {
+        let {devList} = req.body;
+        for (const eachDev of devList) {
+            let updateRel = await v2aClearFloorArea_id(eachDev._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bd/v2aclear_area_id", auth, async (req, res) => {    
+    try {
+        let {devList} = req.body;
+        for (const eachDev of devList) {
+            let updateRel = await v2aClearArea_id(eachDev._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/floor/insert", auth, async (req, res) => {    
+    try {
+        let {name, owner_id, buidling_id} = req.body;
+        /** find any inactive floor */
+        let inactiveRow = await v2a_getInactiveFloor();
+        if(inactiveRow.length >= 1){   /** yes, update */   
+            let updateRel = await v2aInsertUpdatefloor({name, owner_id, buidling_id}, inactiveRow[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Add group error (Update)"});
+        }else{     /** no, insert */
+            let insertRel = await v2aInsertFloor({name, owner_id, buidling_id});
+            if(!insertRel) return res.status(203).send({errMsg:"Add group error (Insert)"});
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/area/insert", auth, async (req, res) => {    
+    try {
+        let {name, owner_id, buidling_id, floor_id} = req.body;
+        /** find any inactive floor */
+        let inactive = await v2a_getInactiveArea();
+        if(inactive.length > 0){    /** if got inactive, update */
+            let updateRel = await v2aInsertUpdateArea({name, owner_id, buidling_id, floor_id}, inactive[0]._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Add subgroup error (Update)"});
+        }else{      /** if no inactive, insert */
+            let insertRel = await insertV2_OwnerList_area({name, owner_id, buidling_id, floor_id});
+            if(!insertRel) return res.status(203).send({errMsg:"Add subugroup error (Insert)"});
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bd/v2adeletearea", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/area/getall", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+        /** find any inactive floor */
+        let allArea =  await v2a_getAllAreaUnderBd(bd_id);
+        if(!allArea) return res.status(203).send({errMsg:'DB Error'});
+
+        return res.status(200).send(allArea);
+
+    } catch (error) {
+        console.log("Error : /area/getall", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+
+
+router.post("/bdDev/updatefloorarea_id", auth, async (req, res) => {    
+    try {
+        let {devList} = req.body;
+        for (const eachDev of devList) {
+            let updateRel = await v2aUpdatebdDevFloor_Area(eachDev);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+
+    } catch (error) {
+        console.log("Error : /bdDev/updatefloorarea_id", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bdDev/updatedevicesort", auth, async (req, res) => {    
+    try {
+        let {devList} = req.body;
+        for (const eachDev of devList) {
+            let updateRel = await v2aUpdateSortIdx_device(eachDev.sortIdx, eachDev._id);
+            if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/updatedevicesort", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bdDev/rename", auth, async (req, res) => {    
+    try {
+        let {newName, _id} = req.body;
+        let updateRel = await v2aRenameDev(newName, _id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/rename", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bdDev/delete", auth, async (req, res) => {    
+    try {
+        let {_id} = req.body;
+        let updateRel = await v2aDeleteDev(_id);
+        if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/delete", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bdDev/swap", auth, async (req, res) => {    
+    try {
+        let {owner_id, _id, SerialNo, RegCode} = req.body;
+        /** get bdDev by _id, make sure type are compatible */
+        let curDev = await getBddevBy_id(_id);
+
+        let newDev = await getDevBy_SnRegcode({SerialNo, RegCode});
+
+        /** check type are compatible */
+        if(curDev[0].type !== newDev[0].type) return res.status(203).send({errMsg:"Device type not match"});
+
+        let swapRel = await v2aSwapDev(owner_id, newDev[0].devID, _id);
+        if(!swapRel) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/swap", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/bdDev/deteach", auth, async (req, res) => {    
+    try {
+        let {_id} = req.body;
+
+        let newDev = await v2aDeteachDev(_id);
+        if(!newDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/swap", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/sharebd/getbyuserid_bdid", auth, async (req, res) => {    
+    try {
+        let {bd_id, user_id} = req.body;
+
+        let sharedBd = await v2a_getShareBd_byBdID_UserId(bd_id, user_id);
+        if(!sharedBd) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(sharedBd);
+
+    } catch (error) {
+        console.log("Error : /sharebd/getbyuserid_bdid", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/sharebddev/getby_userid_bdid", auth, async (req, res) => {    
+    try {
+        let {bd_id, user_id} = req.body;
+        let sharedDev = await v2a_getShareBddev_byBdID_UserId(bd_id, user_id);
+        if(!sharedDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(sharedDev);
+
+    } catch (error) {
+        console.log("Error : /sharebddev/getby_userid_bdid", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/building/getcoowned", auth, async (req, res) => {    
+    try {
+        // let {user_id} = req.body;
+        let info = req.body;
+        /** get owned building */
+        let ownedBd = await getBuildingByOwner_id(info.user_id);
+        if(!ownedBd) return res.status(203).send({msg:'Database Server Invalid'});
+
+        /** get shared building (access level = 1 , co-owned),  */
+        let shareBdList = await v2a_getShareBuilding_byUser_id(info.user_id)
+        let bd_idList = [];
+        let share_bdList = [];
+        if(!notArrOrEmptyArr(shareBdList)){     /** got some share building */
+            /** load share building info  */
+            for (const eachBd of shareBdList) {
+                let foundIdx = ownedBd.findIndex(c=>c._id === eachBd.buidling_id);
+                if(foundIdx < 0 && eachBd.shareLevel >=0 && eachBd.shareLevel <=2) bd_idList.push(eachBd.buidling_id);
+            }
+            if(!notArrOrEmptyArr(bd_idList)){
+                share_bdList = await getBdList_byid(bd_idList);
+    
+                /** insert shareLevel of each building */
+                for (const eachShareBd of share_bdList) {
+                    let foundIdx = shareBdList.findIndex(c=>c.buidling_id === eachShareBd._id);
+                    if(foundIdx >= 0) eachShareBd.shareLevel = shareBdList[foundIdx].shareLevel;
+                }
+            }
+        }
+        
+        let relatedBuilding=[...ownedBd, ...share_bdList];
+        
+        return res.status(200).send(relatedBuilding);  
+
+    } catch (error) {
+        console.log("Error : /building/getcoowned", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/building/getbdinfo_byBd_id", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+
+        let bdInfo = await getBdInfoBy_id(bd_id);
+        if(!bdInfo) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(bdInfo);
+
+    } catch (error) {
+        console.log("Error : /building/getbdinfo_byBd_id", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/floor/getall", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+
+        let bdInfo = await v2a_getAllFloorInBd(bd_id);
+        if(!bdInfo) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send(bdInfo);
+
+    } catch (error) {
+        console.log("Error : /floor/getall", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+
+router.post("/share/sharedev", auth, async (req, res) => {    
+    try {
+        let {bd_id, userList, shareLevel, devList} = req.body;
+        /** get valid user list */
+        let updateErrCnt = 0;
+        for (const eachUser of userList) {
+            let validUser = await getUserByUsername(eachUser);
+            if(!validUser) continue     /** proceed to next user */
+            
+            /** check existing access level */
+            let shareBd = await v2a_getShareBd_byBdID_UserId_IncNonActive(bd_id, validUser._id);
+            if(!shareBd) {  /** DB error */
+                console.log("Get share device error");
+                // continue
+            }
+            if(notArrOrEmptyArr(shareBd)){      /** no existing value, insert */ 
+                /** insert */
+                let insertRel = await v2a_InsertSharedBd(bd_id, validUser._id, shareLevel)
+                if(!insertRel) updateErrCnt++;
+            }else{       /** got existing value, update */  
+                /** update */
+                let updateRel = await v2a_updateSharedBd(bd_id, validUser._id, shareLevel)
+                if(!updateRel) updateErrCnt++;
+            }
+
+            if(shareLevel<=2) continue; /** if co-owner, no need to update share dev table */
+            
+            /** clear all sharedBdDev */
+            let deactivateRel = await v2a_DeactivateShareDev(bd_id, validUser._id);
+            // console.log("deactivateRel", deactivateRel);
+
+            /** update each share dev access level */
+            for (const eachDev of devList) {
+                let existRec = await v2a_getShareBddev_byBdID_UserId_bdDevId(bd_id, validUser._id, eachDev);
+                if(!existRec) {
+                    updateErrCnt++;
+                    // continue
+                }
+                
+                if(notArrOrEmptyArr(existRec)){   /** dont have existing record, insert */
+                    let insertRel = await v2a_InsertSharedBdDev(bd_id, validUser._id, eachDev, 2);  // <--- share =2 => view only
+                    if(!insertRel) updateErrCnt++;                        
+                }else{         /** got existing record, update */
+                    let updateRel = await v2a_updateSharedBdDevAccessLevel(existRec[0]._id, 2);   // <--- share =2 => view only
+                    if(!updateRel) updateErrCnt++;
+                }
+            }
+
+        }
+        if(updateErrCnt > 0 )   return res.status(203).send({errMsg:`Some update progress failed (Qty:${updateErrCnt})`});
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /share/sharedev", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/bd/getshared", auth, async (req, res) => {    
+    try {
+        let {bd_id} = req.body;
+
+        let sharedUser = await v2a_getShareBd_byBdID(bd_id);
+        if(!sharedUser) return res.status(203).send({errMsg:"Update DB err"});
+
+        let _UserList=[];
+        for (const eachUser of sharedUser) {
+            let userInfo = await v2a_getUser(eachUser.shareUser_id);
+            if(notArrOrEmptyArr(userInfo)) continue;
+            eachUser.username = userInfo[0].username;
+            _UserList.push(eachUser);            
+        }
+        return res.status(200).send(_UserList);
+
+    } catch (error) {
+        console.log("Error : /bd/getshared", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+router.post("/shareuser/deactivate", auth, async (req, res) => {    
+    try {
+        let {bd_id, shareUser_id} = req.body;
+
+        let newDev = await v2a_deactivateSharedBd(bd_id, shareUser_id);
+        if(!newDev) return res.status(203).send({errMsg:"Update DB err"});
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /bdDev/swap", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+
+
+
+
 module.exports = router;
