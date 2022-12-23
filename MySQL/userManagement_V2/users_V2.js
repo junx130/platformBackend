@@ -49,7 +49,7 @@ async function getAllUser() {
 }
 
 async function getUserByUsername(username) {    
-    const quertCmd = `SELECT * from ${dbTable} WHERE username = "${username}"`;
+    const quertCmd = `SELECT * from ${dbTable} WHERE username = "${username}" AND active = 1`;
 
     try {
         let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
@@ -168,6 +168,7 @@ function genAuthToken(user) {
 
 function genLoginToken(user) {
     const token = jwt.sign({
+        username: user.username,
         email: user.email,
         active:user.active,
         user_id : user._id,
