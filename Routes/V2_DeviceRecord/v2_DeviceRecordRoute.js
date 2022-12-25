@@ -6,7 +6,7 @@ const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList, getUserByUsername } = require("../../MySQL/userManagement_V2/users_V2");
 const { getByUserId, v2a_getUser } = require("../../MySQL/userManagement_V2/user_ResetPassword");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive, v2a_getAreaInfloor } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit, v2a_getSharedBdBy_user_id_bd_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr, isEmptyObject } = require("../../utilities/validateFn");
 
@@ -887,6 +887,14 @@ router.post("/bd/v2adeletearea", auth, async (req, res) => {
 router.post("/bd/v2adeletefloor", auth, async (req, res) => {    
     try {
         let {floor_id} = req.body;
+        /** get area under floor, delete each area */
+        let areaUnderFloor = await v2a_getAreaInfloor(floor_id);
+        if(areaUnderFloor){
+            for (const eachArea of areaUnderFloor) {
+                let updateRel_Area = await v2aDeleteArea(eachArea._id);
+            }
+        }
+
         let updateRel = await v2aDeleteFloor(floor_id);
         if(!updateRel) return res.status(203).send({errMsg:"Update DB err"});
 

@@ -1135,21 +1135,21 @@ async function v2a_getAllFloorInBd (bd_id){
     }
 }
 
-// async function v2a_getAllAreaInBd (bd_id){
-//     let sErrTitle = "v2a_getAllAreaInBd";
-//     try {
-//         let quertCmd = `SELECT * from ${areaTableName} WHERE buidling_id = ${bd_id} and active = 1`;
-//         // console.log(quertCmd);
-//         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
-//         // console.log(result);
-//         if(!result[0]) return [];     // return empty array
-//         const rtnResult = result.map(b=>b);
-//         return rtnResult;
-//     } catch (error) {
-//         console.log(`${sErrTitle}`, error.message)
-//         return null;
-//     }
-// }
+async function v2a_getAreaInfloor (floor_id){
+    let sErrTitle = "v2a_getAreaInfloor";
+    try {
+        let quertCmd = `SELECT * from ${areaTableName} WHERE floor_id = ${floor_id} and active = 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
 
 
 exports.getBddevBy_idList=getBddevBy_idList;
@@ -1214,3 +1214,4 @@ exports.v2a_DeactivateShareDev=v2a_DeactivateShareDev;
 exports.v2a_getShareBd_byBdID=v2a_getShareBd_byBdID;
 exports.v2a_deactivateSharedBd=v2a_deactivateSharedBd;
 exports.v2a_getShareBd_byBdID_UserId_IncNonActive=v2a_getShareBd_byBdID_UserId_IncNonActive;
+exports.v2a_getAreaInfloor=v2a_getAreaInfloor;
