@@ -76,6 +76,16 @@ function verifyCRC(deviceInfo){
                     deviceInfo.hns)
 }
 
+function getLoraValueKey(valType, valIdx){    
+    let _sType = "pb";
+    switch (valType) {
+        case 2: _sType = "pf";  break;
+        case 3: _sType = "pi";  break;
+        case 4: _sType = "pn";  break;
+    }
+    return `${_sType}_${valIdx}`;
+}
 
 exports.verifyCRC =verifyCRC;
 exports.genLoRaPackage=genLoRaPackage;
+exports.getLoraValueKey=getLoraValueKey;
