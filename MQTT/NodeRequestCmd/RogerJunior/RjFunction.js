@@ -1,11 +1,11 @@
-const { getRjOnineVar_BybdDev_id } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjOnineVar_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const { getSensorOwnerBy_TydevID_inUse, getBddevBy_idList } = require("../../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastNMin } = require("../../../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getLoraValueKey, genLoRaPackage } = require("../../../utilities/loraFormat");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
 
 const C_TotalOnlineVar = 6; // 1 iControl + 5 adv control
-const blog = false;
+const blog = true;
 async function replyOnlineVarReq(deviceInfo){
     try {
         if(blog) console.log("deviceInfo", deviceInfo);
@@ -91,6 +91,41 @@ async function replyOnlineVarReq(deviceInfo){
     }
 }
 
+async function replySceneParaReq(deviceInfo){
+    if(blog) console.log("deviceInfo", deviceInfo);
+    /** get gateway id */
+    let gwId = parseInt(deviceInfo.GwID);
+    /** publish fn 3 to node */
+    let devDetails={
+        devType:deviceInfo.ht,
+        id:deviceInfo.hi,
+        dir:3,
+        fun:deviceInfo.hf
+    }
 
+    /** get scene idx */
+    if(!deviceInfo.pi) return console.log("Err: Pi not configured");
+    if(notArrOrEmptyArr(deviceInfo.pi)) return console.log("Err: Pi is empty array");
+    let sceneIdx = deviceInfo.pi[0];
+
+    /** get RJ bdDev info */
+    let RjBdDevInfo = await getSensorOwnerBy_TydevID_inUse({type:deviceInfo.ht, devID:deviceInfo.hi});
+    if(notArrOrEmptyArr(RjBdDevInfo)) {
+        if(blog) console.log("Get RJ bdDev Info error");
+        return 
+    }
+    /** load rules, load condis */
+    let SceRules = await getRjRules_bdDevId_sceneIdx_inUse(RjBdDevInfo[0]._id, sceneIdx);
+    console.log("SceRules", SceRules);
+    let SceCondis = await getRjCondis_bdDevId_sceneIdx_inUse(RjBdDevInfo[0]._id, sceneIdx);
+    console.log("SceCondis", SceCondis);
+
+    /** prepare lora info */
+    let pi=[
+        sceneIdx,
+        
+    ]
+}
 
 exports.replyOnlineVarReq=replyOnlineVarReq;
+exports.replySceneParaReq=replySceneParaReq;
