@@ -6,7 +6,7 @@ const { _unixNow } = require("../../utilities/timeFn");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 const { F_CondensorLoopLogic } = require("./CondensorLoop/CondensorLoopLogic");
 const { F_VarPairHandle } = require("./NodeReqFun/VarPairFunc");
-const { replyOnlineVarReq } = require("./RogerJunior/RjFunction");
+const { replyOnlineVarReq, replySceneParaReq } = require("./RogerJunior/RjFunction");
 
 async function handleNodeReq(topic, message){
     try {        
@@ -135,7 +135,7 @@ async function handleNodeReq(topic, message){
                         let reqOutput = await replyOnlineVarReq(deviceInfo);
                         return reqOutput;
                     }else if(deviceInfo.ht===47 && deviceInfo.hf===102){    // request scene parameter
-                        let reqOutput = await replyOnlineVarReq(deviceInfo);
+                        let reqOutput = await replySceneParaReq(deviceInfo);
                         return reqOutput;
                     }
                 }
