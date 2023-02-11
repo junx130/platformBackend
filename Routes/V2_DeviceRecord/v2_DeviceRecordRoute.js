@@ -1179,7 +1179,7 @@ router.post("/building/getbdinfo_byBd_id", auth, async (req, res) => {
         let {bd_id} = req.body;
 
         let bdInfo = await getBdInfoBy_id(bd_id);
-        if(!bdInfo) return res.status(203).send({errMsg:"Update DB err"});
+        if(!bdInfo) return res.status(203).send({errMsg:"Get DB err"});
 
         return res.status(200).send(bdInfo);
 
