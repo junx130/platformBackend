@@ -4,8 +4,8 @@ const { v2GetBdDevData_lastNMin } = require("../../../MySQL/V2_QueryData/v2_Quer
 const { getLoraValueKey, genLoRaPackage } = require("../../../utilities/loraFormat");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
 
-const C_TotalOnlineVar = 6; // 1 iControl + 5 adv control
-const blog = true;
+const C_TotalOnlineVar = 7; // 2 iControl + 5 adv control
+const blog = false;
 async function replyOnlineVarReq(deviceInfo){
     try {
         if(blog) console.log("deviceInfo", deviceInfo);
