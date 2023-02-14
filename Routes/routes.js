@@ -35,6 +35,7 @@ const V2_actionRoute = require("./V2_Action/V2_Action");
 const V1_ctrlRoute = require("./V1/V1_CtrlOvv/V1_CtrlOvv");
 const V2_ctrlRoute = require("./V2_Control/V2_ControlRoute");
 const V2_appRoute = require("./V2_Application/V2_ApplicationRoute");
+const V2_app_RogerJuniorRoute = require("./V2_Application/RogerJunior/V2_RogerJuniorRoute");
 const V2_coolingTowerCfg = require("./V2_AppDevice/V2_CoolingTowerCfgRoute");
 
 
@@ -55,6 +56,7 @@ module.exports = function (app) {
     app.use("/present/sum/", sumList_V2);
     app.use("/action/tele/", V2_act_tele);
     app.use("/v2appdev/coolingtower/", V2_coolingTowerCfg);
+    app.use("/v2app/rj/", V2_app_RogerJuniorRoute);
     
     
 
@@ -82,6 +84,7 @@ module.exports = function (app) {
     app.use("/v2action/", V2_actionRoute);
     app.use("/v2ctrl/", V2_ctrlRoute);
     app.use("/v2app/", V2_appRoute);
+    
 
     app.use("/v1ctrl/", V1_ctrlRoute);
     

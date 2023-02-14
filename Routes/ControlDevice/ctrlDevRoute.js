@@ -24,11 +24,15 @@ function clearCommonVar(){
 
 // version 2 control, use AWS Mosquitto MQTT 
 aws_expClient.on("message", async (topic, message) => {
+    let G_MEssage;
+    let G_JsonForm;
     try {
         // console.log("Message Lai Liao");
         const a_topic = topic.split("/");
         // console.log(a_topic);
+        G_MEssage=message;
         let mqttMsg = JSON.parse(message);
+        G_JsonForm = mqttMsg;
         if(a_topic[0]===`Gw`){
             let subTopic = `${a_topic[0]}/+/${a_topic[2]}`;
             let gwid = parseInt(a_topic[2]);
@@ -91,8 +95,9 @@ aws_expClient.on("message", async (topic, message) => {
                
     } catch (error) {
         console.log("MQTT cmd Subscribe Err: ",error.message);
+        console.log("G_MEssage", G_MEssage);
+        console.log("G_JsonForm", G_JsonForm);
     }
-    
 });
 
 // version 1 control, use CloudMQTT 
