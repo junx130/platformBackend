@@ -9,11 +9,12 @@ const { F_VarPairHandle } = require("./NodeReqFun/VarPairFunc");
 const { replyOnlineVarReq, replySceneParaReq } = require("./RogerJunior/RjFunction");
 
 async function handleNodeReq(topic, message){
-    try {        
+    try {    
         let arr_topic = topic.split("/");
         if(arr_topic[0] === "Aplouds" && arr_topic[1] === "NodeToServer"){
         const deviceInfo = JSON.parse(message);            
             if(verifyCRC(deviceInfo)) {
+                // return;     // skip on development
                 if(deviceInfo.hd===1){
                     if(deviceInfo.hf===20003){  // node request sync time
                         // console.log("deviceInfo.GwID", deviceInfo.GwID);
