@@ -24,10 +24,55 @@ async function getRjOnineVar_BybdDev_id (bdDev_id){
 }
 
 // RJ Scene 
+async function insertRjScene(info, sceneIdx, sortIdx) {
+    let fnName = "insertRjRule";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${rjSceneTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            Rj_bdDevId int not null,
+            sceneIdx tinyint,
+            Name varchar(80),
+            sortIdx smallint,
+            inUse tinyint default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${rjSceneTable} (unix, Rj_bdDevId, sceneIdx, Name, sortIdx)
+        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${sceneIdx}, "${info.Name}", ${sortIdx});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
 async function getRjScene_BybdDev_id (bdDev_id){
     let sErrTitle = "getRjScene_BybdDev_id";
     try {
         let quertCmd = `SELECT * from ${rjSceneTable} WHERE Rj_bdDevId = ${bdDev_id} and inUse = 1 order by sceneIdx`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+async function getRjScene_BybdDev_id_orderSortIdx (bdDev_id){
+    let sErrTitle = "getRjScene_BybdDev_id_orderSortIdx";
+    try {
+        let quertCmd = `SELECT * from ${rjSceneTable} WHERE Rj_bdDevId = ${bdDev_id} and inUse = 1 order by sortIdx`;
         // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
         // console.log(result);
@@ -64,8 +109,51 @@ async function updateRjScene(info, _id) {
     }
 }
 
+async function deleteScene_unUse(_id) {
+    let sMsg = "deleteScene_unUse";
+    try {
+        const quertCmd = `UPDATE ${rjSceneTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            inUse = 0
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function updateRjSceneSortIdx(sortIdx, _id) {
+    let sMsg = "updateRjSceneSortIdx";
+    try {
+        const quertCmd = `UPDATE ${rjSceneTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            sortIdx = ${sortIdx},
+            inUse = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
 // RJ Rules
-async function insertRjRule(info, ruleIdx) {
+async function insertRjRule(info, ruleIdx, sceneIdx) {
     let fnName = "insertRjRule";
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${rjRulesTable}(	
@@ -82,7 +170,7 @@ async function insertRjRule(info, ruleIdx) {
         );`;
 
         const insertData = `INSERT INTO ${rjRulesTable} (unix, Rj_bdDevId, sceneIdx, ruleIdx, AcReq, Setpoint)
-        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${info.sceneIdx}, ${ruleIdx}, ${info.AcReq}, ${info.Setpoint});`;        
+        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${sceneIdx}, ${ruleIdx}, ${info.AcReq}, ${info.Setpoint});`;        
 
         let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
         if (!result) return null    // insert error
@@ -126,13 +214,13 @@ async function getRjEmptyRule (){
     }
 }
 
-async function updateRjRule(info, _id, ruleIdx) {
+async function updateRjRule(info, _id, ruleIdx, sceneIdx) {
     let sMsg = "updateRjRule";
     try {
         const quertCmd = `UPDATE ${rjRulesTable} SET 
             unix=UNIX_TIMESTAMP(),
             Rj_bdDevId = ${info.Rj_bdDevId},
-            sceneIdx = ${info.sceneIdx},
+            sceneIdx = ${sceneIdx},
             ruleIdx = ${ruleIdx},
             AcReq = ${info.AcReq},
             Setpoint = ${info.Setpoint},
@@ -207,13 +295,13 @@ async function getRjEmptyCondis (){
     }
 }
 
-async function updateRjCondi(info, _id, ruleIdx) {
+async function updateRjCondi(info, _id, ruleIdx, sceneIdx) {
     let sMsg = "updateRjCondi";
     try {
         const quertCmd = `UPDATE ${rjCondiTable} SET 
             unix=UNIX_TIMESTAMP(),
             Rj_bdDevId = ${info.Rj_bdDevId},
-            sceneIdx = ${info.sceneIdx},
+            sceneIdx = ${sceneIdx},
             ruleIdx = ${ruleIdx},
             varIdx = ${info.varIdx},
             condiOpe = ${info.condiOpe},
@@ -256,7 +344,7 @@ async function condiSetAllUnUse(Rj_bdDevId, sceneIdx) {
     }
 }
 
-async function insertRjCondi(info, ruleIdx) {
+async function insertRjCondi(info, ruleIdx, sceneIdx) {
     let fnName = "insertRjCondi";
     try {
         const createTable = `CREATE TABLE IF NOT EXISTS ${rjCondiTable}(	
@@ -274,7 +362,7 @@ async function insertRjCondi(info, ruleIdx) {
         );`;
 
         const insertData = `INSERT INTO ${rjCondiTable} (unix, Rj_bdDevId, sceneIdx, ruleIdx, varIdx, condiOpe, targetValue)
-        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${info.sceneIdx}, ${ruleIdx}, ${info.varIdx}, ${info.condiOpe}, ${info.targetValue});`;        
+        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${sceneIdx}, ${ruleIdx}, ${info.varIdx}, ${info.condiOpe}, ${info.targetValue});`;        
 
         let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
         if (!result) return null    // insert error
@@ -291,8 +379,12 @@ async function insertRjCondi(info, ruleIdx) {
 // online var
 exports.getRjOnineVar_BybdDev_id=getRjOnineVar_BybdDev_id;
 // Rj Scene 
+exports.insertRjScene=insertRjScene;
 exports.getRjScene_BybdDev_id=getRjScene_BybdDev_id;
+exports.getRjScene_BybdDev_id_orderSortIdx=getRjScene_BybdDev_id_orderSortIdx;
 exports.updateRjScene=updateRjScene;
+exports.updateRjSceneSortIdx=updateRjSceneSortIdx;
+exports.deleteScene_unUse=deleteScene_unUse;
 // RJ Rules
 exports.insertRjRule=insertRjRule;
 exports.getRjRules_bdDevId_sceneIdx_inUse=getRjRules_bdDevId_sceneIdx_inUse;

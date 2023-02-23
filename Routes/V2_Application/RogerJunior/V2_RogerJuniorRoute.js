@@ -1,9 +1,10 @@
 const express = require("express");
-const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const router = express.Router();
 const auth = require("../../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
 
+const C_MaxScene = 10;
 
 router.post("/getscene", auth, async (req, res) => {
     try {
@@ -11,7 +12,7 @@ router.post("/getscene", auth, async (req, res) => {
         // let gwPairList = await V2_getGwPair(bdDev_id);
         // if(!gwPairList) return res.status(203).send({errMsg:"Get GW info Err(DB)"});    // catch error
         let {rj_id} = req.body;
-        let sceneList = await getRjScene_BybdDev_id(rj_id);
+        let sceneList = await getRjScene_BybdDev_id_orderSortIdx(rj_id);
         if(!sceneList) return res.status(203).send({errMsg:"Get member device info Err(DB)"});    
         
         return res.status(200).send(sceneList);
@@ -65,21 +66,6 @@ router.post("/updatescene", auth, async (req, res) => {
     try {
         let {Rj_id, scene, rules} = req.body;
         /** handle new scene ??? */
-        if(scene.sceneIdx >0){      /** existing scene, set all to unUse 1st */
-            /** set all condi inUse to 0 */
-            let setCondiUnUseRel = await condiSetAllUnUse(Rj_id, scene.sceneIdx);
-            if(!setCondiUnUseRel)  {
-                console.log("setCondiUnUseRel", setCondiUnUseRel);
-                ErrCnt ++;
-            }
-            /** set all rule inUse to 0 */
-            let setRulesUnUseRel = await rulesSetAllUnUse(Rj_id, scene.sceneIdx);
-            if(!setRulesUnUseRel) {
-                console.log("setRulesUnUseRel", setRulesUnUseRel);
-                ErrCnt ++;
-            } 
-        }else{      // check if handle by logic below
-        }
 
 
         /** check if Rj_bdDevId, and sceneIdx match */
@@ -89,16 +75,53 @@ router.post("/updatescene", auth, async (req, res) => {
         if (matchScene) {   // got match, update
             let updateScene = await updateRjScene(scene, matchScene._id);
             if(!updateScene)  {
-                console.log("updateScene", updateScene);
                 ErrCnt ++;
             }
             sceneIdx = scene.sceneIdx;
         }else{      // no matching, add new???
             /** no match, insert */
-                /** get total scene for RJ_id, set sceneIdx to next number */
+                /** get all scene of RJ_id */
+                /** determine which sceneIdx slot is empty, temporary set max scene can set is C_MaxScene = 20 */
+                /** determine the max sortIdx of each scene, set the sortIdx to next number*/
+            sceneIdx=C_MaxScene;
+            let allScene = await getRjScene_BybdDev_id(Rj_id);
+            for (let i = 1; i < C_MaxScene+1; i++) {    // 1~20
+                let found = allScene.find(c=>c.sceneIdx === i);
+                if(!found) {
+                    sceneIdx = i;
+                    break
+                }
+            }
+            /** get max sortIdx */
+            let maxSortIdx=0;
+            for (const eachScene of allScene) {
+                if(eachScene.sortIdx > maxSortIdx){
+                    maxSortIdx= eachScene.sortIdx;
+                }
+            }
+            let sortIdx = maxSortIdx+1;
+            /** insert new scene */
+            let insertSceneRel = await insertRjScene(scene, sceneIdx, sortIdx);
+            if(!insertSceneRel){
+                return res.status(203).send({ errMsg: "New scene insert error" });
+            }
 
-            return res.status(203).send({ errMsg: "New scene not handled" });
         }                
+
+        /** delete all rules and condis under scene */
+        // if(scene.sceneIdx >0){      /** existing scene, set all to unUse 1st */
+            /** set all condi inUse to 0 */
+            let setCondiUnUseRel = await condiSetAllUnUse(Rj_id, sceneIdx);
+            if(!setCondiUnUseRel)  {
+                // ErrCnt ++;
+            }
+            /** set all rule inUse to 0 */
+            let setRulesUnUseRel = await rulesSetAllUnUse(Rj_id, sceneIdx);
+            if(!setRulesUnUseRel) {
+                // ErrCnt ++;
+            } 
+        // }else{      // check if handle by logic below
+        // }
 
         /** handle rules & condi*/
         let ruleIdx = 0;
@@ -107,32 +130,27 @@ router.post("/updatescene", auth, async (req, res) => {
             if(eachRule.rule._id > 0){      // existing rule 
                 /** update rule */
                 // eachRule.rule = 
-                let updateRel_Rule = await updateRjRule(eachRule.rule, eachRule.rule._id, ruleIdx);
+                let updateRel_Rule = await updateRjRule(eachRule.rule, eachRule.rule._id, ruleIdx, sceneIdx);
                 if(!updateRel_Rule) {
                     ErrCnt ++;
-                    console.log("updateRel_Rule", updateRel_Rule);
                     continue
                 }
                 // sceneIdx = eachRule.rule.sceneIdx;
             }else{      // new rule, get rule with inUse =0, if got, update, if no, insert???                    
                 let newRule = {Rj_bdDevId:Rj_id, sceneIdx, ...eachRule.rule}
-                // console.log("newRule", newRule);
                 /** get if got empty slot */
                 let emptyRule = await getRjEmptyRule();
                 if(notArrOrEmptyArr(emptyRule)){        // no slot valid, insert
-                    let insertRule_rel = await insertRjRule(newRule, ruleIdx);
+                    let insertRule_rel = await insertRjRule(newRule, ruleIdx, sceneIdx);
                     if(!insertRule_rel)  {
-                        console.log("insertRule_rel", insertRule_rel);
-                        ErrCnt ++;
+                        // ErrCnt ++;
                     }
-                    if(!insertRule_re.success) continue     // log in failed, skip insert condis
+                    if(!insertRule_rel.success) continue     // log in failed, skip insert condis
                 }else{      // got slot valid, update   ???
                     /** yes, update */
-                    console.log("eachRule.rule", eachRule.rule);
-                    let updateRel_EmptyRule = await updateRjRule(newRule, emptyRule[0]._id, ruleIdx);
+                    let updateRel_EmptyRule = await updateRjRule(newRule, emptyRule[0]._id, ruleIdx, sceneIdx);
                     if(!updateRel_EmptyRule){
-                        console.log("updateRel_EmptyRule", updateRel_EmptyRule);
-                        ErrCnt ++;
+                        // ErrCnt ++;
                     }
                 }
                 // continue;
@@ -140,9 +158,8 @@ router.post("/updatescene", auth, async (req, res) => {
 
             for (const eachCondi of eachRule.condi) {
                 if(eachCondi._id > 0){      // existing condi
-                    let updateRel_condi = await updateRjCondi(eachCondi, eachCondi._id, ruleIdx);
+                    let updateRel_condi = await updateRjCondi(eachCondi, eachCondi._id, ruleIdx, sceneIdx);
                     if(!updateRel_condi){
-                        console.log("updateRel_condi", updateRel_condi);
                         ErrCnt ++;
                     }
                 }else{      // new added condi
@@ -150,15 +167,13 @@ router.post("/updatescene", auth, async (req, res) => {
                     let newCondi = {Rj_bdDevId:Rj_id, sceneIdx, ...eachCondi};
                     let emptyCondi = await getRjEmptyCondis();
                     if(notArrOrEmptyArr(emptyCondi)){       // no available slot, insert
-                        let insertCondiRel = await insertRjCondi(newCondi, ruleIdx);
+                        let insertCondiRel = await insertRjCondi(newCondi, ruleIdx, sceneIdx);
                         if(!insertCondiRel){
-                            console.log("insertCondiRel", insertCondiRel);
                             ErrCnt ++;
                         }
                     }else{      // got available slot, update   ???
-                        let updateRel_condi = await updateRjCondi(newCondi, emptyCondi[0]._id, ruleIdx);
+                        let updateRel_condi = await updateRjCondi(newCondi, emptyCondi[0]._id, ruleIdx, sceneIdx);
                         if(!updateRel_condi){
-                            console.log("update_EmptyCondi", updateRel_condi);
                             ErrCnt ++;
                         }
                     }
@@ -176,14 +191,39 @@ router.post("/updatescene", auth, async (req, res) => {
 
 
 router.post("/deletscene", auth, async (req, res) => {
-    let errTopic = "updatescene";
+    let errTopic = "deletscene";
     try {
-        let {rj_id} = req.body;
-        console.log("req.body", req.body);
+        let {Rj_id, scene} = req.body;
+        let ErrCnt=0;
         /** handle scene */
-            /** pull all scene, sort the number after this deleted scene */
+        /** pull all scene, sort the number after this deleted scene */
+        let allScene = await getRjScene_BybdDev_id_orderSortIdx(Rj_id);
+        if(!allScene) return res.status(203).send({ errMsg: "Load scene info Err(DB)" });
 
-        // return res.status(200).send(onlineVar);
+        /** delete selected scene */
+        let delRel = await deleteScene_unUse(scene._id);
+        if(!delRel) return res.status(203).send({ errMsg: "Delete scene Err(DB)" });
+        
+        /** sort other scene idx */
+        let remainScene = allScene.filter(c=>c.sceneIdx !== scene.sceneIdx);
+        let nIdx = 0;
+        for (const eachScene of remainScene) {
+            nIdx++;
+            if(nIdx!==eachScene.sortIdx){
+                /** update sortIdx */
+                let sortScene = await updateRjSceneSortIdx(nIdx, eachScene._id);
+            }
+        }
+
+
+        /** handle rules, set all rules to unUse */
+        let delRuleRel = await rulesSetAllUnUse(Rj_id, scene.sceneIdx);
+        if(!delRuleRel) ErrCnt++;
+        /** handle condi, set all condis to unUse */
+        let delCondiRel = await condiSetAllUnUse(Rj_id, scene.sceneIdx);
+        if(!delCondiRel) ErrCnt++;
+        if(ErrCnt>0) return res.status(203).send({ errMsg: `Some Error Occur(${ErrCnt})`});
+
         return res.status(200).send({Success:true});
     } catch (error) {
         console.log(`${errTopic} : `, error.message);
