@@ -7,6 +7,38 @@ const rjRulesTable = "RJ_AdvCtrlRules";
 const rjCondiTable = "RJ_AdvCtrlCondi";
 
 // online var
+async function insertRjOnlineVar(info, Rj_bdDevId) {
+    let fnName = "insertRjOnlineVar";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${rjOnlineVarTable}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            varName varchar(80),
+            varIdx smallint not null,
+            Rj_bdDevId int not null,
+            Var_bdDevId int not null,
+            sensorType int not null,
+            dataType smallint,
+            dataIndex smallint,
+            active tinyint  default 1,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${rjOnlineVarTable} (unix, varName, varIdx, Rj_bdDevId, Var_bdDevId, sensorType, dataType, dataIndex)
+        VALUES (UNIX_TIMESTAMP(), "${info.varName}", ${info.varIdx}, ${Rj_bdDevId}, ${info.Var_bdDevId}, ${info.sensorType}, ${info.dataType}, ${info.dataIndex});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
 async function getRjOnineVar_BybdDev_id (bdDev_id){
     let sErrTitle = "getRjOnineVar_BybdDev_id";
     try {
@@ -22,6 +54,73 @@ async function getRjOnineVar_BybdDev_id (bdDev_id){
         return null;       
     }
 }
+
+async function rjLinkVarSetAllUnUse(Rj_bdDevId) {
+    let sMsg = "rjLinkVarSetAllUnUse";
+    try {
+        const quertCmd = `UPDATE ${rjOnlineVarTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            active = 0
+            where Rj_bdDevId = ${Rj_bdDevId}
+            and varIdx in (2,3,4,5,6)`;
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+
+async function updateRjOnlineVar(info, Rj_bdDevId, _id) {
+    let sMsg = "updateRjOnlineVar";
+    try {
+        const quertCmd = `UPDATE ${rjOnlineVarTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            varName = "${info.varName}",
+            varIdx = ${info.varIdx},
+            Rj_bdDevId = ${Rj_bdDevId},
+            Var_bdDevId = ${info.Var_bdDevId},
+            sensorType = ${info.sensorType},
+            dataType = ${info.dataType},
+            dataIndex = ${info.dataIndex},
+            active = 1
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function getRjEmptyLinkVar (){
+    let sErrTitle = "getRjEmptyLinkVar";
+    try {
+        let quertCmd = `SELECT * from ${rjOnlineVarTable} WHERE active = 0 limit 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
 
 // RJ Scene 
 async function insertRjScene(info, sceneIdx, sortIdx) {
@@ -377,7 +476,11 @@ async function insertRjCondi(info, ruleIdx, sceneIdx) {
 
 
 // online var
+exports.insertRjOnlineVar=insertRjOnlineVar;
 exports.getRjOnineVar_BybdDev_id=getRjOnineVar_BybdDev_id;
+exports.rjLinkVarSetAllUnUse=rjLinkVarSetAllUnUse;
+exports.getRjEmptyLinkVar=getRjEmptyLinkVar;
+exports.updateRjOnlineVar=updateRjOnlineVar;
 // Rj Scene 
 exports.insertRjScene=insertRjScene;
 exports.getRjScene_BybdDev_id=getRjScene_BybdDev_id;
