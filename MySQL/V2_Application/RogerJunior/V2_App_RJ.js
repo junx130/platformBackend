@@ -5,6 +5,7 @@ const rjOnlineVarTable = "RJ_OnlineVar";
 const rjSceneTable = "RJ_AdvCtrlScene";
 const rjRulesTable = "RJ_AdvCtrlRules";
 const rjCondiTable = "RJ_AdvCtrlCondi";
+const rjScheTable = "RJ_ScheRecord";
 
 // online var
 async function insertRjOnlineVar(info, Rj_bdDevId) {
@@ -475,6 +476,26 @@ async function insertRjCondi(info, ruleIdx, sceneIdx) {
 }
 
 
+
+// Rj schedule
+async function getRjSchedule_byRjBdDev_id (Rj_bdDevId){
+    let sErrTitle = "getRjSchedule_byRjBdDev_id";
+    try {
+        let quertCmd = `SELECT * from ${rjScheTable} WHERE inUse = 1 and Rj_bdDevId = ${Rj_bdDevId}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+
+
 // online var
 exports.insertRjOnlineVar=insertRjOnlineVar;
 exports.getRjOnineVar_BybdDev_id=getRjOnineVar_BybdDev_id;
@@ -500,3 +521,5 @@ exports.getRjCondis_bdDevId_sceneIdx_inUse=getRjCondis_bdDevId_sceneIdx_inUse;
 exports.getRjEmptyCondis=getRjEmptyCondis;
 exports.updateRjCondi=updateRjCondi;
 exports.condiSetAllUnUse=condiSetAllUnUse;
+// Rj schedule record
+exports.getRjSchedule_byRjBdDev_id=getRjSchedule_byRjBdDev_id;

@@ -1,5 +1,5 @@
 const express = require("express");
-const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const router = express.Router();
 const auth = require("../../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
@@ -268,5 +268,26 @@ router.post("/updatevarlist", auth, async (req, res) => {
         return res.status(203).send({ errMsg: "Database Error (Exp)" });
     }
 });
+
+
+router.post("/getrjschedule", auth, async (req, res) => {
+    let errTopic = "getrjschedule";
+    try {
+        // let {app_id} = req.body;
+        // let gwPairList = await V2_getGwPair(bdDev_id);
+        // if(!gwPairList) return res.status(203).send({errMsg:"Get GW info Err(DB)"});    // catch error
+        let {Rj_id} = req.body;
+        let scheduleList = await getRjSchedule_byRjBdDev_id(Rj_id);
+        if(!scheduleList) return res.status(203).send({errMsg:"Get member device info Err(DB)"});    
+        
+        return res.status(200).send(scheduleList);
+    } catch (error) {
+        console.log(`${errTopic} : `, error.message);
+        return res.status(203).send({ errMsg: "Database Error (Exp)" });
+    }
+});
+
+
+
 
 module.exports = router;
