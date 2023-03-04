@@ -1,5 +1,5 @@
 const express = require("express");
-const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id, rjScheduleSetAllUnUse, getRjEmptyRjSchedule, insertRjSchedule, updateRjSchedule, getRjAcBrands } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const router = express.Router();
 const auth = require("../../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
@@ -288,6 +288,48 @@ router.post("/getrjschedule", auth, async (req, res) => {
 });
 
 
+router.post("/saverjschedule", auth, async (req, res) => {
+    let errTopic = "saverjschedule";
+    try {
+        let {Rj_id, scheList} = req.body;
+        let errCount_Ins = 0;
+        let errCount_Update = 0;
+        /** set all RJ to unUse */
+        let setUnuseRel = await rjScheduleSetAllUnUse(Rj_id);
+        console.log("setUnuseRel", setUnuseRel);
+        /** forof schedule list,  */
+        for (const eachSchedule of scheList) {
+            let emptySlot = await getRjEmptyRjSchedule();
+            if(notArrOrEmptyArr(emptySlot)){    /** no empty slot, insert */
+                let insRel = await insertRjSchedule(eachSchedule, Rj_id);
+                if(!insRel) errCount_Ins++;
+            }else{      /** got empty slot, update */
+                let updateRel = await updateRjSchedule(eachSchedule, Rj_id, emptySlot[0]._id);
+                if(!updateRel) errCount_Update++;
+            }
+        }
+        if(errCount_Ins>0 || errCount_Update>0) return res.status(203).send({errMsg:`Ins Err:${errCount_Ins}, Update Err:${errCount_Update}`});
+
+        return res.status(200).send({Success:true});
+    } catch (error) {
+        console.log(`${errTopic} : `, error.message);
+        return res.status(203).send({ errMsg: "Database Error (Exp)" });
+    }
+});
+
+
+router.post("/getrjacbrand", auth, async (req, res) => {
+    let errTopic = "getrjacbrand";
+    try {
+        let avBrandList = await getRjAcBrands();
+        if(!avBrandList) return res.status(203).send({errMsg:"Get Air-Con Brand Err(DB)"});    
+        
+        return res.status(200).send(avBrandList);
+    } catch (error) {
+        console.log(`${errTopic} : `, error.message);
+        return res.status(203).send({ errMsg: "Database Error (Exp)" });
+    }
+});
 
 
 module.exports = router;
