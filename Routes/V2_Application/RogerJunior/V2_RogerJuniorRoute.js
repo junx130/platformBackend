@@ -1,5 +1,5 @@
 const express = require("express");
-const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id, rjScheduleSetAllUnUse, getRjEmptyRjSchedule, insertRjSchedule, updateRjSchedule, getRjAcBrands } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id, rjScheduleSetAllUnUse, getRjEmptyRjSchedule, insertRjSchedule, updateRjSchedule, getRjAcBrands, getRjEmptyScene } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const router = express.Router();
 const auth = require("../../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
@@ -101,47 +101,59 @@ router.post("/updatescene", auth, async (req, res) => {
             }
             let sortIdx = maxSortIdx+1;
             /** insert new scene */
-            let insertSceneRel = await insertRjScene(scene, sceneIdx, sortIdx);
-            if(!insertSceneRel){
-                return res.status(203).send({ errMsg: "New scene insert error" });
+            /** check if got empty slot with inUse 0 */
+            let emptyScene = await getRjEmptyScene();
+            if(notArrOrEmptyArr(emptyScene)){    /** no empty slot, insert */
+                let insertSceneRel = await insertRjScene(scene, sceneIdx, sortIdx);
+                if(!insertSceneRel){
+                    return res.status(203).send({ errMsg: "New scene insert error" });
+                }
+            }else{      /** got empty slot, update */
+                let sceInfo = {Rj_bdDevId:Rj_id, sceneIdx, Name:scene.Name, sortIdx};
+                let updateRel = await updateRjScene(sceInfo , emptyScene[0]._id);
+                if(!updateRel){
+                    return res.status(203).send({ errMsg: "New scene Update error" });
+                }
             }
-
         }                
 
         /** delete all rules and condis under scene */
         // if(scene.sceneIdx >0){      /** existing scene, set all to unUse 1st */
-            /** set all condi inUse to 0 */
-            let setCondiUnUseRel = await condiSetAllUnUse(Rj_id, sceneIdx);
-            if(!setCondiUnUseRel)  {
-                // ErrCnt ++;
-            }
-            /** set all rule inUse to 0 */
-            let setRulesUnUseRel = await rulesSetAllUnUse(Rj_id, sceneIdx);
-            if(!setRulesUnUseRel) {
-                // ErrCnt ++;
-            } 
+        /** set all condi inUse to 0 */
+        let setCondiUnUseRel = await condiSetAllUnUse(Rj_id, sceneIdx);
+        if(!setCondiUnUseRel)  {
+            // ErrCnt ++;
+        }
+        /** set all rule inUse to 0 */
+        let setRulesUnUseRel = await rulesSetAllUnUse(Rj_id, sceneIdx);
+        if(!setRulesUnUseRel) {
+            // ErrCnt ++;
+        } 
         // }else{      // check if handle by logic below
         // }
 
         /** handle rules & condi*/
         let ruleIdx = 0;
         for (const eachRule of rules) {
+            // console.log("eachRule", eachRule);
             ruleIdx ++;
-            if(eachRule.rule._id > 0){      // existing rule 
-                /** update rule */
-                // eachRule.rule = 
-                let updateRel_Rule = await updateRjRule(eachRule.rule, eachRule.rule._id, ruleIdx, sceneIdx);
-                if(!updateRel_Rule) {
-                    ErrCnt ++;
-                    continue
-                }
-                // sceneIdx = eachRule.rule.sceneIdx;
-            }else{      // new rule, get rule with inUse =0, if got, update, if no, insert???                    
+            // if(eachRule.rule._id > 0){      // existing rule 
+            //     /** update rule */
+            //     // eachRule.rule = 
+            //     let updateRel_Rule = await updateRjRule(eachRule.rule, eachRule.rule._id, ruleIdx, sceneIdx);
+            //     if(!updateRel_Rule) {
+            //         ErrCnt ++;
+            //         continue
+            //     }
+            //     // sceneIdx = eachRule.rule.sceneIdx;
+            // }else{      // new rule, get rule with inUse =0, if got, update, if no, insert???                    
                 let newRule = {Rj_bdDevId:Rj_id, sceneIdx, ...eachRule.rule}
+                console.log("newRule", newRule);
                 /** get if got empty slot */
                 let emptyRule = await getRjEmptyRule();
                 if(notArrOrEmptyArr(emptyRule)){        // no slot valid, insert
                     let insertRule_rel = await insertRjRule(newRule, ruleIdx, sceneIdx);
+                    console.log("insertRule_rel", insertRule_rel);
                     if(!insertRule_rel)  {
                         // ErrCnt ++;
                     }
@@ -149,35 +161,40 @@ router.post("/updatescene", auth, async (req, res) => {
                 }else{      // got slot valid, update   ???
                     /** yes, update */
                     let updateRel_EmptyRule = await updateRjRule(newRule, emptyRule[0]._id, ruleIdx, sceneIdx);
+                    console.log("updateRel_EmptyRule", updateRel_EmptyRule);
                     if(!updateRel_EmptyRule){
                         // ErrCnt ++;
                     }
                 }
                 // continue;
-            }
+            // }
 
             for (const eachCondi of eachRule.condi) {
-                if(eachCondi._id > 0){      // existing condi
-                    let updateRel_condi = await updateRjCondi(eachCondi, eachCondi._id, ruleIdx, sceneIdx);
-                    if(!updateRel_condi){
-                        ErrCnt ++;
-                    }
-                }else{      // new added condi
+                // if(eachCondi._id > 0){      // existing condi
+                //     let updateRel_condi = await updateRjCondi(eachCondi, eachCondi._id, ruleIdx, sceneIdx);
+                //     if(!updateRel_condi){
+                //         ErrCnt ++;
+                //     }
+                // }else{      // new added condi
                     /** check if any condi is  */
                     let newCondi = {Rj_bdDevId:Rj_id, sceneIdx, ...eachCondi};
+                    console.log("newCondi", newCondi);
                     let emptyCondi = await getRjEmptyCondis();
                     if(notArrOrEmptyArr(emptyCondi)){       // no available slot, insert
                         let insertCondiRel = await insertRjCondi(newCondi, ruleIdx, sceneIdx);
+                        console.log("insertCondiRel", insertCondiRel);
                         if(!insertCondiRel){
                             ErrCnt ++;
                         }
                     }else{      // got available slot, update   ???
+                        console.log("emptyCondi[0]._id", emptyCondi[0]._id);
                         let updateRel_condi = await updateRjCondi(newCondi, emptyCondi[0]._id, ruleIdx, sceneIdx);
+                        console.log("updateRel_condi", updateRel_condi);
                         if(!updateRel_condi){
                             ErrCnt ++;
                         }
                     }
-                }
+                // }
             }
         }
 
