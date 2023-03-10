@@ -136,6 +136,7 @@ async function handleNodeReq(topic, message){
                         let reqOutput = await replyOnlineVarReq(deviceInfo);
                         return reqOutput;
                     }else if(deviceInfo.ht===47 && deviceInfo.hf===102){    // request scene parameter
+                        return;     // remove after test ???
                         let reqOutput = await replySceneParaReq(deviceInfo);
                         return reqOutput;
                     }
