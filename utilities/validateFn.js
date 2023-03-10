@@ -21,6 +21,13 @@ function isEmptyObject(obj){
     return true;
 }
 
+function notEmptyArr(arr){
+    if(!Array.isArray(arr)) return false;
+    if(arr.length<1) return false;
+    return true;
+  }
+
 exports.isEmptyObject=isEmptyObject;
 exports.notArrOrEmptyArr = notArrOrEmptyArr;
 exports.pushUnique=pushUnique;
+exports.notEmptyArr=notEmptyArr;

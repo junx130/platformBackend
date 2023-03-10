@@ -1,8 +1,8 @@
-const { getRjOnineVar_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjOnineVar_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjScene_BybdDev_id } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const { getSensorOwnerBy_TydevID_inUse, getBddevBy_idList } = require("../../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastNMin } = require("../../../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getLoraValueKey, genLoRaPackage } = require("../../../utilities/loraFormat");
-const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
+const { notArrOrEmptyArr, notEmptyArr } = require("../../../utilities/validateFn");
 
 const C_TotalOnlineVar = 7; // 2 iControl + 5 adv control
 const blog = false;
@@ -184,6 +184,8 @@ async function replySceneParaReq(deviceInfo){
 
         let payload = genScenePayload(sceneInfo, false);    
         // let payload ={pf, pi};
+
+        console.log("payload", payload);
         let loraPackage = genLoRaPackage(devDetails, payload, 2);
         if(!loraPackage.error){
             loraPackage.gwid = gwId;
