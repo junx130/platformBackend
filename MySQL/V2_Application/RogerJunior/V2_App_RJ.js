@@ -78,6 +78,26 @@ async function rjLinkVarSetAllUnUse(Rj_bdDevId) {
     }
 }
 
+async function rjLinkVarSetAllPairRtrhUnUse(Rj_bdDevId) {
+    let sMsg = "rjLinkVarSetAllPairRtrhUnUse";
+    try {
+        const quertCmd = `UPDATE ${rjOnlineVarTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            active = 0
+            where Rj_bdDevId = ${Rj_bdDevId}
+            and varIdx in (0,1)`;
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 async function updateRjOnlineVar(info, Rj_bdDevId, _id) {
     let sMsg = "updateRjOnlineVar";
@@ -653,6 +673,7 @@ exports.getRjOnineVar_BybdDev_id=getRjOnineVar_BybdDev_id;
 exports.rjLinkVarSetAllUnUse=rjLinkVarSetAllUnUse;
 exports.getRjEmptyLinkVar=getRjEmptyLinkVar;
 exports.updateRjOnlineVar=updateRjOnlineVar;
+exports.rjLinkVarSetAllPairRtrhUnUse=rjLinkVarSetAllPairRtrhUnUse;
 // Rj Scene 
 exports.insertRjScene=insertRjScene;
 exports.getRjScene_BybdDev_id=getRjScene_BybdDev_id;

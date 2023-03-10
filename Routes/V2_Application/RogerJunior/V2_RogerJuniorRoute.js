@@ -1,5 +1,5 @@
 const express = require("express");
-const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id, rjScheduleSetAllUnUse, getRjEmptyRjSchedule, insertRjSchedule, updateRjSchedule, getRjAcBrands, getRjEmptyScene } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjScene_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjOnineVar_BybdDev_id, updateRjScene, updateRjRule, updateRjCondi, getRjEmptyCondis, insertRjCondi, getRjEmptyRule, insertRjRule, condiSetAllUnUse, rulesSetAllUnUse, insertRjScene, getRjScene_BybdDev_id_orderSortIdx, updateRjSceneSortIdx, deleteScene_unUse, getRjEmptyLinkVar, updateRjOnlineVar, insertRjOnlineVar, rjLinkVarSetAllUnUse, getRjSchedule_byRjBdDev_id, rjScheduleSetAllUnUse, getRjEmptyRjSchedule, insertRjSchedule, updateRjSchedule, getRjAcBrands, getRjEmptyScene, rjLinkVarSetAllPairRtrhUnUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const router = express.Router();
 const auth = require("../../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
@@ -256,6 +256,43 @@ router.post("/updatevarlist", auth, async (req, res) => {
 
         /** set all RJ Var varIdx 2~7 to unUse = 0 */
         let updateRel = await rjLinkVarSetAllUnUse(Rj_id);
+        if(!updateRel) console.log("Update non");
+
+        let InsertErr = 0;
+        let UpdateErr = 0;
+        /** for each Var insert  */
+        for (const eachVar of varList) {
+            if(!eachVar.Var_bdDevId) continue;      // empty slot
+            let emptySlot = await getRjEmptyLinkVar();
+            if(notArrOrEmptyArr(emptySlot)){       
+                /** no empty slot, insert */
+                let insertRel = await insertRjOnlineVar(eachVar, Rj_id);
+                if(!insertRel) InsertErr++;
+            }else{      // got empty slot, update.
+                /** got empty slot, update */
+                let updateRel = await updateRjOnlineVar(eachVar, Rj_id, emptySlot[0]._id);
+                if(!updateRel) UpdateErr++;
+            }
+        }
+
+        if(UpdateErr > 0 || InsertErr > 0 ) {
+            return res.status(203).send({errMsg:`Update Err: Update(${UpdateErr}, insert:${InsertErr})`});    
+        }
+
+        return res.status(200).send({Success:true});
+    } catch (error) {
+        console.log(`${errTopic} : `, error.message);
+        return res.status(203).send({ errMsg: "Database Error (Exp)" });
+    }
+});
+
+router.post("/updatepairrtrh", auth, async (req, res) => {
+    let errTopic = "updatepairrtrh";
+    try {
+        let {Rj_id, varList} = req.body;
+
+        /** set all RJ Var varIdx 0~1 to unUse = 0 */
+        let updateRel = await rjLinkVarSetAllPairRtrhUnUse(Rj_id);
         if(!updateRel) console.log("Update non");
 
         let InsertErr = 0;
