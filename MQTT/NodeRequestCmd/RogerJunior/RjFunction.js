@@ -1,8 +1,8 @@
-const { getRjOnineVar_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
+const { getRjOnineVar_BybdDev_id, getRjRules_bdDevId_sceneIdx_inUse, getRjCondis_bdDevId_sceneIdx_inUse, getRjScene_BybdDev_id } = require("../../../MySQL/V2_Application/RogerJunior/V2_App_RJ");
 const { getSensorOwnerBy_TydevID_inUse, getBddevBy_idList } = require("../../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastNMin } = require("../../../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getLoraValueKey, genLoRaPackage } = require("../../../utilities/loraFormat");
-const { notArrOrEmptyArr } = require("../../../utilities/validateFn");
+const { notArrOrEmptyArr, notEmptyArr } = require("../../../utilities/validateFn");
 
 const C_TotalOnlineVar = 7; // 2 iControl + 5 adv control
 const blog = false;
@@ -91,6 +91,53 @@ async function replyOnlineVarReq(deviceInfo){
     }
 }
 
+function genScenePayload(sceneDetails, bSaveEeprom){
+    // rule_AcReq = (foundRule[0].ruleIdx << 8) | foundRule[0].AcReq;
+    let _sceneIdx = sceneDetails.scene.sceneIdx;
+    if(_sceneIdx <= 0) return {errMsg:"SceneInfoErr"};
+
+    let pb=[bSaveEeprom];      // 0= save scene on local
+    let pi=[_sceneIdx];
+    let pf=[];
+    for (let i = 0; i < 5; i++) {
+        if(notEmptyArr(sceneDetails.rules)){     
+            let found = sceneDetails.rules.find(c=>c.ruleIdx===i+1);
+            if(found) {
+                let fan_swing_AcReq = (found.Fan << 16) | (found.Swing << 8) | found.AcReq;
+                pi.push(fan_swing_AcReq);     
+                pi.push(found.Setpoint);    
+
+                /** get condis info */
+                if(notEmptyArr(sceneDetails.condis)){
+                    let filtered= sceneDetails.condis.filter(c=>c.ruleIdx === i+1);
+                    for (let j = 0; j < 3; j++) {
+                        if(filtered.length > j){
+                            let varIdx_condiOpe = (filtered[j].varIdx << 8) | filtered[j].condiOpe;
+                            pi.push(varIdx_condiOpe);
+                            pf.push(filtered[j].targetValue);
+                        }else{      // no more, push 0
+                            pi.push(0);
+                            pf.push(0);
+                        }
+                    }
+                }
+                continue;
+            }
+        }
+        pi.push(0);         // rule fan_swing_AcReq
+        pi.push(0);         // rule setpoint
+
+        pi.push(0);         // condi varIdx_condiOpe
+        pi.push(0);         // condi varIdx_condiOpe
+        pi.push(0);         // condi varIdx_condiOpe
+        pf.push(0);         // condi target value 
+        pf.push(0);         // condi target value 
+        pf.push(0);         // condi target value 
+    }
+    return {pb, pi, pf};
+}
+
+
 async function replySceneParaReq(deviceInfo){
     try {
         console.log("replySceneParaReq");
@@ -118,79 +165,27 @@ async function replySceneParaReq(deviceInfo){
             if(blog) console.log("Get RJ bdDev Info error");
             return 
         }
-        /** load rules*/
-        let SceRules = await getRjRules_bdDevId_sceneIdx_inUse(RjBdDevInfo[0]._id, sceneIdx);
-        console.log("SceRules", SceRules);
-        let a_rule_AcReq=[];
-        let a_Setpoint=[];
-        for (let i = 0; i < 5; i++) {
-            let foundRule = SceRules.filter(c=> c.ruleIdx === i+1);
-            let rule_AcReq=0;
-            let Setpoint = 0;
-            if(!notArrOrEmptyArr(foundRule)){
-                // console.log("foundRule[0].ruleIdx", foundRule[0].ruleIdx);
-                // console.log("foundRule[0].AcReq", foundRule[0].AcReq);
-                rule_AcReq = (foundRule[0].ruleIdx << 8) | foundRule[0].AcReq;
-                // console.log("rule_AcReq", rule_AcReq);
-                Setpoint = foundRule[0].Setpoint;
-            }
-            a_rule_AcReq.push(rule_AcReq);
-            a_Setpoint.push(Setpoint)
-        }
-    
-        /** load condis */
-        let SceCondis = await getRjCondis_bdDevId_sceneIdx_inUse(RjBdDevInfo[0]._id, sceneIdx);
-        if(blog) console.log("SceCondis", SceCondis);
-        let a_rule_var_ope=[];
-        let a_TargetValue=[];
-        for (let i = 0; i < 5; i++) {
-            let foundCondis = SceCondis.filter(c=> c.ruleIdx === i+1);
-            if(blog) console.log("foundCondi", foundCondis);        
-            for (let j = 0; j < 3; j++) {
-                let rule_var_ope=0;
-                let _targetValue=0;
-                
-                // console.log(`foundCondis.length=${foundCondis.length}`);
-                if(notArrOrEmptyArr(foundCondis)){
-                    rule_var_ope=0;
-                    _targetValue=0;
-                }else if(j >= foundCondis.length){
-                    rule_var_ope=0;
-                    _targetValue=0;
-                }else{
-                    // console.log("foundCondis[j].ruleIdx", foundCondis[j].ruleIdx);
-                    // console.log("foundCondis[j].varIdx", foundCondis[j].varIdx);
-                    // console.log("foundCondis[j].condiOpe", foundCondis[j].condiOpe);
-                    rule_var_ope= (foundCondis[j].ruleIdx << 16) | (foundCondis[j].varIdx << 8) | (foundCondis[j].condiOpe);
-                    // console.log("rule_var_ope", rule_var_ope);
-                    _targetValue=foundCondis[j].targetValue;
-                }
-    
-                a_rule_var_ope.push(rule_var_ope);
-                a_TargetValue.push(_targetValue);
-            }
-        }
-    
-        /** prepare lora info */
-        let pi=[sceneIdx];
-        let pf=[];
-        for (const eachInv of a_rule_AcReq) {
-            pi.push(eachInv);
-        }
-        for (const eachInv of a_rule_var_ope) {
-            pi.push(eachInv);
-        }
-        for (const eachInv of a_Setpoint) {
-            pf.push(eachInv);
-        }
-        for (const eachInv of a_TargetValue) {
-            pf.push(eachInv);
-        }
-    
-        if(blog) console.log("pf", pf);
-        if(blog) console.log("pi", pi);
 
-        let payload ={pf, pi};
+        let rj_id=RjBdDevInfo[0]._id;
+
+        /** get scene */
+        let sceneList = await getRjScene_BybdDev_id(rj_id);
+        if(!sceneList) return console.log("Get member device info Err(DB)");
+        let scene = sceneList.find(c=>c.sceneIdx === sceneIdx);
+        /** get rules */
+        let rules = await getRjRules_bdDevId_sceneIdx_inUse(rj_id, sceneIdx);
+        if(!rules) return console.log("Get rules Err(DB)");
+        
+        /** get condi */
+        let condis = await getRjCondis_bdDevId_sceneIdx_inUse(rj_id, sceneIdx);
+        if(!condis) return console.log("Get condis Err(DB)");
+        
+        let sceneInfo = {scene, rules, condis};
+
+        let payload = genScenePayload(sceneInfo, false);    
+        // let payload ={pf, pi};
+
+        console.log("payload", payload);
         let loraPackage = genLoRaPackage(devDetails, payload, 2);
         if(!loraPackage.error){
             loraPackage.gwid = gwId;
