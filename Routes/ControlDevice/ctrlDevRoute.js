@@ -68,7 +68,12 @@ aws_expClient.on("message", async (topic, message) => {
                 if(notArrOrEmptyArr(cmdLog)) return console.log("aws_expClient NodeAck Err: No log found");
                 if(cmdLog[0].ctrlType===1) return;
                 // console.log("ioEmit : ", mqttMsg)
-                ioEmit("v2_CtrlCmd", mqttMsg);      // update to frontend
+                if(mqttMsg.ht >= 47 &&  mqttMsg.ht!== 49){  // 49 is PDC precision control unit
+                    let emitTopic = `v2_CtrlCmd_${mqttMsg.ht}_${mqttMsg.hi}`     
+                    ioEmit(emitTopic, mqttMsg);      // update to frontend
+                }else{
+                    ioEmit("v2_CtrlCmd", mqttMsg);      // update to frontend
+                }
 
                 
                 // httpResponse.status(200).send(deviceInfo);   // response to frontend

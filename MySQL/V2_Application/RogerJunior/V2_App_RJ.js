@@ -78,6 +78,26 @@ async function rjLinkVarSetAllUnUse(Rj_bdDevId) {
     }
 }
 
+async function rjLinkVarSetAllPairRtrhUnUse(Rj_bdDevId) {
+    let sMsg = "rjLinkVarSetAllPairRtrhUnUse";
+    try {
+        const quertCmd = `UPDATE ${rjOnlineVarTable} SET 
+            unix=UNIX_TIMESTAMP(),
+            active = 0
+            where Rj_bdDevId = ${Rj_bdDevId}
+            and varIdx in (0,1)`;
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
 
 async function updateRjOnlineVar(info, Rj_bdDevId, _id) {
     let sMsg = "updateRjOnlineVar";
@@ -186,13 +206,31 @@ async function getRjScene_BybdDev_id_orderSortIdx (bdDev_id){
     }
 }
 
+async function getRjEmptyScene (){
+    let sErrTitle = "getRjEmptyScene";
+    try {
+        let quertCmd = `SELECT * from ${rjSceneTable} WHERE inUse = 0 limit 1`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+
 async function updateRjScene(info, _id) {
     let sMsg = "updateRjScene";
     try {
         const quertCmd = `UPDATE ${rjSceneTable} SET 
             unix=UNIX_TIMESTAMP(),
             Rj_bdDevId = ${info.Rj_bdDevId},
-            sceneIdx = ${info.sceneIdx},
+            sceneIdx = ${info.sceneIdx},            
+            sortIdx = ${info.sortIdx},   
             Name = "${info.Name}",
             inUse = 1
             where _id = ${_id}`;
@@ -266,12 +304,14 @@ async function insertRjRule(info, ruleIdx, sceneIdx) {
             ruleIdx tinyint,
             AcReq tinyint,
             Setpoint smallint,
+            Fan tinyint not null,
+            Swing tinyint not null,
             inUse tinyint default 1,
             PRIMARY KEY (_id)
         );`;
 
-        const insertData = `INSERT INTO ${rjRulesTable} (unix, Rj_bdDevId, sceneIdx, ruleIdx, AcReq, Setpoint)
-        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${sceneIdx}, ${ruleIdx}, ${info.AcReq}, ${info.Setpoint});`;        
+        const insertData = `INSERT INTO ${rjRulesTable} (unix, Rj_bdDevId, sceneIdx, ruleIdx, AcReq, Setpoint, Fan, Swing)
+        VALUES (UNIX_TIMESTAMP(), ${info.Rj_bdDevId}, ${sceneIdx}, ${ruleIdx}, ${info.AcReq}, ${info.Setpoint}, ${info.Fan}, ${info.Swing});`;        
 
         let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
         if (!result) return null    // insert error
@@ -325,6 +365,8 @@ async function updateRjRule(info, _id, ruleIdx, sceneIdx) {
             ruleIdx = ${ruleIdx},
             AcReq = ${info.AcReq},
             Setpoint = ${info.Setpoint},
+            Fan = ${info.Fan},
+            Swing = ${info.Swing},
             inUse = 1
             where _id = ${_id}`;
         // console.log("quertCmd", quertCmd);
@@ -384,7 +426,7 @@ async function getRjEmptyCondis (){
     let sErrTitle = "getRjEmptyCondis";
     try {
         let quertCmd = `SELECT * from ${rjCondiTable} WHERE inUse = 0 limit 1`;
-        // console.log(quertCmd);
+        console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
         // console.log(result);
         if(!result[0]) return [];     // return empty array
@@ -409,7 +451,7 @@ async function updateRjCondi(info, _id, ruleIdx, sceneIdx) {
             targetValue = ${info.targetValue},
             inUse = 1
             where _id = ${_id}`;
-        // console.log("quertCmd", quertCmd);
+        console.log("quertCmd", quertCmd);
 
         let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
         // console.log(result);
@@ -631,11 +673,13 @@ exports.getRjOnineVar_BybdDev_id=getRjOnineVar_BybdDev_id;
 exports.rjLinkVarSetAllUnUse=rjLinkVarSetAllUnUse;
 exports.getRjEmptyLinkVar=getRjEmptyLinkVar;
 exports.updateRjOnlineVar=updateRjOnlineVar;
+exports.rjLinkVarSetAllPairRtrhUnUse=rjLinkVarSetAllPairRtrhUnUse;
 // Rj Scene 
 exports.insertRjScene=insertRjScene;
 exports.getRjScene_BybdDev_id=getRjScene_BybdDev_id;
 exports.getRjScene_BybdDev_id_orderSortIdx=getRjScene_BybdDev_id_orderSortIdx;
 exports.updateRjScene=updateRjScene;
+exports.getRjEmptyScene=getRjEmptyScene;
 exports.updateRjSceneSortIdx=updateRjSceneSortIdx;
 exports.deleteScene_unUse=deleteScene_unUse;
 // RJ Rules
