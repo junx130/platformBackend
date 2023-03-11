@@ -157,7 +157,7 @@ async function replySceneParaReq(deviceInfo){
         if(notArrOrEmptyArr(deviceInfo.pi)) return console.log("Err: Pi is empty array");
         let sceneIdx = deviceInfo.pi[0];
         console.log("sceneIdx", sceneIdx);
-        if(sceneIdx>5 || sceneIdx<0) return console.log("Err: Scene Idx over range");
+        if(sceneIdx>10 || sceneIdx<0) return console.log("Err: Scene Idx over range");
     
         /** get RJ bdDev info */
         let RjBdDevInfo = await getSensorOwnerBy_TydevID_inUse({type:deviceInfo.ht, devID:deviceInfo.hi});
