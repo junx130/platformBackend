@@ -83,15 +83,16 @@ router.post("/updatescene", auth, async (req, res) => {
                 /** get all scene of RJ_id */
                 /** determine which sceneIdx slot is empty, temporary set max scene can set is C_MaxScene = 20 */
                 /** determine the max sortIdx of each scene, set the sortIdx to next number*/
-            sceneIdx=C_MaxScene;
             let allScene = await getRjScene_BybdDev_id(Rj_id);
-            for (let i = 1; i < C_MaxScene+1; i++) {    // 1~20
-                let found = allScene.find(c=>c.sceneIdx === i);
-                if(!found) {
-                    sceneIdx = i;
-                    break
-                }
-            }
+            // sceneIdx=C_MaxScene;
+            // for (let i = 1; i < C_MaxScene+1; i++) {    // 1~20
+            //     let found = allScene.find(c=>c.sceneIdx === i);
+            //     if(!found) {
+            //         sceneIdx = i;
+            //         break
+            //     }
+            // }
+            sceneIdx = scene.sceneIdx;
             /** get max sortIdx */
             let maxSortIdx=0;
             for (const eachScene of allScene) {
@@ -135,7 +136,6 @@ router.post("/updatescene", auth, async (req, res) => {
         /** handle rules & condi*/
         let ruleIdx = 0;
         for (const eachRule of rules) {
-            // console.log("eachRule", eachRule);
             ruleIdx ++;
             // if(eachRule.rule._id > 0){      // existing rule 
             //     /** update rule */
@@ -148,12 +148,10 @@ router.post("/updatescene", auth, async (req, res) => {
             //     // sceneIdx = eachRule.rule.sceneIdx;
             // }else{      // new rule, get rule with inUse =0, if got, update, if no, insert???                    
                 let newRule = {Rj_bdDevId:Rj_id, sceneIdx, ...eachRule.rule}
-                console.log("newRule", newRule);
                 /** get if got empty slot */
                 let emptyRule = await getRjEmptyRule();
                 if(notArrOrEmptyArr(emptyRule)){        // no slot valid, insert
                     let insertRule_rel = await insertRjRule(newRule, ruleIdx, sceneIdx);
-                    console.log("insertRule_rel", insertRule_rel);
                     if(!insertRule_rel)  {
                         // ErrCnt ++;
                     }
@@ -161,7 +159,6 @@ router.post("/updatescene", auth, async (req, res) => {
                 }else{      // got slot valid, update   ???
                     /** yes, update */
                     let updateRel_EmptyRule = await updateRjRule(newRule, emptyRule[0]._id, ruleIdx, sceneIdx);
-                    console.log("updateRel_EmptyRule", updateRel_EmptyRule);
                     if(!updateRel_EmptyRule){
                         // ErrCnt ++;
                     }
@@ -178,18 +175,14 @@ router.post("/updatescene", auth, async (req, res) => {
                 // }else{      // new added condi
                     /** check if any condi is  */
                     let newCondi = {Rj_bdDevId:Rj_id, sceneIdx, ...eachCondi};
-                    console.log("newCondi", newCondi);
                     let emptyCondi = await getRjEmptyCondis();
                     if(notArrOrEmptyArr(emptyCondi)){       // no available slot, insert
                         let insertCondiRel = await insertRjCondi(newCondi, ruleIdx, sceneIdx);
-                        console.log("insertCondiRel", insertCondiRel);
                         if(!insertCondiRel){
                             ErrCnt ++;
                         }
                     }else{      // got available slot, update   ???
-                        console.log("emptyCondi[0]._id", emptyCondi[0]._id);
                         let updateRel_condi = await updateRjCondi(newCondi, emptyCondi[0]._id, ruleIdx, sceneIdx);
-                        console.log("updateRel_condi", updateRel_condi);
                         if(!updateRel_condi){
                             ErrCnt ++;
                         }
@@ -350,7 +343,6 @@ router.post("/saverjschedule", auth, async (req, res) => {
         let errCount_Update = 0;
         /** set all RJ to unUse */
         let setUnuseRel = await rjScheduleSetAllUnUse(Rj_id);
-        console.log("setUnuseRel", setUnuseRel);
         /** forof schedule list,  */
         for (const eachSchedule of scheList) {
             let emptySlot = await getRjEmptyRjSchedule();
