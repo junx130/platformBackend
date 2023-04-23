@@ -426,7 +426,7 @@ async function getRjEmptyCondis (){
     let sErrTitle = "getRjEmptyCondis";
     try {
         let quertCmd = `SELECT * from ${rjCondiTable} WHERE inUse = 0 limit 1`;
-        console.log(quertCmd);
+        // console.log(quertCmd);
         let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
         // console.log(result);
         if(!result[0]) return [];     // return empty array
@@ -451,7 +451,7 @@ async function updateRjCondi(info, _id, ruleIdx, sceneIdx) {
             targetValue = ${info.targetValue},
             inUse = 1
             where _id = ${_id}`;
-        console.log("quertCmd", quertCmd);
+        // console.log("quertCmd", quertCmd);
 
         let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
         // console.log(result);
