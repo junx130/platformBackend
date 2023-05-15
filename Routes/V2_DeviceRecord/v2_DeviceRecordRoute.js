@@ -6,9 +6,9 @@ const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList, getUserByUsername } = require("../../MySQL/userManagement_V2/users_V2");
 const { getByUserId, v2a_getUser } = require("../../MySQL/userManagement_V2/user_ResetPassword");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive, v2a_getAreaInfloor } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive, v2a_getAreaInfloor, getFavBd_ByUser_Id, getFavBd_ByUserId_bdId, insertFavBd, updateFavBd, favBdSetEmpty } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit, v2a_getSharedBdBy_user_id_bd_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
-const { notArrOrEmptyArr, isEmptyObject } = require("../../utilities/validateFn");
+const { notArrOrEmptyArr, isEmptyObject, notEmptyArr } = require("../../utilities/validateFn");
 
 
 
@@ -1303,8 +1303,55 @@ router.post("/shareuser/deactivate", auth, async (req, res) => {
     }
 });
 
+router.post("/building/getfavbd", auth, async (req, res) => {
+    try {
+        let {user_id} = req.body;
 
+        let newDev = await getFavBd_ByUser_Id(user_id);
+        if(!newDev) return res.status(203).send({errMsg:"Update DB err"});
 
+        return res.status(200).send(newDev);
+
+    } catch (error) {
+        console.log("Error : /building/getfavbd", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/building/trigfav", auth, async (req, res) => {
+    try {
+        let {user_id, bd_id, bFavStatus} = req.body;
+
+        let favExist = await getFavBd_ByUserId_bdId(user_id, bd_id, 0);
+        let bFavExist = notEmptyArr(favExist);
+        if(bFavStatus){     /** set favarite */
+            // check db got fav, if yes, ignore.
+            if(!bFavExist){
+                // if no, check whether got empty slot
+                let emptySlot = await getFavBd_ByUserId_bdId(0,0,1);
+                if(notEmptyArr(emptySlot)){ // got empty slot, get _id and update it
+                    let updateRel = await updateFavBd(user_id, bd_id, emptySlot[0]._id);
+                    if(!updateRel) return res.status(203).send({errMsg:"Add Favorite Failed(Update)"});
+                }else{   // no empty slot, insert new slot.
+                    let insertRel = await insertFavBd(user_id, bd_id);
+                    if(!insertRel) return res.status(203).send({errMsg:"Add Favorite Failed(Insert)"});
+                }
+            }
+        }else{      /** remove favorite */
+            if(bFavExist){
+                // exist in list. set all to user_id = 0, bd_od = 0;
+                let delRel = await favBdSetEmpty(user_id, bd_id);
+                if(!delRel) return res.status(203).send({errMsg:"Remove Favorite Failed"});
+            }
+        }
+
+        return res.status(200).send({Success:true});
+
+    } catch (error) {
+        console.log("Error : /building/getfavbd", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
 
 
 module.exports = router;

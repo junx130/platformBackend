@@ -10,6 +10,7 @@ const floorTableName = 'V2_OwnerList_floor';
 const shareBuildingTable = 'V2a_ShareBuildingTable';
 const sharebdDevTable = 'V2a_ShareDeviceTable';
 
+const fabBdList = 'V2_BdFavLlist';
 
 /**----------- Get Building related area ---------- */
 async function getAreaInfoBy_id (area_id){
@@ -1151,6 +1152,110 @@ async function v2a_getAreaInfloor (floor_id){
     }
 }
 
+/**-------------fav building--------- */
+async function insertFavBd(user_id, bd_id) {
+    let fnName = "insertFavBd";
+    try {
+        const createTable = `CREATE TABLE IF NOT EXISTS ${fabBdList}(	
+            _id int NOT NULL AUTO_INCREMENT,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unix INT(11) NOT NULL,
+            user_id int not null,
+            bd_id int not null,
+            PRIMARY KEY (_id)
+        );`;
+
+        const insertData = `INSERT INTO ${fabBdList} (unix, user_id, bd_id)
+        VALUES (UNIX_TIMESTAMP(), ${user_id}, ${bd_id});`;        
+
+        let result = await insertTemplate(db, createTable, insertData, `${fnName} Finally`);
+        if (!result) return null    // insert error
+        if (result.affectedRows > 0 && result.insertId > 0) return { success: true, insertId: result.insertId }
+        return null     //<--- unknown state
+
+    } catch (error){
+        console.log(`${fnName} err : `, error.message);
+        return null;
+    }
+}
+
+async function updateFavBd(user_id, bd_id, _id) {
+    let sMsg = "updateFavBd";
+    try {
+        const quertCmd = `UPDATE ${fabBdList} SET 
+            unix=UNIX_TIMESTAMP(),
+            user_id = ${user_id},
+            bd_id = ${bd_id}
+            where _id = ${_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function favBdSetEmpty(user_id, bd_id) {
+    let sMsg = "favBdSetEmpty";
+    try {
+        const quertCmd = `UPDATE ${fabBdList} SET 
+            unix=UNIX_TIMESTAMP(),
+            user_id = 0,
+            bd_id = 0
+            where user_id = ${user_id} and bd_id = ${bd_id}`;
+        // console.log("quertCmd", quertCmd);
+
+        let result = await queryTemplate(db, quertCmd, `${sMsg} Finally`);
+        // console.log(result);
+        if (!result || !result.affectedRows) return null;
+        if (result.affectedRows > 0) return true;
+        return null
+
+    } catch (error) {
+        console.log(`Error : ${sMsg}`, error.message);
+        return null;
+    }
+}
+
+async function getFavBd_ByUserId_bdId (user_id, bd_id, nLimit){
+    let sErrTitle = "getFavBd_ByUser_Id";
+    try {
+        let quertCmd = `SELECT * from ${fabBdList} WHERE user_id = ${user_id} and bd_id = ${bd_id}`;
+        if(nLimit>0) quertCmd = `SELECT * from ${fabBdList} WHERE user_id = ${user_id} and bd_id = ${bd_id} limit ${nLimit}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+async function getFavBd_ByUser_Id (user_id){
+    let sErrTitle = "getFavBd_ByUser_Id";
+    try {
+        let quertCmd = `SELECT * from ${fabBdList} WHERE user_id = ${user_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
 
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
@@ -1215,3 +1320,10 @@ exports.v2a_getShareBd_byBdID=v2a_getShareBd_byBdID;
 exports.v2a_deactivateSharedBd=v2a_deactivateSharedBd;
 exports.v2a_getShareBd_byBdID_UserId_IncNonActive=v2a_getShareBd_byBdID_UserId_IncNonActive;
 exports.v2a_getAreaInfloor=v2a_getAreaInfloor;
+
+/** ---Favaroute building list */
+exports.getFavBd_ByUser_Id=getFavBd_ByUser_Id;
+exports.insertFavBd=insertFavBd;
+exports.getFavBd_ByUserId_bdId=getFavBd_ByUserId_bdId;
+exports.updateFavBd=updateFavBd;
+exports.favBdSetEmpty=favBdSetEmpty;
