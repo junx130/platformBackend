@@ -61,6 +61,20 @@ async function getUserByUsername(username) {
     }
 }
 
+async function getUserByUsername_jx(username) {    
+    const quertCmd = `SELECT * from ${dbTable} WHERE username = "${username}" AND active = 1`;
+
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
 async function getUserByEmail(email) {        
     try {
         const quertCmd = `SELECT * from ${dbTable} WHERE email = "${email}" and active = 1`;
@@ -222,6 +236,7 @@ exports.genAuthToken = genAuthToken;
 exports.validateRegUser = validateMessage;
 exports.regUser = insertUser;
 exports.getUserByUsername = getUserByUsername;
+exports.getUserByUsername_jx=getUserByUsername_jx;
 exports.getUserByEmail = getUserByEmail;
 exports.getTokenExpiry = getTokenExpiry;
 exports.setUserActive = setUserActive;
