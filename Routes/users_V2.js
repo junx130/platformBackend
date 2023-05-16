@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email, updateUserActiveStatus, updateUserEmail } = require("../MySQL/userManagement_V2/users_V2");
+const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email, updateUserActiveStatus, updateUserEmail, getUserByUsername_jx } = require("../MySQL/userManagement_V2/users_V2");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -11,6 +11,7 @@ const { sendPassResetEmail, sendValidationEmail } = require("../EmailServer/emai
 const moment = require("moment");
 const recaptcha = require("../Middleware/recaptcha");
 const { getByUserId, getByEmail, getByToken, insertResetPassword, updateResetStatus } = require("../MySQL/userManagement_V2/user_ResetPassword");
+const { notEmptyArr } = require("../utilities/validateFn");
 
 
 router.post("/register/validation", async (req, res) => {        
@@ -60,9 +61,13 @@ router.post("/register", async (req, res) => {
     
         // if (error) return res.status(203).send(error.details[0].message);
         // check database, no username is not overlap
-        let username = await getUserByUsername(req.body.username);
-        // console.log("USer :", user);
-        if (username) return res.status(203).send("Username is taken");
+        let {username} = req.body;
+        let userList = await getUserByUsername_jx(username.trim());
+        // console.log("userList :", userList);
+        if(!userList)   return res.status(203).send("Databases error");
+        if(notEmptyArr(userList))   return res.status(203).send("Username is taken");
+        // console.log("Proceed to create account");
+        // return
         // let user = await getUserByUsername(req.body.username);
         // if (user) return res.status(402).send("Username exist.");
         // encrypt password
@@ -89,7 +94,7 @@ router.post("/register", async (req, res) => {
             // .header("aploud-auth-token", token)
             // .send(_.pick(userInfo, ["username"]));    
     } catch (error) {
-        console.log("User Register Error");
+        console.log("User Register Error", error.message);
         return res.status(404).send(error.message);
     }
 });
