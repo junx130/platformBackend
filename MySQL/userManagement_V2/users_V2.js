@@ -49,6 +49,19 @@ async function getAllUser() {
 }
 
 async function getUserByUsername(username) {    
+    const quertCmd = `SELECT * from ${dbTable} WHERE username = "${username}"`;
+
+    try {
+        let result = await queryTemplate(userDatabase, quertCmd, "Get User Done");
+        if(!result[0]) return [];     // return empty array
+        return result[0];        
+    } catch (ex) {
+        console.log(ex.message)
+        return null;
+    }
+}
+
+async function getActiveUserByUsername(username) {    
     const quertCmd = `SELECT * from ${dbTable} WHERE username = "${username}" AND active = 1`;
 
     try {

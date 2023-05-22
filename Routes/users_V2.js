@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
         // check database, no username is not overlap
         let username = await getUserByUsername(req.body.username);
         // console.log("USer :", user);
-        if (username) return res.status(203).send("Username is taken");
+        if (username.length) return res.status(203).send("Username is taken");
         // let user = await getUserByUsername(req.body.username);
         // if (user) return res.status(402).send("Username exist.");
         // encrypt password
