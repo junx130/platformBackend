@@ -152,6 +152,20 @@ async function getDeviceByTypendevID(type, devID) {
     }
 }
 
+async function getDeviceByTypendevIdList(type, devIdList) {
+    const queryCmd = `select * from ${tableName} where type = ${type} and devID in (${devIdList.toString()});`
+    ;
+    try {
+        let result = await queryTemplate(settingDatabase, queryCmd, "getDeviceByTypendevIdList Done");
+        if (!result[0]) return [];
+        const devices = result.map(b => b);
+        return devices;
+    } catch (ex) {
+        console.log(ex.message);
+        return [];
+    }
+}
+
 async function V2_insertDevice(body) {    
     const createTable = `CREATE TABLE IF NOT EXISTS ${tableName}(		
         _id int NOT NULL AUTO_INCREMENT,
@@ -204,5 +218,6 @@ exports.getDevicesFromList = getDevicesFromList;
 exports.getDevicesList = getDevicesList;
 exports.registerNewDevice = registerNewDevice;
 exports.getDeviceByTypendevID = getDeviceByTypendevID;
+exports.getDeviceByTypendevIdList = getDeviceByTypendevIdList;
 exports.V2_insertDevice=V2_insertDevice;
 exports.getDevBy_SnRegcode = getDevBy_SnRegcode;

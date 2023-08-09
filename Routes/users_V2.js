@@ -1,5 +1,5 @@
 const express = require("express");
-const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email, updateUserActiveStatus, updateUserEmail, getUserByUsername_jx } = require("../MySQL/userManagement_V2/users_V2");
+const { getAllUser, deleteUser, valUpdateUser, genAuthToken, getTokenExpiry, validateRegUser, regUser, getUserByUsername, getUserByEmail, setUserActive, updateActToken, verifyToken, genLoginToken, updatePassword, getUserById_email, updateUserActiveStatus, updateUserEmail, getUserByUsername_jx, getUserBy_idList } = require("../MySQL/userManagement_V2/users_V2");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
@@ -328,6 +328,22 @@ router.post("/getall", async (req, res) => {
         // let info = req.body;
         // console.log(info);
         let result = await getAllUser();
+        // console.log(result);
+        if (result)
+            return res.status(200).send(result);
+        else
+            return res.status(205).send("User List is empty");
+    } catch (error) {
+        console.log("Get All User Error");
+        return res.status(404).send(error.message);
+    }
+});
+
+router.post("/getuser_byIdList", async (req, res) => {
+    try {
+        let { idList } = req.body;
+        // console.log(info);
+        let result = await getUserBy_idList(idList);
         // console.log(result);
         if (result)
             return res.status(200).send(result);

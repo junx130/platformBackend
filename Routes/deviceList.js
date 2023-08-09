@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, V2_insertDevice, getDevBy_SnRegcode } = require("../MySQL/aploudSetting/deviceList");
+const { getDevicesList, getDevicesFromList, registerNewDevice, updateDevicesList, deleteDevice, getDevicesByType, getDevicesByLimit, countAll, getDeviceByTypendevID, getDeviceByTypendevIdList, V2_insertDevice, getDevBy_SnRegcode } = require("../MySQL/aploudSetting/deviceList");
 const Joi = require("joi");
 const auth = require("../Middleware/auth");
 const { getBuildingDevicesByTypeID, setIdleBuildingDevices } = require("../MySQL/buildings/buildingDevices");
@@ -225,6 +225,19 @@ router.post("/getdevbytyndevid", auth, async (req, res) => {
         return res.status(200).send([]);
     }
     
+});
+
+router.post("/getdevbytyndevidlist", auth, async (req, res) => {
+    // const { error } = validateUpdate(req.body);
+    // stop seq if error\
+    try {
+        let body = req.body;        
+        let rel = await getDeviceByTypendevIdList(body.type, body.devIdList);
+        return res.status(200).send(rel);
+    } catch (error) {
+        console.log('getdevbytyndevid error');
+        return res.status(200).send([]);
+    }
 });
 
 router.post("/v2regdevlist", auth, async (req, res) => {

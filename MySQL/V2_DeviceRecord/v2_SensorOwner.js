@@ -252,6 +252,24 @@ async function getBddevBy_userId_bdId (user_id, bd_id){
     }
 }
 
+async function getBddevBy_Ty_devIdList (type, devIdList){
+    try {
+        // let _idList = [...a_list];
+        const quertCmd = `SELECT * from ${tableName} WHERE type = ${type} AND devID in (${devIdList.toString()})`;
+    
+        // const quertCmd = `SELECT * from ${tableName} WHERE owner_id = ${user_id} and active = 1 and buidling_id=${bd_id}`;
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "getBddevBy_Ty_devIdList Finally");
+        // console.log(result);
+        // if(!result[0]) return [];     
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
 async function getBddevBy_idList (a_list){
     try {
         let _idList = [...a_list];
@@ -1256,7 +1274,7 @@ async function getFavBd_ByUser_Id (user_id){
     }
 }
 
-
+exports.getBddevBy_Ty_devIdList = getBddevBy_Ty_devIdList;
 exports.getBddevBy_idList=getBddevBy_idList;
 exports.getBddevBy_userId_bdId=getBddevBy_userId_bdId;
 exports.getBuildingByOwner_id_bd_id=getBuildingByOwner_id_bd_id;

@@ -6,7 +6,7 @@ const auth = require("../../Middleware/auth");
 const { getDevBy_SnRegcode } = require("../../MySQL/aploudSetting/deviceList");
 const { getUserByEmail, getUserBy_idList, getUserByUsername } = require("../../MySQL/userManagement_V2/users_V2");
 const { getByUserId, v2a_getUser } = require("../../MySQL/userManagement_V2/user_ResetPassword");
-const { getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive, v2a_getAreaInfloor, getFavBd_ByUser_Id, getFavBd_ByUserId_bdId, insertFavBd, updateFavBd, favBdSetEmpty } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
+const { getBddevBy_Ty_devIdList, getSensorOwnerBy_TydevID, getBuildingByOwner_id, getBdInfoBy_id, getAreaByOwner_id, getAreaInfoBy_id, insertV2_OwnerList_bd, insertV2_OwnerList_area, insertV2_OwnerList_bdDev, getBuildingByOwner_id_bd_id, getBddevBy_userId_bdId, getBddevBy_idList, getBdList_byid, v2a_getFloorinBd, v2a_getDeviceInBd, v2a_getAreaRelated, getSensorOwnerBy_TydevID_inUse, v2aInsertFloor, v2aGetBdDevRegBefore, v2aUpdateOwnerList_bdDev, v2aUpdateSortIdx_bd, v2aRenameBd, v2aUpdateSortIdx_floor, v2aRenameFloor, v2aUpdateSortIdx_area, v2aRenameArea, v2aDeleteArea, v2aDeleteFloor, v2aClearFloorArea_id, v2aClearArea_id, v2a_getInactiveFloor, v2aInsertUpdatefloor, v2a_getInactiveArea, v2aInsertUpdateArea, v2a_getAllAreaUnderBd, v2aUpdatebdDevFloor_Area, v2aUpdateSortIdx_device, v2aRenameDev, v2aDeleteDev, v2aSwapDev, getBddevBy_id, v2aDeteachDev, v2a_getShareBuilding_byUser_id, v2a_getShareBd_byBdID_UserId, v2a_getShareBddev_byBdID_UserId, v2a_getAllFloorInBd, v2a_getAllAreaInBd, v2a_updateSharedBd, v2a_InsertSharedBd, v2a_getShareBddev_byBdID_UserId_bdDevId, v2a_updateSharedBdDevAccessLevel, v2a_InsertSharedBdDev, v2a_DeactivateShareDev, v2a_getShareBd_byBdID, v2a_deactivateSharedBd, v2a_getShareBd_byBdID_UserId_IncNonActive, v2a_getAreaInfloor, getFavBd_ByUser_Id, getFavBd_ByUserId_bdId, insertFavBd, updateFavBd, favBdSetEmpty } = require("../../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { getSensorSharedBy_TydevID, getBuildingByActiveUser_id, getAreaByActiveUser_id, getSharedBdBy_user_id_bd_id, getSharedevBy_userId_bdId, setSharedBdActive, addSharedBd, setSharedBdDevActiveStatus, addSharedBdDev, getAllSharedevBy_userId_bdId, getSensorSharedBy_user_bd_accesslvl, getCountSharedBdDev_byBd, getUniqueUserIdList_ByBdList, getUniqueBdId_byUserId, getUniqueUserId_byBdId, updateSharedBd, getShareBdInfoGrantByUser_id, updateSharedBd_UserEdit, v2a_getSharedBdBy_user_id_bd_id } = require("../../MySQL/V2_DeviceRecord/v2_SensorSharedUser");
 const { notArrOrEmptyArr, isEmptyObject, notEmptyArr } = require("../../utilities/validateFn");
 
@@ -340,6 +340,23 @@ router.post("/building/getbddevby_idlist", auth, async (req, res) => {
         
     } catch (error) {
         console.log("/building/checkvaliduser Error");
+        console.log(error.message);
+        return res.status(203).send({errMsg: "Server Exc Error"});   
+    }
+});
+
+router.post("/building/getbddevby_ty_devidlist", auth, async (req, res) => {    
+    try {
+        let {type, devIdList} = req.body;
+        console.log(type, devIdList);
+        let bdDev_list = await getBddevBy_Ty_devIdList(type, devIdList);
+        console.log(bdDev_list);
+        if(!bdDev_list) return res.status(203).send({errMsg: "Database Error"});
+        
+        return res.status(200).send(bdDev_list);
+        
+    } catch (error) {
+        console.log("/building/getbddevby_ty_devidlist Error");
         console.log(error.message);
         return res.status(203).send({errMsg: "Server Exc Error"});   
     }
@@ -1185,6 +1202,21 @@ router.post("/building/getbdinfo_byBd_id", auth, async (req, res) => {
 
     } catch (error) {
         console.log("Error : /building/getbdinfo_byBd_id", error.message);
+        return res.status(203).send({errMsg:error.message});     
+    }
+});
+
+router.post("/building/getbdList_byBd_idList", auth, async (req, res) => {    
+    try {
+        let {bd_idList} = req.body;
+
+        let bdInfo = await getBdList_byid(bd_idList);
+        if(!bdInfo) return res.status(203).send({errMsg:"Get DB err"});
+
+        return res.status(200).send(bdInfo);
+
+    } catch (error) {
+        console.log("Error : /building/getbdList_byBd_idList", error.message);
         return res.status(203).send({errMsg:error.message});     
     }
 });
