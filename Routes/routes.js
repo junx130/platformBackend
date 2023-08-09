@@ -37,6 +37,8 @@ const V2_ctrlRoute = require("./V2_Control/V2_ControlRoute");
 const V2_appRoute = require("./V2_Application/V2_ApplicationRoute");
 const V2_app_RogerJuniorRoute = require("./V2_Application/RogerJunior/V2_RogerJuniorRoute");
 const V2_coolingTowerCfg = require("./V2_AppDevice/V2_CoolingTowerCfgRoute");
+const V2_system = require("./V2_System/V2_SystemRoute");
+
 
 
 
@@ -84,6 +86,8 @@ module.exports = function (app) {
     app.use("/v2action/", V2_actionRoute);
     app.use("/v2ctrl/", V2_ctrlRoute);
     app.use("/v2app/", V2_appRoute);
+    app.use("/v2system/", V2_system);
+    
     
 
     app.use("/v1ctrl/", V1_ctrlRoute);
