@@ -119,6 +119,35 @@ router.post("/bddev/getdailykwh", auth, async (req, res) => {
     }
 });
 
+router.post("/bddev/getdatafordashitem", auth, async(req, res) => {
+    try {
+        let dashItemQueryList = req.body;
+        for (const eachDash of dashItemQueryList) {
+            if(eachDash.queryType === "lastN")
+                eachDash.data = await v2GetBdDevData_lastN(eachDash.devType, eachDash.bdDev_id, eachDash.qty);
+            else if(eachDash.queryType === "dailyAccum") {
+                let currDate = moment(moment().format('YYYY-MM-DD') + ' 00:00:00').unix() + parseInt(eachDash.timeValue);
+                eachDash.data = [];
+                for(let i = 0; i < eachDash.qty; i++) {
+                    let lastNAfterUnix = [];
+                    if(currDate > moment().unix()) {
+                        lastNAfterUnix = await v2GetBdDevData_lastN_b4Unix(eachDash.devType, eachDash.bdDev_id, moment().unix(), 1);
+                    } else {
+                        lastNAfterUnix = await v2GetBdDevData_lastN_afterUnix(eachDash.devType, eachDash.bdDev_id, currDate, 1);
+                    }
+                    eachDash.data.unshift(lastNAfterUnix[0]);
+                    currDate = currDate - 86400;
+                }
+            }
+        }
+
+        return res.status(200).send(dashItemQueryList);
+    } catch (error) {
+        console.log("/bddev/getdatafordashitem Error");
+        return res.status(203).send({errMsg:'Database Server Err'});   
+    }
+})
+
 function getBatteryValue(sensorInfo, devLastData){
     if(sensorInfo.sensorVersion == 1){   
         if(sensorInfo.type === 1 || sensorInfo.type === 2){
