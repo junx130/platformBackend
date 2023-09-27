@@ -35,12 +35,13 @@ router.post("/getsystemlistbybdid", auth, async (req, res) => {
             let involvedBdDev = await getCompTiePara_byComp_id(eachComponent._id);
             let bdDevList = []
             for (const eachDev of involvedBdDev) {
-                let findDuplicated = bdDevList.indexOf(eachDev.bdDev_id);
-                if(findDuplicated<0){
-                    bdDevList.push({bdDev_id:eachDev.bdDev_id, devType:eachDev.devType});
-                }else{
-                    console.log("Duplicated");
-                }
+                bdDevList.push(eachDev);
+                // let findDuplicated = bdDevList.indexOf(eachDev.bdDev_id);
+                // if(findDuplicated<0){
+                //     bdDevList.push({bdDev_id:eachDev.bdDev_id, devType:eachDev.devType});
+                // }else{
+                //     console.log("Duplicated");
+                // }
             }
             eachComponent.bdDevInvolve_List = bdDevList;
         }
