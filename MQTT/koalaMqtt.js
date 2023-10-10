@@ -42,10 +42,11 @@ function prgMqtt() {
             // console.log("nodeReqRel:", nodeReqRel);
             if(nodeReqRel) {
               if(nodeReqRel.toPublish) publishMqtt(nodeReqRel.topic, nodeReqRel.loraPackage);
-            }else{
-              await mqttNodeHandling(topic, message);
-              prgMqtt.client.publish("AploudBackend/Reply", "Received");
             }
+            // else{
+            //   await mqttNodeHandling(topic, message);
+            //   prgMqtt.client.publish("AploudBackend/Reply", "Received");
+            // }
 
           } catch (error) {
             console.log("kaola mqtt error : ", error);
