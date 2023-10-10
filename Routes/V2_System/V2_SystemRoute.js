@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
-const { getSystemList_byBd_id, getComponentList_byBd_id, getGroupList_byBd_id, getCompAuxList_byComp_id, getCompTiePara_byComp_id, getCompAuxList_byComp_id_StartEndTime } = require("../../MySQL/V2_System/V2_System");
+const { getSystemList_byBd_id, getComponentList_byBd_id, getGroupList_byBd_id, getCompAuxList_byComp_id, getCompAuxList_byComp_idList, getCompTiePara_byComp_id, getCompAuxList_byComp_id_StartEndTime } = require("../../MySQL/V2_System/V2_System");
 
 /** the aux id for start end time must be 4(Start) and 5(End) */
 const componentWithStartEndTime=[5,6];
@@ -20,14 +20,15 @@ router.post("/getsystemlistbybdid", auth, async (req, res) => {
         let componentList = await getComponentList_byBd_id(bd_id);
         if(!componentList) return res.status(203).send({ errMsg: "Get component list error" });
         /** for each component list.  */
+        let comp_idList = [];
         for (const eachComponent of componentList) {
             /** query System_Component_Aux, get by component_id and auxId in(4,5) */
             let foundIdx = componentWithStartEndTime.findIndex(c=> c===eachComponent.componentType);
             if(foundIdx>=0){     // these component with star end time.
                 let startEndList = await getCompAuxList_byComp_id_StartEndTime(eachComponent._id);
-                let startAux = startEndList.find(c=> c.auxId === 4);
+                let startAux = startEndList.find(c=> c.auxId === 'startTime');
                 if (Object.hasOwnProperty.call(startAux, "auxValue")) eachComponent.StartTime = startAux.auxValue;
-                let endAux = startEndList.find(c=> c.auxId === 5);
+                let endAux = startEndList.find(c=> c.auxId === 'endTime');
                 if (Object.hasOwnProperty.call(endAux, "auxValue")) eachComponent.EndTime = endAux.auxValue;
             }
 
@@ -44,9 +45,12 @@ router.post("/getsystemlistbybdid", auth, async (req, res) => {
                 // }
             }
             eachComponent.bdDevInvolve_List = bdDevList;
+            comp_idList.push(eachComponent._id);
         }
 
-        return res.status(200).send({systemList, groupList, componentList});
+        let auxList = await getCompAuxList_byComp_idList(comp_idList);
+
+        return res.status(200).send({systemList, groupList, componentList, auxList});
     } catch (error) {
         console.log(`${errTopic} err: `, error.message);
         return res.status(203).send({ errMsg: error.message });

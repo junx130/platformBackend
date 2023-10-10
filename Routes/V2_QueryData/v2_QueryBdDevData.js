@@ -86,38 +86,27 @@ router.post("/bddev/getlastndata_bylist", auth, async (req, res) => {
     }
 });
 
-router.post("/bddev/getdailykwh", auth, async (req, res) => {
-    try {
-        let { type, bdDev_id, paraKey, startTime, endTime, ttlDays, cutOffDate } = req.body;
-        let currDate;
-        let ttlDailykWh = [];
-        cutOffDate === null? currDate = moment().format("YYYY-MM-DD") : currDate = cutOffDate;
-        for(let i = 0; i < ttlDays; i++) {
-            console.log(i);
-            console.log(currDate);
-            // console.log(moment(currDate + ' ' + endTime).unix());
-            // let startVal = await v2GetBdDevData_lastN_afterUnix(type, bdDev_id, moment(currDate + ' ' + startTime).unix(), 1);
-            // let endVal = await v2GetBdDevData_lastN_b4Unix(type, bdDev_id, moment(currDate + ' ' + endTime).unix(), 1);
-            let currQuery = await v2GetBdDevData_durationBetweenUnix(type, bdDev_id, moment(currDate + ' ' + startTime).unix(), moment(currDate + ' ' + endTime).unix());
-            // console.log(currQuery);
-            if(currQuery.length) {
-                // console.log(currQuery[currQuery.length - 1].unix);
-                // let nowTime;
-                // if(i === 0) nowTime = moment(currQuery[currQuery.length - 1].unix).format("HH:mm");
-                // console.log(nowTime);
-                // console.log(currQuery[0][paraKey], currQuery[currQuery.length - 1][paraKey]);
-                let currkWh = currQuery[currQuery.length - 1][paraKey] - currQuery[0][paraKey];
-                ttlDailykWh.unshift({x: i === 0 && cutOffDate === null? `Today (Until ${moment.unix(currQuery[currQuery.length - 1].unix).tz("Asia/Kuala_Lumpur").format("HH:mm")})` : moment(currDate).format("DD/M/YY"), y: currkWh});
-            }
-            currDate = moment(currDate).subtract(1, "days").format("YYYY-MM-DD");
-        };
+// router.post("/bddev/getdailykwh", auth, async (req, res) => {
+//     try {
+//         let { type, bdDev_id, paraKey, startTime, endTime, ttlDays, cutOffDate } = req.body;
+//         let currDate;
+//         let ttlDailykWh = [];
+//         cutOffDate === null? currDate = moment().format("YYYY-MM-DD") : currDate = cutOffDate;
+//         for(let i = 0; i < ttlDays; i++) {
+//             let currQuery = await v2GetBdDevData_durationBetweenUnix(type, bdDev_id, moment(currDate + ' ' + startTime).unix(), moment(currDate + ' ' + endTime).unix());
+//             if(currQuery.length) {
+//                 let currkWh = currQuery[currQuery.length - 1][paraKey] - currQuery[0][paraKey];
+//                 ttlDailykWh.unshift({x: i === 0 && cutOffDate === null? `Today (Until ${moment.unix(currQuery[currQuery.length - 1].unix).tz("Asia/Kuala_Lumpur").format("HH:mm")})` : moment(currDate).format("DD/M/YY"), y: currkWh});
+//             }
+//             currDate = moment(currDate).subtract(1, "days").format("YYYY-MM-DD");
+//         };
 
-        return res.status(200).send(ttlDailykWh);       
-    } catch (error) {
-        console.log("/bddev/getdailykwh Error");
-        return res.status(203).send({errMsg:'Database Server Err'});    
-    }
-});
+//         return res.status(200).send(ttlDailykWh);       
+//     } catch (error) {
+//         console.log("/bddev/getdailykwh Error");
+//         return res.status(203).send({errMsg:'Database Server Err'});    
+//     }
+// });
 
 router.post("/bddev/getdatafordashitem", auth, async(req, res) => {
     try {
@@ -126,7 +115,8 @@ router.post("/bddev/getdatafordashitem", auth, async(req, res) => {
             if(eachDash.queryType === "lastN")
                 eachDash.data = await v2GetBdDevData_lastN(eachDash.devType, eachDash.bdDev_id, eachDash.qty);
             else if(eachDash.queryType === "dailyAccum") {
-                let currDate = moment(moment().format('YYYY-MM-DD') + ' 00:00:00').unix() + parseInt(eachDash.timeValue);
+                let currTimezone = moment.utc().add(eachDash.timezone, 'hours');
+                let currDate = moment(currTimezone.format('YYYY-MM-DD') + ' 00:00:00').unix() + parseInt(eachDash.timeValue);
                 eachDash.data = [];
                 for(let i = 0; i < eachDash.qty; i++) {
                     let lastNAfterUnix = [];
