@@ -8,7 +8,7 @@ const { getTeleEventSubBy_Algo_id, getBdDefSubBy_bd_id, getContactUnderGroupBy_t
 const { getBddevBy_idList } = require("../MySQL/V2_DeviceRecord/v2_SensorOwner");
 const { v2GetBdDevData_lastN, v2GetBdDevData_T1_T2 } = require("../MySQL/V2_QueryData/v2_QueryBdDevData");
 const { getAlgoBy_bdDev_id, getGetCondition_byAlgo_id, getForTemplateBy_id, getForVarBy_condi_id, setFulfillmentCnt, setForVarFulfillmentCnt } = require("../MySQL/V2_Reaction/V2_Reaction");
-const { v2_sendNotifyMsg } = require("../notification/v2_telegram");
+// const { v2_sendNotifyMsg } = require("../notification/v2_telegram");
 const { intTimeToTime, checkBetweenTime, intToDOWSelected, getDow_0_6, momentNow, _unixNow } = require("../utilities/timeFn");
 const { notArrOrEmptyArr, pushUnique } = require("../utilities/validateFn");
 const { cvrtDbKeyToRawKey } = require("./sensorKeyDBKeyMapping");
@@ -459,7 +459,7 @@ async function act_tele_handling(algo_id, bd_id, eventMessage){
         let teleContactList = await getTeleContactListBy_IdList(tele_contact_idList);
         for (const eachTeleContact of teleContactList) {
             // console.log("chatId", eachTeleContact.chatId);
-            await v2_sendNotifyMsg(eachTeleContact.chatId, eventMessage);
+            // await v2_sendNotifyMsg(eachTeleContact.chatId, eventMessage);
             if(logActive) console.log(`~~~~~~~~~~~~~~~ Sent to ${eachTeleContact.name}`);
         }
 

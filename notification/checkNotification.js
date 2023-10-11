@@ -2,7 +2,7 @@
 const {getNotifyListById, updateNotifiedUnix, getNotifyListByIdnType} = require("../MySQL/notification/notification");
 const { getTelegramListById } = require("../MySQL/notification/telegramID");
 const {getBuildingsByID, insertNewBuilding} = require("../MySQL/aploudSetting/building");
-const { sendNotifyMsg } = require("./telegram");
+// const { sendNotifyMsg } = require("./telegram");
 // const {nodeKey} =require('./getNodeKeyName');
 const {getUnixTodayBaseOnTime, _unixNow, getDate, getTimeTz} = require("../utilities/timeFn");
 const {getDataT1ToT2_withOffset} = require('../MySQL/offset/queryDataAfterOffset');
@@ -273,7 +273,7 @@ async function checkNotification(bdDev){
                 let teleID = singleTeleID.telegramID;
                 try {
                     // if(!PDC_SkipNotification)    await sendNotifyMsg(teleID, notifyMsg);
-                    await sendNotifyMsg(teleID, notifyMsg);
+                    // await sendNotifyMsg(teleID, notifyMsg);
                 } catch (error) {
                     console.log("sendNotifyMsg  Error");
                     console.log(error.message);

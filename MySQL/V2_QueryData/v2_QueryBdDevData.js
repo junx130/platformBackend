@@ -80,7 +80,60 @@ async function v2GetBdDevData_lastNMin (type, bdDev_id, nMin){
     }
 }
 
+async function v2GetBdDevData_durationBetweenUnix (type, bdDev_id, startUnix, endUnix){
+    try {
+        // Device_1_10
+        // let startUnix = endUnix - (nMin * 60);
+        const quertCmd = `SELECT * from Device_${type}_${bdDev_id} where unix >= ${startUnix} and unix <= ${endUnix}`;
+        // select * from Device_1_1 order by unix desc limit 3
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, "v2GetBdDevData_durationBetweenUnix Finally");
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(error.message)
+        return null;       
+    }
+}
+
+async function v2GetBdDevData_lastN_b4Unix(type, bdDev_id, unix, nCnt){
+    let sErrTitle = "v2GetBdDevData_lastN_b4Unix";
+    try {
+        let quertCmd = `SELECT * from Device_${type}_${bdDev_id} WHERE unix <= ${unix} order by unix desc limit ${nCnt}`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
+async function v2GetBdDevData_lastN_afterUnix(type, bdDev_id, unix, nCnt){
+    let sErrTitle = "v2GetBdDevData_lastN_afterUnix";
+    try {
+        let quertCmd = `SELECT * from Device_${type}_${bdDev_id} WHERE unix >= ${unix} limit ${nCnt}`;        
+        // console.log(quertCmd);
+        let result = await queryTemplate(db, quertCmd, `${sErrTitle} Finally`);
+        // console.log(result);
+        if(!result[0]) return [];     // return empty array
+        const rtnResult = result.map(b=>b);
+        return rtnResult;       
+    } catch (error) {
+        console.log(`${sErrTitle}`, error.message)
+        return null;       
+    }
+}
+
 exports.v2GetBdDevData_durationB4Unix=v2GetBdDevData_durationB4Unix;
 exports.v2GetBdDevData_lastN =v2GetBdDevData_lastN;
 exports.v2GetBdDevData_T1_T2=v2GetBdDevData_T1_T2;
 exports.v2GetBdDevData_lastNMin=v2GetBdDevData_lastNMin;
+exports.v2GetBdDevData_durationBetweenUnix = v2GetBdDevData_durationBetweenUnix;
+exports.v2GetBdDevData_lastN_b4Unix = v2GetBdDevData_lastN_b4Unix;
+exports.v2GetBdDevData_lastN_afterUnix = v2GetBdDevData_lastN_afterUnix;

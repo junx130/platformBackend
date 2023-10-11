@@ -1,5 +1,5 @@
 const { getDevActCheck_Rising, setDeviceToNonActive } = require("../MySQL/notification/devActive");
-const { sendNotifyMsg } = require("../notification/telegram");
+// const { sendNotifyMsg } = require("../notification/telegram");
 const { getFmtTime, getDate, getTimeTz, _unixNow, fShiftUnixToEndTime, fGetTimeDiff_InDTMS, getUnixTodayBaseOnTime, fFmtTimeToUnixToday, fUnixOneDayEarlier} = require("../utilities/timeFn");
 const { getTelegramListById, getTelegramListBy_Id } = require("../MySQL/notification/telegramID");
 const { getBuildingsByID } = require("../MySQL/aploudSetting/building");
@@ -109,7 +109,7 @@ async function checkDevActive() {
       try {        
         /**Send Telegram 1 by 1 */
         for (const teleInfo of uniqueTeleList) {
-          await sendNotifyMsg(teleInfo.telegramID, teleMsg);   
+          // await sendNotifyMsg(teleInfo.telegramID, teleMsg);   
           /**Update DB after send notification */
         }
         if(process.env.activateTelegram==="true")    {

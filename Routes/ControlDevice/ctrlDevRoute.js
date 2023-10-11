@@ -27,9 +27,7 @@ aws_expClient.on("message", async (topic, message) => {
     let G_MEssage;
     let G_JsonForm;
     try {
-        // console.log("Message Lai Liao");
         const a_topic = topic.split("/");
-        // console.log(a_topic);
         G_MEssage=message;
         let mqttMsg = JSON.parse(message);
         G_JsonForm = mqttMsg;
@@ -38,24 +36,18 @@ aws_expClient.on("message", async (topic, message) => {
             let gwid = parseInt(a_topic[2]);
             if(a_topic[1]==='GwAck'){     /** ack by Gw once get command */ 
                 // update GwAck => true in DB
-                let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "GwAck", 1, false, false);
-                // console.log("Gw Update: ",updateRel);                
+                let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "GwAck", 1, false, false);        
     
             }else if(a_topic[1]==='NodeAck'){    /** Gw ack after get LoRaReply from Node */
                 // update NodeAck => true in DB
                 let updateRel = await V2_updateCrlCmdLog(mqttMsg, gwid, subTopic, "NodeAck", 1, false, true);
-                // console.log("Node Update: ",updateRel);   
-                // un subscribe base on topic stored in DB     
                 /** node control */
                 let unprocessCmdLog = await V2_getUnprocessCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
-                // console.log("unprocessCmd Cnt", unprocessCmdLog.length);
 
                 /** slave control */
                 let unprocessSlaveCmLog = await V2_getUnprocessSlaveCrlCmdLog_bySubTopic(subTopic);      // get within 1 mins before
-                // console.log("unprocessSlaveCmLog", unprocessSlaveCmLog);
                 if(unprocessCmdLog.length === 0 && unprocessSlaveCmLog.length === 0) {  // this is only active command log
                     // let setProcessed = await V2_updateCrlCmdLogBy_id(recentCmdLog[0]._id, "Processed", 1, false);
-                    // console.log("Unsubsribe To (Node): ",subTopic);   
                     aws_unsubscribeTopic(subTopic);
                 }
                 
@@ -63,11 +55,9 @@ aws_expClient.on("message", async (topic, message) => {
                 // console.log("mqttMsg", mqttMsg);
                 let logInfo = {...mqttMsg};
                 logInfo.gwid = gwid;
-                let cmdLog = await V2_getCmdLog(logInfo);
-                // console.log("cmdLog", cmdLog);                
+                let cmdLog = await V2_getCmdLog(logInfo); 
                 if(notArrOrEmptyArr(cmdLog)) return console.log("aws_expClient NodeAck Err: No log found");
                 if(cmdLog[0].ctrlType===1) return;
-                // console.log("ioEmit : ", mqttMsg)
                 if(mqttMsg.ht >= 47 &&  mqttMsg.ht!== 49){  // 49 is PDC precision control unit
                     let emitTopic = `v2_CtrlCmd_${mqttMsg.ht}_${mqttMsg.hi}`     
                     ioEmit(emitTopic, mqttMsg);      // update to frontend
@@ -92,7 +82,6 @@ aws_expClient.on("message", async (topic, message) => {
                     aws_unsubscribeTopic(subTopic);
                 }
                 let newMqttInfo = {ctrlType : 1, ...mqttMsg}
-                // console.log("ioEmit : ", newMqttInfo)
                 ioEmit("v2_CtrlCmd", newMqttInfo);      // update to frontend
 
             }
@@ -146,7 +135,6 @@ router.post("/setctrldev", auth, async (req, res) => {
 });
 
 router.post("/getnfromx", auth, async (req, res) => {  
-    // console.log('````````````Come in Get`````````````````');  
     try {
         // buidling.userAmmend = req.user.username;
         let obj = req.body;

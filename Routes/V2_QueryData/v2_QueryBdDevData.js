@@ -1,9 +1,11 @@
 const express = require("express");
-const { v2GetBdDevData_lastN, v2GetBdDevData_durationB4Unix, v2GetBdDevData_T1_T2 } = require("../../MySQL/V2_QueryData/v2_QueryBdDevData");
+const { v2GetBdDevData_lastN, v2GetBdDevData_durationB4Unix, v2GetBdDevData_T1_T2, v2GetBdDevData_lastN_b4Unix, v2GetBdDevData_lastN_afterUnix, v2GetBdDevData_durationBetweenUnix } = require("../../MySQL/V2_QueryData/v2_QueryBdDevData");
 const router = express.Router();
 const auth = require("../../Middleware/auth");
 const { notArrOrEmptyArr } = require("../../utilities/validateFn");
 const { getSensorListBy_typeList } = require("../../MySQL/SensorManagement/sensorManagement");
+const moment = require("moment");
+require('moment-timezone');
 // const Joi = require("joi");
 
 
@@ -84,6 +86,58 @@ router.post("/bddev/getlastndata_bylist", auth, async (req, res) => {
     }
 });
 
+// router.post("/bddev/getdailykwh", auth, async (req, res) => {
+//     try {
+//         let { type, bdDev_id, paraKey, startTime, endTime, ttlDays, cutOffDate } = req.body;
+//         let currDate;
+//         let ttlDailykWh = [];
+//         cutOffDate === null? currDate = moment().format("YYYY-MM-DD") : currDate = cutOffDate;
+//         for(let i = 0; i < ttlDays; i++) {
+//             let currQuery = await v2GetBdDevData_durationBetweenUnix(type, bdDev_id, moment(currDate + ' ' + startTime).unix(), moment(currDate + ' ' + endTime).unix());
+//             if(currQuery.length) {
+//                 let currkWh = currQuery[currQuery.length - 1][paraKey] - currQuery[0][paraKey];
+//                 ttlDailykWh.unshift({x: i === 0 && cutOffDate === null? `Today (Until ${moment.unix(currQuery[currQuery.length - 1].unix).tz("Asia/Kuala_Lumpur").format("HH:mm")})` : moment(currDate).format("DD/M/YY"), y: currkWh});
+//             }
+//             currDate = moment(currDate).subtract(1, "days").format("YYYY-MM-DD");
+//         };
+
+//         return res.status(200).send(ttlDailykWh);       
+//     } catch (error) {
+//         console.log("/bddev/getdailykwh Error");
+//         return res.status(203).send({errMsg:'Database Server Err'});    
+//     }
+// });
+
+router.post("/bddev/getdatafordashitem", auth, async(req, res) => {
+    try {
+        let dashItemQueryList = req.body;
+        for (const eachDash of dashItemQueryList) {
+            if(eachDash.queryType === "lastN")
+                eachDash.data = await v2GetBdDevData_lastN(eachDash.devType, eachDash.bdDev_id, eachDash.qty);
+            else if(eachDash.queryType === "dailyAccum") {
+                let currTimezone = moment.utc().add(eachDash.timezone, 'hours');
+                let currDate = moment(currTimezone.format('YYYY-MM-DD') + ' 00:00:00').unix() + parseInt(eachDash.timeValue);
+                eachDash.data = [];
+                for(let i = 0; i < eachDash.qty; i++) {
+                    let lastNAfterUnix = [];
+                    if(currDate > moment().unix()) {
+                        lastNAfterUnix = await v2GetBdDevData_lastN_b4Unix(eachDash.devType, eachDash.bdDev_id, moment().unix(), 1);
+                    } else {
+                        lastNAfterUnix = await v2GetBdDevData_lastN_afterUnix(eachDash.devType, eachDash.bdDev_id, currDate, 1);
+                    }
+                    eachDash.data.unshift(lastNAfterUnix[0]);
+                    currDate = currDate - 86400;
+                }
+            }
+        }
+
+        return res.status(200).send(dashItemQueryList);
+    } catch (error) {
+        console.log("/bddev/getdatafordashitem Error");
+        return res.status(203).send({errMsg:'Database Server Err'});   
+    }
+})
+
 function getBatteryValue(sensorInfo, devLastData){
     if(sensorInfo.sensorVersion == 1){   
         if(sensorInfo.type === 1 || sensorInfo.type === 2){
@@ -97,6 +151,5 @@ function getBatteryValue(sensorInfo, devLastData){
         }
     }
 }
-
 
 module.exports = router;
